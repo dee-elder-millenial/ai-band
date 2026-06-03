@@ -49,7 +49,22 @@ def main() -> None:
     ticks_per_beat, tempo_bpm, tracks = build_tracks()
     write_midi(DEMO_MIDI, tracks, ticks_per_beat=ticks_per_beat, tempo_bpm=tempo_bpm)
 
-    manifest = {
+    manifest = build_manifest(ticks_per_beat, tempo_bpm)
+    (BUILD_DIR / "BUILD_MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    zip_path = DIST_DIR / f"{BUILD_NAME}-{__version__}.zip"
+    if zip_path.exists():
+        zip_path.unlink()
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for file in sorted(BUILD_DIR.rglob("*")):
+            if file.is_file():
+                archive.write(file, Path(BUILD_NAME) / file.relative_to(BUILD_DIR))
+
+    print(f"Wrote {zip_path}")
+
+
+def build_manifest(ticks_per_beat: int, tempo_bpm: int) -> dict[str, object]:
+    return {
         "name": BUILD_NAME,
         "version": __version__,
         "built_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -84,17 +99,6 @@ def main() -> None:
             "drum_synth_jsfx": "Effects/AI Band GM Drum Synth.jsfx",
         },
     }
-    (BUILD_DIR / "BUILD_MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-
-    zip_path = DIST_DIR / f"{BUILD_NAME}-{__version__}.zip"
-    if zip_path.exists():
-        zip_path.unlink()
-    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for file in sorted(BUILD_DIR.rglob("*")):
-            if file.is_file():
-                archive.write(file, Path(BUILD_NAME) / file.relative_to(BUILD_DIR))
-
-    print(f"Wrote {zip_path}")
 
 
 if __name__ == "__main__":
