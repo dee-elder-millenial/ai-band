@@ -13,9 +13,14 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
 
     for section, bar, chord in iter_section_bars(song):
         local_bar = bar - section.start_bar
+        is_verse = section.name == "Verse" or section.name.startswith("Verse ")
         if leave_space and local_bar % 2 == 1:
             continue
-        if section.name in {"Intro", "Verse", "Outro"} and local_bar % 2 == 1:
+        if section.name in {"Intro", "Outro"} or is_verse:
+            if local_bar % 2 == 1:
+                continue
+
+        if song.preset == "southern-blues" and section.name == "Bridge" and local_bar % 2 == 1:
             continue
 
         tones = chord_tones(chord.root, chord.quality, 4)
@@ -36,9 +41,11 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
             beats = (1.5, 3.0)
             duration = note_duration(song, 0.45)
             if song.preset == "southern-blues":
-                voicing = (tones[0], tones[1], tones[2])
-                beats = (1.0, 3.0)
-                duration = note_duration(song, 0.5)
+                voicing = (tones[1], tones[2])
+                beats = (3.0,)
+                duration = note_duration(song, 0.55)
+                if section.name in {"Solo", "Final Chorus"}:
+                    beats = (1.0, 3.0)
             elif song.preset == "bluesy-alt-country":
                 voicing = (tones[0], tones[2])
                 beats = (1.0, 3.0)

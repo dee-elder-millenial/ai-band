@@ -113,18 +113,25 @@ def _generate_southern_blues(song: SongState, sparse: bool = False) -> MidiTrack
     track = MidiTrack("AI Lead Player", channel=LEAD_CHANNEL, program=81)
     scale = scale_notes(song.key, "minor", 5)
     low_scale = scale_notes(song.key, "minor", 4)
-    lick_shapes = (
-        ((0.12, 0, 0.70, 54, True), (1.20, 2, 0.42, 48, False), (2.35, 4, 0.54, 56, True)),
-        ((1.80, 5, 0.50, 58, True), (2.60, 4, 0.38, 50, False), (3.20, 2, 0.44, 52, False)),
-        ((0.30, 3, 0.44, 55, False), (1.05, 4, 0.64, 58, True)),
-        ((2.15, 2, 0.46, 52, False), (2.95, 0, 0.74, 57, True)),
+    answer_shapes = (
+        ((2.05, 2, 0.46, 52, False), (2.78, 4, 0.62, 56, True)),
+        ((2.20, 5, 0.52, 58, True), (3.02, 4, 0.36, 50, False), (3.48, 2, 0.34, 50, False)),
+        ((2.35, 3, 0.42, 54, False), (3.05, 4, 0.70, 58, True)),
+        ((2.12, 2, 0.40, 52, False), (2.72, 0, 0.80, 56, True)),
+    )
+    solo_shapes = (
+        ((0.20, 0, 0.44, 55, True), (0.92, 2, 0.34, 49, False), (1.45, 3, 0.36, 52, False), (2.25, 4, 0.62, 59, True)),
+        ((0.55, 5, 0.48, 60, True), (1.28, 4, 0.34, 50, False), (2.10, 2, 0.42, 53, False), (3.02, 0, 0.56, 57, True)),
+        ((1.05, 3, 0.40, 55, False), (1.72, 4, 0.58, 58, True), (2.72, 5, 0.36, 57, False)),
+        ((0.28, 2, 0.38, 52, False), (1.08, 0, 0.50, 54, True), (2.35, 4, 0.46, 58, True), (3.18, 2, 0.36, 51, False)),
     )
 
     for section, bar, _chord in iter_section_bars(song):
         local_bar = bar - section.start_bar
-        section_is_big = section.name.startswith("Chorus") or section.name in {"Solo", "Final Chorus"}
+        section_is_solo = section.name == "Solo"
+        section_is_big = section.name.startswith("Chorus") or section.name == "Final Chorus"
         section_is_call = section.name in {"Intro", "Bridge", "Outro"}
-        if not section_is_big and not section_is_call:
+        if not section_is_big and not section_is_call and not section_is_solo:
             continue
         if section.name == "Intro" and local_bar not in {1, 3}:
             continue
@@ -132,12 +139,14 @@ def _generate_southern_blues(song: SongState, sparse: bool = False) -> MidiTrack
             continue
         if section.name == "Outro" and local_bar not in {1, 3}:
             continue
-        if section_is_big and local_bar % (3 if section.name == "Solo" else 2) == 1:
+        if section_is_solo and local_bar % 3 == 1:
+            continue
+        if section_is_big and local_bar % 2 == 0:
             continue
         if sparse and local_bar % 4 == 2:
             continue
 
-        lick = lick_shapes[(local_bar + section.start_bar) % len(lick_shapes)]
+        lick = solo_shapes[local_bar % len(solo_shapes)] if section_is_solo else answer_shapes[local_bar % len(answer_shapes)]
         note_pool = low_scale if section.name in {"Bridge", "Outro"} else scale
         for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
             note = note_pool[degree % len(note_pool)]

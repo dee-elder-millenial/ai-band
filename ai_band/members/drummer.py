@@ -9,6 +9,7 @@ KICK = 36
 SNARE = 38
 CLOSED_HAT = 42
 OPEN_HAT = 46
+RIDE = 51
 CRASH = 49
 TOM_LOW = 45
 TOM_MID = 47
@@ -24,10 +25,19 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
         drum_lift = 10 if bigger and section.energy >= 0.75 else 0
         if song.preset == "southern-blues":
             kick_beats = (0, 2.5) if not energetic else (0, 2, 3, 3.5)
+            kick_base = 92
+            snare_base = 94
+            hat_base = 54
         elif song.preset == "bluesy-alt-country":
             kick_beats = (0, 2.5) if not energetic else (0, 2, 3.5)
+            kick_base = 88
+            snare_base = 86
+            hat_base = 58
         else:
             kick_beats = (0, 2.5) if not energetic else (0, 1.5, 2.5, 3.5)
+            kick_base = 88
+            snare_base = 86
+            hat_base = 58
         snare_beats = (1, 3)
 
         for eighth in range(8):
@@ -36,17 +46,23 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
                 continue
             note = OPEN_HAT if energetic and eighth == 7 else CLOSED_HAT
             track.notes.append(
-                MidiNote(song.beat_tick(bar, beat), hat_duration, note, velocity(58, section.energy, drum_lift), DRUM_CHANNEL)
+                MidiNote(song.beat_tick(bar, beat), hat_duration, note, velocity(hat_base, section.energy, drum_lift), DRUM_CHANNEL)
             )
+
+        if song.preset == "southern-blues" and energetic:
+            for beat in (0, 1, 2, 3):
+                track.notes.append(
+                    MidiNote(song.beat_tick(bar, beat), hat_duration, RIDE, velocity(48, section.energy), DRUM_CHANNEL)
+                )
 
         for beat in kick_beats:
             track.notes.append(
-                MidiNote(song.beat_tick(bar, beat), step, KICK, velocity(88, section.energy, 8 + drum_lift), DRUM_CHANNEL)
+                MidiNote(song.beat_tick(bar, beat), step, KICK, velocity(kick_base, section.energy, 8 + drum_lift), DRUM_CHANNEL)
             )
 
         for beat in snare_beats:
             track.notes.append(
-                MidiNote(song.beat_tick(bar, beat), step, SNARE, velocity(86, section.energy, 6 + drum_lift), DRUM_CHANNEL)
+                MidiNote(song.beat_tick(bar, beat), step, SNARE, velocity(snare_base, section.energy, 8 + drum_lift), DRUM_CHANNEL)
             )
 
         if bar == section.start_bar:

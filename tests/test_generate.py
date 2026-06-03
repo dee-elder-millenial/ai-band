@@ -179,6 +179,24 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertGreaterEqual(len(lead.events), 18)
         self.assertLessEqual(len(next(track for track in tracks if track.name == "AI Percussion Extras").notes), 120)
 
+    def test_southern_blues_sound_polish_stays_controlled(self) -> None:
+        _ticks, _tempo, tracks = build_tracks(
+            mode="ehaye",
+            preset="southern-blues",
+            key="E",
+            scale="minor",
+            tempo_bpm=86,
+        )
+        drums = next(track for track in tracks if track.name == "AI Drummer")
+        bass = next(track for track in tracks if track.name == "AI Bass Player")
+        keyboard = next(track for track in tracks if track.name == "AI Keyboard Player")
+        lead = next(track for track in tracks if track.name == "AI Lead Player")
+
+        self.assertLessEqual(max(note.velocity for note in bass.notes), 80)
+        self.assertLessEqual(len(keyboard.notes), 180)
+        self.assertTrue(any(note.note == 51 for note in drums.notes))
+        self.assertLessEqual(len(lead.notes), 80)
+
 
 if __name__ == "__main__":
     unittest.main()
