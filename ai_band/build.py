@@ -75,6 +75,7 @@ def main() -> None:
             "ehaye_audition_script": "Scripts/ai_band_ehaye_audition_setup.lua",
             "county_line_audition_script": "Scripts/ai_band_county_line_audition_setup.lua",
             "hard_flag_blues_audition_script": "Scripts/ai_band_hard_flag_blues_audition_setup.lua",
+            "hard_flag_blues_with_guitar_audition_script": "Scripts/ai_band_hard_flag_blues_with_guitar_audition_setup.lua",
             "tone_helpers": "Scripts/ai_band_tone_helpers.lua",
             "live_cue_script": "Scripts/ai_band_write_live_cue.lua",
             "jsfx": "Effects/AI Band Humanizer.jsfx",
