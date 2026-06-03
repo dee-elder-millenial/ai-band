@@ -222,6 +222,8 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
             )
             if bend:
                 _add_bend(track, start, duration, LEAD_CHANNEL, _heartland_bend_profile(bar, index))
+            elif duration >= note_duration(song, 0.38):
+                _add_heartland_vibrato(track, start, duration, bar, index)
 
     return track
 
@@ -269,6 +271,21 @@ def _heartland_bend_profile(bar: int, index: int) -> tuple[tuple[float, int], ..
         ((0.22, 2000), (0.48, 3000), (0.70, 2550), (0.88, 0)),
     )
     return shapes[(bar + index) % len(shapes)]
+
+
+def _add_heartland_vibrato(track: MidiTrack, start: int, duration: int, bar: int, index: int) -> None:
+    depth = (120, 160, 100, 140)[(bar + index) % 4]
+    onset = 0.46 if duration < 220 else 0.38
+    profile = (
+        (onset, depth),
+        (onset + 0.12, -depth),
+        (onset + 0.24, int(depth * 0.7)),
+        (min(0.90, onset + 0.36), 0),
+    )
+    track.events.extend(
+        _pitch_bend(start + int(duration * timing), LEAD_CHANNEL, 8192 + amount)
+        for timing, amount in profile
+    )
 
 
 def _add_bend(
