@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, support_rest, transition_pickup, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, section_lift, support_rest, transition_pickup, velocity_shift
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -25,7 +25,7 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
 
     for section, bar, _chord in iter_section_bars(song):
         local_bar = bar - section.start_bar
-        bar_lift = phrase_lift(local_bar, section.bars, 4) if song.preset == "heartland-rock" else 0
+        bar_lift = phrase_lift(local_bar, section.bars, 4) if song.preset == "heartland-rock" else section_lift(song, local_bar, section.bars, 3)
         energetic = section.energy >= 0.75
         drum_lift = 10 if bigger and section.energy >= 0.75 else 0
         if song.preset == "heartland-rock":
@@ -62,7 +62,7 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
             if song.preset == "heartland-rock":
                 note_velocity = min(clamp_midi(note_velocity + velocity_shift(bar, beat, 4) + bar_lift + (5 if eighth in {2, 6} else 0)), 122)
             else:
-                note_velocity = played_velocity(note_velocity, song, bar, beat, 2)
+                note_velocity = min(122, played_velocity(note_velocity + bar_lift, song, bar, beat, 2))
             track.notes.append(
                 MidiNote(start, hat_duration, note, note_velocity, DRUM_CHANNEL)
             )
@@ -74,7 +74,7 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
                 if song.preset == "heartland-rock":
                     note_velocity = min(clamp_midi(note_velocity + velocity_shift(bar, beat, 2) + bar_lift), 122)
                 else:
-                    note_velocity = played_velocity(note_velocity, song, bar, beat, 1)
+                    note_velocity = min(122, played_velocity(note_velocity + bar_lift, song, bar, beat, 1))
                 track.notes.append(
                     MidiNote(start, hat_duration, RIDE, note_velocity, DRUM_CHANNEL)
                 )
@@ -85,7 +85,7 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
             if song.preset == "heartland-rock":
                 note_velocity = min(clamp_midi(note_velocity + velocity_shift(bar, beat, 3) + bar_lift), 122)
             else:
-                note_velocity = played_velocity(note_velocity, song, bar, beat, 1)
+                note_velocity = min(122, played_velocity(note_velocity + bar_lift, song, bar, beat, 1))
             track.notes.append(
                 MidiNote(start, step, KICK, note_velocity, DRUM_CHANNEL)
             )
@@ -98,7 +98,7 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
                 if _should_add_heartland_flam(section.energy, local_bar, beat):
                     _add_heartland_flam(track, song, start, section.energy, bar, beat, bar_lift)
             else:
-                note_velocity = played_velocity(note_velocity, song, bar, beat, 1)
+                note_velocity = min(122, played_velocity(note_velocity + bar_lift, song, bar, beat, 1))
             track.notes.append(
                 MidiNote(start, step, SNARE, note_velocity, DRUM_CHANNEL)
             )
@@ -114,7 +114,7 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
             if song.preset == "heartland-rock":
                 crash_velocity = min(clamp_midi(crash_velocity + velocity_shift(bar, 0, 3) + bar_lift), 120)
             else:
-                crash_velocity = played_velocity(crash_velocity, song, bar, 0, 1)
+                crash_velocity = min(122, played_velocity(crash_velocity + bar_lift, song, bar, 0, 1))
             track.notes.append(
                 MidiNote(crash_start, note_duration(song, 1), CRASH, crash_velocity, DRUM_CHANNEL)
             )

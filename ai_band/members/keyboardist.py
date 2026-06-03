@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, expression_curve, phrase_lift, played_duration, played_start, played_velocity, pocket_start, support_rest, velocity_shift
+from ai_band.humanize import clamp_midi, expression_curve, phrase_lift, played_duration, played_start, played_velocity, pocket_start, section_lift, support_rest, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import chord_tones
@@ -14,7 +14,7 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
 
     for section, bar, chord in iter_section_bars(song):
         local_bar = bar - section.start_bar
-        bar_lift = phrase_lift(local_bar, section.bars, 2) if song.preset == "heartland-rock" else 0
+        bar_lift = phrase_lift(local_bar, section.bars, 2) if song.preset == "heartland-rock" else section_lift(song, local_bar, section.bars, 3)
         is_verse = section.name == "Verse" or section.name.startswith("Verse ")
         if leave_space and local_bar % 2 == 1:
             continue
@@ -86,7 +86,7 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
                 else:
                     start = played_start(song, bar, beat, 0.45)
                     note_duration_ticks = played_duration(song, duration, bar, beat, 0.50, note_duration(song, 0.25))
-                    note_velocity = played_velocity(note_velocity, song, bar, beat, 2)
+                    note_velocity = played_velocity(note_velocity + bar_lift, song, bar, beat, 2)
                 track.notes.append(
                     MidiNote(start, note_duration_ticks, note, note_velocity, KEYS_CHANNEL)
                 )

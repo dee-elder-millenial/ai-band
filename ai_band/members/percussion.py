@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, support_rest, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, section_lift, support_rest, velocity_shift
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -19,7 +19,7 @@ def generate(song: SongState) -> MidiTrack:
         if section.energy < 0.5:
             continue
         local_bar = bar - section.start_bar
-        bar_lift = phrase_lift(local_bar, section.bars, 3) if song.preset == "heartland-rock" else 0
+        bar_lift = phrase_lift(local_bar, section.bars, 3) if song.preset == "heartland-rock" else section_lift(song, local_bar, section.bars, 2)
 
         if song.preset == "heartland-rock":
             if section.energy >= 0.85:
@@ -51,7 +51,7 @@ def generate(song: SongState) -> MidiTrack:
                             played_start(song, bar, beat, 0.75),
                             duration,
                             CLAP,
-                            played_velocity(velocity(42, section.energy), song, bar, beat, 2),
+                            played_velocity(velocity(42, section.energy, bar_lift), song, bar, beat, 2),
                             PERC_CHANNEL,
                         )
                     )
@@ -61,7 +61,7 @@ def generate(song: SongState) -> MidiTrack:
                             played_start(song, bar, 3.5, 0.85),
                             duration,
                             TAMBOURINE,
-                            played_velocity(velocity(46, section.energy), song, bar, 3.5, 2),
+                            played_velocity(velocity(46, section.energy, bar_lift), song, bar, 3.5, 2),
                             PERC_CHANNEL,
                         )
                     )
@@ -76,7 +76,7 @@ def generate(song: SongState) -> MidiTrack:
                     played_start(song, bar, beat, 0.35),
                     duration,
                     SHAKER,
-                    played_velocity(velocity(28, section.energy), song, bar, beat, 1),
+                    played_velocity(velocity(28, section.energy, bar_lift), song, bar, beat, 1),
                     PERC_CHANNEL,
                 )
             )
@@ -90,7 +90,7 @@ def generate(song: SongState) -> MidiTrack:
                         played_start(song, bar, beat, 0.75),
                         duration,
                         CLAP,
-                        played_velocity(velocity(48, section.energy), song, bar, beat, 2),
+                        played_velocity(velocity(48, section.energy, bar_lift), song, bar, beat, 2),
                         PERC_CHANNEL,
                     )
                 )
@@ -99,7 +99,7 @@ def generate(song: SongState) -> MidiTrack:
                     played_start(song, bar, 3.5, 0.85),
                     duration,
                     TAMBOURINE,
-                    played_velocity(velocity(54, section.energy), song, bar, 3.5, 2),
+                    played_velocity(velocity(54, section.energy, bar_lift), song, bar, 3.5, 2),
                     PERC_CHANNEL,
                 )
             )

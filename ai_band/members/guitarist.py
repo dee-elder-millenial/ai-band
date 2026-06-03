@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, support_rest
+from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, section_lift, support_rest
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import chord_tones
@@ -19,7 +19,7 @@ def generate(song: SongState) -> MidiTrack:
         local_bar = bar - section.start_bar
         tones = chord_tones(chord.root, chord.quality, 3)
         low_tones = chord_tones(chord.root, chord.quality, 2)
-        bar_lift = phrase_lift(local_bar, section.bars, 3) if song.preset == "heartland-rock" else 0
+        bar_lift = phrase_lift(local_bar, section.bars, 3) if song.preset == "heartland-rock" else section_lift(song, local_bar, section.bars, 1)
         voicing = (tones[0], tones[2], tones[0] + 12)
         beats = (0, 2) if section.energy < 0.75 else (0, 1.5, 2.5, 3.5)
         duration = half if section.energy < 0.75 else eighth
@@ -75,7 +75,7 @@ def generate(song: SongState) -> MidiTrack:
                             played_start(song, bar, beat, 0.55),
                             played_duration(song, duration, bar, beat, 0.50, note_duration(song, 0.25)),
                             note,
-                            played_velocity(velocity(base_velocity, section.energy), song, bar, beat, 2),
+                            played_velocity(velocity(base_velocity, section.energy, bar_lift), song, bar, beat, 2),
                             GUITAR_CHANNEL,
                         )
                     )
@@ -88,7 +88,7 @@ def generate(song: SongState) -> MidiTrack:
                 3.75,
                 _heartland_fill_voicing(tones, local_bar) if song.preset == "heartland-rock" else (tones[1], tones[2], tones[0] + 12),
                 note_duration(song, 0.18),
-                (46 + bar_lift) if song.preset == "heartland-rock" else 38,
+                (46 + bar_lift) if song.preset == "heartland-rock" else 38 + bar_lift,
                 section.energy,
                 "up",
                 _heartland_strum_gap(song, bar, 3.75, strum_gap) if song.preset == "heartland-rock" else strum_gap,

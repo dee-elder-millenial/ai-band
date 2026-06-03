@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, support_rest, transition_pickup, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, section_lift, support_rest, transition_pickup, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -20,7 +20,7 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
         fifth = root + 7
         flat_seventh = root + 10
         local_bar = bar - section.start_bar
-        bar_lift = phrase_lift(local_bar, section.bars, 2) if song.preset == "heartland-rock" else 0
+        bar_lift = phrase_lift(local_bar, section.bars, 2) if song.preset == "heartland-rock" else section_lift(song, local_bar, section.bars, 2)
         if simplify:
             pattern = (
                 (0, root, held),
@@ -102,7 +102,8 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
             else:
                 start = played_start(song, bar, beat, 0.55)
                 note_duration_ticks = played_duration(song, duration, bar, beat, 0.45, note_duration(song, 0.20))
-                note_velocity = played_velocity(note_velocity, song, bar, beat, 1)
+                note_velocity = played_velocity(note_velocity + bar_lift, song, bar, beat, 1)
+                note_velocity = min(note_velocity, 80 if song.preset == "southern-blues" else 82)
             track.notes.append(
                 MidiNote(start, note_duration_ticks, note, note_velocity, BASS_CHANNEL)
             )
@@ -124,7 +125,7 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
                 approach = _approach_note(root, 36 + next_chord.root)
                 start = played_start(song, bar, 3.75, 0.70)
                 duration = played_duration(song, note_duration(song, 0.18), bar, 3.75, 0.50, note_duration(song, 0.10))
-                note_velocity = played_velocity(velocity(48, section.energy, 2), song, bar, 3.75, 2)
+                note_velocity = played_velocity(velocity(48, section.energy, 2 + bar_lift), song, bar, 3.75, 2)
                 track.notes.append(MidiNote(start, duration, approach, note_velocity, BASS_CHANNEL))
 
     return track

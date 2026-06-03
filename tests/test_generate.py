@@ -167,6 +167,21 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertGreaterEqual(len(keyboard_expression_events), 60)
         self.assertGreaterEqual(len({event.data[1] for event in lead_expression_events}), 8)
 
+    def test_default_generation_has_section_dynamic_contour(self) -> None:
+        _ticks_per_beat, _tempo_bpm, tracks = build_tracks()
+        bar_ticks = 480 * 4
+        chorus_open = range(8 * bar_ticks, 9 * bar_ticks)
+        chorus_lift = range(10 * bar_ticks, 12 * bar_ticks)
+
+        def average_velocity(track_name: str, window: range) -> float:
+            track = next(track for track in tracks if track.name == track_name)
+            velocities = [note.velocity for note in track.notes if note.start in window]
+            return sum(velocities) / len(velocities)
+
+        for member_name in ("AI Drummer", "AI Keyboard Player", "AI Lead Player", "AI Percussion Extras"):
+            with self.subTest(member=member_name):
+                self.assertGreater(average_velocity(member_name, chorus_lift), average_velocity(member_name, chorus_open))
+
     def test_ehaye_mode_defaults_to_backing_band_without_ai_rhythm_guitar(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks(mode="ehaye")
 

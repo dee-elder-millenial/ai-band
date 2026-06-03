@@ -106,5 +106,9 @@ def phrase_lift(local_bar: int, section_bars: int, amount: int = 3) -> int:
     return int(lift * amount / 3)
 
 
+def section_lift(song: SongState, local_bar: int, section_bars: int, amount: int = 3) -> int:
+    return int(phrase_lift(local_bar, section_bars, amount) * feel_amount(song))
+
+
 def clamp_midi(value: int) -> int:
     return max(1, min(127, value))

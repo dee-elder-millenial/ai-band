@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, expression_curve, phrase_lift, played_duration, played_start, played_velocity, pocket_start, velocity_shift
+from ai_band.humanize import clamp_midi, expression_curve, phrase_lift, played_duration, played_start, played_velocity, pocket_start, section_lift, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import scale_notes
@@ -51,6 +51,7 @@ def generate(song: SongState, sparse: bool = False) -> MidiTrack:
         if sparse:
             phrase = phrase[:4]
 
+        bar_lift = section_lift(song, local_bar, section.bars, 2)
         for index, scale_degree in enumerate(phrase):
             beat = _phrase_beat(start_beat + index * 0.5, local_bar, index)
             if beat >= song.beats_per_bar:
@@ -58,7 +59,7 @@ def generate(song: SongState, sparse: bool = False) -> MidiTrack:
             note = scale[_phrase_degree(scale_degree, local_bar, index, len(scale))]
             note_start = played_start(song, bar, beat, 0.75)
             duration = played_duration(song, durations[index % len(durations)], bar, beat, 0.60, note_duration(song, 0.18))
-            note_velocity = played_velocity(velocity(50, section.energy, accent=(index % 4) * 3), song, bar, beat, 2)
+            note_velocity = played_velocity(velocity(50, section.energy, accent=(index % 4) * 3 + bar_lift), song, bar, beat, 2)
             track.notes.append(
                 MidiNote(
                     note_start,
@@ -93,13 +94,14 @@ def _generate_bluesy_alt_country(song: SongState, sparse: bool = False) -> MidiT
         if sparse and local_bar % 4 == 2:
             continue
 
+        bar_lift = section_lift(song, local_bar, section.bars, 2)
         lick = lick_shapes[local_bar % len(lick_shapes)]
         for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
             beat = _phrase_beat(beat, local_bar, index)
             note = scale[_phrase_degree(degree, local_bar, index, len(scale), bend)]
             start = played_start(song, bar, beat, 0.85)
             duration = played_duration(song, note_duration(song, beats), bar, beat, 0.65, note_duration(song, 0.20))
-            note_velocity = played_velocity(velocity(base_velocity, section.energy, accent=(index % 2) * 4), song, bar, beat, 2)
+            note_velocity = played_velocity(velocity(base_velocity, section.energy, accent=(index % 2) * 4 + bar_lift), song, bar, beat, 2)
             track.notes.append(
                 MidiNote(
                     start,
@@ -153,6 +155,7 @@ def _generate_southern_blues(song: SongState, sparse: bool = False) -> MidiTrack
         if sparse and local_bar % 4 == 2:
             continue
 
+        bar_lift = section_lift(song, local_bar, section.bars, 2)
         lick = solo_shapes[local_bar % len(solo_shapes)] if section_is_solo else answer_shapes[local_bar % len(answer_shapes)]
         note_pool = low_scale if section.name in {"Bridge", "Outro"} else scale
         for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
@@ -160,7 +163,7 @@ def _generate_southern_blues(song: SongState, sparse: bool = False) -> MidiTrack
             note = note_pool[_phrase_degree(degree, local_bar, index, len(note_pool), bend)]
             start = played_start(song, bar, beat, 0.90)
             duration = played_duration(song, note_duration(song, beats), bar, beat, 0.70, note_duration(song, 0.18))
-            note_velocity = played_velocity(velocity(base_velocity, section.energy, accent=(index % 2) * 5), song, bar, beat, 2)
+            note_velocity = played_velocity(velocity(base_velocity, section.energy, accent=(index % 2) * 5 + bar_lift), song, bar, beat, 2)
             track.notes.append(
                 MidiNote(
                     start,
