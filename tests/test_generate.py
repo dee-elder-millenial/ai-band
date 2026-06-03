@@ -115,7 +115,7 @@ class GenerateMidiTests(unittest.TestCase):
         scenarios = (
             ({}, 7, 12),
             ({"mode": "ehaye", "preset": "southern-blues", "key": "E", "scale": "minor", "tempo_bpm": 86}, 8, 12),
-            ({"preset": "heartland-rock", "key": "E", "scale": "major", "tempo_bpm": 118}, 10, 24),
+            ({"preset": "heartland-rock", "key": "E", "scale": "major", "tempo_bpm": 118}, 5, 24),
         )
 
         for kwargs, minimum_pitches, minimum_durations in scenarios:
@@ -463,7 +463,7 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertGreaterEqual(len(lead_bend_targets), 6)
         self.assertLessEqual(max(abs(value - 8192) for value in lead_bend_targets), 900)
         self.assertLessEqual(max(note.note for note in lead.notes), 78)
-        self.assertLessEqual(len(lead_pitch_classes), 7)
+        self.assertLessEqual(len(lead_pitch_classes), 5)
         self.assertGreaterEqual(len(lead_vibrato_targets), 4)
         self.assertGreaterEqual(len(lead_grace_notes), 20)
 

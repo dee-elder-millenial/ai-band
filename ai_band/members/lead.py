@@ -3,8 +3,8 @@ from __future__ import annotations
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
 from ai_band.humanize import clamp_midi, expression_curve, phrase_lift, played_duration, played_start, played_velocity, pocket_start, section_lift, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
-from ai_band.song_state import Chord, SongState
-from ai_band.theory import chord_tones, scale_notes
+from ai_band.song_state import SongState
+from ai_band.theory import NOTE_NAMES, scale_notes
 
 LEAD_CHANNEL = 3
 
@@ -193,7 +193,7 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
         ((0.28, 2, 0.38, 53, False), (1.05, 4, 0.38, 56, True), (1.78, 5, 0.34, 54, False), (2.58, 2, 0.54, 52, False)),
     )
 
-    for section, bar, chord in iter_section_bars(song):
+    for section, bar, _chord in iter_section_bars(song):
         local_bar = bar - section.start_bar
         section_is_solo = section.name == "Guitar Solo"
         section_is_hook = section.name in {"Intro", "Outro"} or section.name.startswith("Chorus") or section.name == "Final Chorus"
@@ -214,7 +214,7 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
 
         bar_lift = phrase_lift(local_bar, section.bars, 3)
         lick = solo_shapes[local_bar % len(solo_shapes)] if section_is_solo else hook_shapes[local_bar % len(hook_shapes)]
-        note_pool = _heartland_chord_note_pool(chord, section_is_solo)
+        note_pool = _heartland_pentatonic_pool(song.key, section_is_solo)
         for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
             beat = _phrase_beat(beat, local_bar, index)
             note = note_pool[degree % len(note_pool)]
@@ -254,12 +254,12 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
     return track
 
 
-def _heartland_chord_note_pool(chord: Chord, section_is_solo: bool) -> tuple[int, ...]:
-    tones = chord_tones(chord.root, chord.quality, 4 if section_is_solo else 3)
-    root, third, fifth = tones
+def _heartland_pentatonic_pool(key: str, section_is_solo: bool) -> tuple[int, ...]:
+    root = 48 + NOTE_NAMES[key]
+    notes = (root, root + 2, root + 4, root + 7, root + 9)
     if section_is_solo:
-        return (root, third, fifth, root + 12)
-    return (root, third, fifth, root + 12, fifth + 12)
+        return notes + (root + 12,)
+    return notes
 
 
 def _phrase_beat(beat: float, local_bar: int, index: int) -> float:
@@ -305,10 +305,16 @@ def _add_heartland_grace(
     grace_start = max(start - grace_offset, song.bar_tick(bar))
     if grace_start >= start:
         return
-    grace_note = note - (2 if (bar + index) % 3 else 1)
+    grace_note = _heartland_grace_note(song.key, note)
     duration = max(18, min(44, start - grace_start - 2))
     velocity = max(38, note_velocity - 22 - ((bar + index) % 5))
     track.notes.append(MidiNote(grace_start, duration, grace_note, velocity, LEAD_CHANNEL))
+
+
+def _heartland_grace_note(key: str, note: int) -> int:
+    pool = tuple(sorted(_heartland_pentatonic_pool(key, True) + tuple(n - 12 for n in _heartland_pentatonic_pool(key, True))))
+    lower_notes = [candidate for candidate in pool if candidate < note]
+    return lower_notes[-1] if lower_notes else note
 
 
 def _heartland_bend_profile(bar: int, index: int) -> tuple[tuple[float, int], ...]:
