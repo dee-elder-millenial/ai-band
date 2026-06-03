@@ -209,6 +209,8 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
             start = _heartland_lead_start(song, bar, beat, index)
             duration = note_duration(song, beats + _heartland_phrase_length(index))
             note_velocity = clamp_midi(velocity(base_velocity, section.energy, accent=(index % 2) * 4) + velocity_shift(bar, beat, 3) + bar_lift)
+            if _should_add_heartland_grace(section.name, local_bar, index, bend):
+                _add_heartland_grace(track, song, start, note, note_velocity, bar, index)
             track.notes.append(
                 MidiNote(
                     start,
@@ -231,6 +233,32 @@ def _heartland_lead_start(song: SongState, bar: int, beat: float, index: int) ->
 
 def _heartland_phrase_length(index: int) -> float:
     return (0.04, -0.03, 0.02, 0.05, -0.02)[index % 5]
+
+
+def _should_add_heartland_grace(section_name: str, local_bar: int, index: int, bend: bool) -> bool:
+    if section_name == "Guitar Solo":
+        return index in {1, 3} or (bend and local_bar % 3 == 0)
+    return bend and index == 0 and local_bar % 4 in {1, 3}
+
+
+def _add_heartland_grace(
+    track: MidiTrack,
+    song: SongState,
+    start: int,
+    note: int,
+    note_velocity: int,
+    bar: int,
+    index: int,
+) -> None:
+    offset_pattern = (0.085, 0.070, 0.095)
+    grace_offset = int(song.ticks_per_beat * offset_pattern[(bar + index) % len(offset_pattern)])
+    grace_start = max(start - grace_offset, song.bar_tick(bar))
+    if grace_start >= start:
+        return
+    grace_note = note - (2 if (bar + index) % 3 else 1)
+    duration = max(18, min(44, start - grace_start - 2))
+    velocity = max(38, note_velocity - 22 - ((bar + index) % 5))
+    track.notes.append(MidiNote(grace_start, duration, grace_note, velocity, LEAD_CHANNEL))
 
 
 def _heartland_bend_profile(bar: int, index: int) -> tuple[tuple[float, int], ...]:
