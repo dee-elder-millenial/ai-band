@@ -273,7 +273,10 @@ class GenerateMidiTests(unittest.TestCase):
         lead_bend_targets = {value for value in lead_bend_values if value != 8192}
         lead_vibrato_targets = {value for value in lead_bend_targets if abs(value - 8192) <= 180}
         bass_pickups = [note for note in bass.notes if 340 <= note.start % 480 <= 380]
-        drum_ghost_snares = [note for note in drums.notes if note.note == 38 and note.velocity < 70]
+        drum_ghost_snares = [note for note in drums.notes if note.note == 38 and note.duration > 32 and note.velocity < 70]
+        drum_snare_flams = [
+            note for note in drums.notes if note.note == 38 and note.duration <= 32 and 45 <= note.velocity <= 66
+        ]
         drum_tom_notes = {note.note for note in drums.notes}
         bar_ticks = 480 * 4
         drum_starts = [note.start for note in drums.notes]
@@ -321,6 +324,8 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertLessEqual(max(note.velocity for note in drums.notes), 122)
         self.assertGreaterEqual(len(drum_ghost_snares), 120)
         self.assertLessEqual(max(note.velocity for note in drum_ghost_snares), 58)
+        self.assertGreaterEqual(len(drum_snare_flams), 70)
+        self.assertLessEqual(max(note.velocity for note in drum_snare_flams), 66)
         self.assertIn(43, drum_tom_notes)
         self.assertIn(50, drum_tom_notes)
         self.assertGreater(len(bass.notes), 400)

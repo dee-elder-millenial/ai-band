@@ -87,6 +87,8 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
             note_velocity = velocity(snare_base, section.energy, 8 + drum_lift)
             if song.preset == "heartland-rock":
                 note_velocity = min(clamp_midi(note_velocity + velocity_shift(bar, beat, 4) + bar_lift + 2), 122)
+                if _should_add_heartland_flam(section.energy, local_bar, beat):
+                    _add_heartland_flam(track, song, start, section.energy, bar, beat, bar_lift)
             track.notes.append(
                 MidiNote(start, step, SNARE, note_velocity, DRUM_CHANNEL)
             )
@@ -126,6 +128,30 @@ def _heartland_drum_start(song: SongState, bar: int, beat: float, part: str) -> 
     if part == "ride":
         return pocket_start(song, bar, beat, 0.55)
     return pocket_start(song, bar, beat, 0.85)
+
+
+def _should_add_heartland_flam(energy: float, local_bar: int, beat: float) -> bool:
+    if energy < 0.78:
+        return False
+    return beat == 3 or local_bar % 4 in {1, 3}
+
+
+def _add_heartland_flam(
+    track: MidiTrack,
+    song: SongState,
+    snare_start: int,
+    energy: float,
+    bar: int,
+    beat: float,
+    bar_lift: int,
+) -> None:
+    flam_gap = int(song.ticks_per_beat * (0.030 + 0.006 * ((bar + int(beat)) % 3)))
+    flam_start = max(snare_start - flam_gap, song.bar_tick(bar))
+    if flam_start >= snare_start:
+        return
+    duration = max(18, int(song.ticks_per_beat * 0.055))
+    note_velocity = min(clamp_midi(velocity(35, energy, velocity_shift(bar, beat, 2) + bar_lift)), 66)
+    track.notes.append(MidiNote(flam_start, duration, SNARE, note_velocity, DRUM_CHANNEL))
 
 
 def _add_heartland_fill(track: MidiTrack, song: SongState, bar: int, energy: float, step: int) -> None:
