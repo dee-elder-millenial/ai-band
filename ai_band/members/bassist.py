@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, support_rest, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, support_rest, transition_pickup, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -107,15 +107,25 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
                 MidiNote(start, note_duration_ticks, note, note_velocity, BASS_CHANNEL)
             )
 
-        if song.preset == "heartland-rock" and not simplify:
+        if not simplify:
             next_chord = bars[bar_index + 1][2] if bar_index + 1 < len(bars) else None
-            if next_chord is not None and next_chord.root != chord.root:
-                approach = _heartland_approach_note(root, 36 + next_chord.root)
+            if song.preset == "heartland-rock" and next_chord is not None and next_chord.root != chord.root:
+                approach = _approach_note(root, 36 + next_chord.root)
                 start = pocket_start(song, bar, 3.75, 0.70)
                 duration = note_duration(song, 0.20)
                 note_velocity = clamp_midi(velocity(55, section.energy, velocity_shift(bar, 3.75, 4) + bar_lift))
                 track.notes.append(MidiNote(start, duration, approach, note_velocity, BASS_CHANNEL))
                 _add_heartland_slide(track, start, duration, bar)
+            elif (
+                next_chord is not None
+                and next_chord.root != chord.root
+                and transition_pickup(section.energy, local_bar, section.bars)
+            ):
+                approach = _approach_note(root, 36 + next_chord.root)
+                start = played_start(song, bar, 3.75, 0.70)
+                duration = played_duration(song, note_duration(song, 0.18), bar, 3.75, 0.50, note_duration(song, 0.10))
+                note_velocity = played_velocity(velocity(48, section.energy, 2), song, bar, 3.75, 2)
+                track.notes.append(MidiNote(start, duration, approach, note_velocity, BASS_CHANNEL))
 
     return track
 
@@ -126,7 +136,7 @@ def _heartland_duration_shift(song: SongState, bar: int, beat: float) -> int:
     return int(song.ticks_per_beat * pattern[index])
 
 
-def _heartland_approach_note(current_root: int, next_root: int) -> int:
+def _approach_note(current_root: int, next_root: int) -> int:
     approach = next_root - 1 if next_root >= current_root else next_root + 1
     while approach < 35:
         approach += 12

@@ -140,6 +140,22 @@ class GenerateMidiTests(unittest.TestCase):
 
                 self.assertGreaterEqual(len(set(counts_by_bar.values())), 2)
 
+    def test_rhythm_section_adds_transition_pickups(self) -> None:
+        _ticks_per_beat, _tempo_bpm, tracks = build_tracks(
+            mode="ehaye",
+            preset="southern-blues",
+            key="E",
+            scale="minor",
+            tempo_bpm=86,
+        )
+        bass = next(track for track in tracks if track.name == "AI Bass Player")
+        drums = next(track for track in tracks if track.name == "AI Drummer")
+        bass_pickups = [note for note in bass.notes if 340 <= note.start % 480 <= 390]
+        drum_pickups = [note for note in drums.notes if note.start % (480 * 4) >= int(3.45 * 480)]
+
+        self.assertGreaterEqual(len(bass_pickups), 8)
+        self.assertGreaterEqual(len(drum_pickups), 60)
+
     def test_ehaye_mode_defaults_to_backing_band_without_ai_rhythm_guitar(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks(mode="ehaye")
 

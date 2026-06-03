@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, support_rest, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, support_rest, transition_pickup, velocity_shift
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -105,6 +105,8 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
 
         if song.preset == "heartland-rock":
             _add_heartland_ghosts(track, song, bar, local_bar, section.energy, bar_lift)
+        elif transition_pickup(section.energy, local_bar, section.bars):
+            _add_transition_pickup(track, song, bar, local_bar, section.energy)
 
         if bar == section.start_bar:
             crash_start = _heartland_drum_start(song, bar, 0, "crash") if song.preset == "heartland-rock" else played_start(song, bar, 0, 0.55)
@@ -146,6 +148,15 @@ def _should_add_heartland_flam(energy: float, local_bar: int, beat: float) -> bo
     if energy < 0.78:
         return False
     return beat == 3 or local_bar % 4 in {1, 3}
+
+
+def _add_transition_pickup(track: MidiTrack, song: SongState, bar: int, local_bar: int, energy: float) -> None:
+    shape = ((3.50, KICK, 0.16, -5), (3.75, SNARE if local_bar % 2 else TOM_LOW, 0.14, -12))
+    for beat, note, beats, accent in shape:
+        start = played_start(song, bar, beat, 0.75)
+        duration = note_duration(song, beats)
+        note_velocity = played_velocity(velocity(70, energy, accent), song, bar, beat, 2)
+        track.notes.append(MidiNote(start, duration, note, note_velocity, DRUM_CHANNEL))
 
 
 def _add_heartland_flam(

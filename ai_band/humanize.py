@@ -74,6 +74,14 @@ def support_rest(song: SongState, role: str, energy: float, local_bar: int, sect
     return score >= threshold
 
 
+def transition_pickup(energy: float, local_bar: int, section_bars: int) -> bool:
+    if energy < 0.52:
+        return False
+    if local_bar == section_bars - 1:
+        return True
+    return energy >= 0.76 and local_bar % 4 == 3
+
+
 def phrase_lift(local_bar: int, section_bars: int, amount: int = 3) -> int:
     four_bar_shape = (-1, 0, 1, 2)
     lift = four_bar_shape[local_bar % len(four_bar_shape)]
