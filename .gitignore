@@ -12,3 +12,5 @@ examples/*.mid
 examples/*.rpp
 examples/*.wav
 
+# Local REAPER/live-control state
+state/*.json

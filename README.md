@@ -67,6 +67,7 @@ ai-band/
     ai_band_setup_rough_tones.lua
     ai_band_ehaye_audition_setup.lua
     ai_band_tone_helpers.lua
+    ai_band_write_live_cue.lua
   Effects/
     AI Band Humanizer.jsfx
     AI Band GM Drum Synth.jsfx
@@ -74,6 +75,7 @@ ai-band/
     build.py
     bandleader.py
     generate.py
+    live_cue.py
     midi.py
     song_state.py
     members/
@@ -85,7 +87,11 @@ ai-band/
       percussion.py
   docs/
     FIRST_BUILD.md
+    LIVE_FOLLOW_MODE.md
     REAPER.md
+    TONE_LAYER.md
+  state/
+    .gitkeep
   examples/
     .gitkeep
 ```

@@ -20,6 +20,7 @@ This changes the product direction in an important way. The AI band should be ab
 - Lead guitar should fill between vocal phrases instead of playing constantly.
 - Keyboard and percussion should be texture layers unless invited forward.
 - Future audio analysis should detect or accept tempo, key, chords, section boundaries, and groove feel from a guide track.
+- Live control should start with explicit instructions and cues before attempting true real-time audio listening.
 
 ## MVP Direction
 
@@ -56,3 +57,14 @@ Early REAPER audition feedback:
 - the first ReaSynth-only audition sounded like The Legend of Zelda, so rough tone setup needs separate drum/percussion treatment and calmer synth settings
 - with better instruments, the bass was a little heavy and slightly off, so backing mode should keep bass simpler and more kick-locked
 - lead guitar sounded robotic, so generated lead needs phrase gaps, varied timing, and less repetition
+
+## Live Follow Direction
+
+The AI band should eventually feel like it can listen and respond, but the first useful version should follow explicit instructions from REAPER:
+
+- write a cue such as "simplify bass" or "drums bigger in chorus"
+- let the bandleader interpret the cue
+- regenerate only the affected member or section
+- update the MIDI in REAPER
+
+True audio listening should come after this control loop exists. It should analyze snapshots and update at musical boundaries rather than trying to call a slow AI model inside the audio thread.

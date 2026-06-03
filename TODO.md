@@ -113,3 +113,26 @@ Goal: build the first working versions of each AI band member as separate, testa
 - [ ] The output is editable as normal MIDI inside REAPER.
 - [ ] The project can run without paid third-party plugins.
 - [ ] The repo includes install and usage notes for the phase 1 prototype.
+
+## Phase 2: Live Follow And Instruction Mode
+
+Goal: let the AI band respond to Deanna's direction and, later, to live/project audio context inside REAPER.
+
+### Instruction Following
+
+- [ ] Add a REAPER script for writing AI Band cue instructions.
+- [ ] Store instructions in `state/live_cue.json`.
+- [ ] Let commands target the bandleader or a specific member.
+- [ ] Support commands such as "simplify bass", "drums bigger in chorus", "keys leave more space", and "lead answer the vocal".
+- [ ] Add a Python command reader that turns cue instructions into generator settings.
+- [ ] Regenerate selected members without rebuilding the whole sketch.
+- [ ] Preserve previous generated parts until replacements are confirmed.
+
+### Live Listening
+
+- [ ] Define audio/project features the AI can safely use: tempo, bar position, section, density, loudness, vocal activity, and rhythm guitar activity.
+- [ ] Prototype project-state snapshots from REAPER.
+- [ ] Prototype audio-analysis snapshots outside the real-time audio thread.
+- [ ] Update band behavior only at musical boundaries where possible.
+- [ ] Add emergency controls for mute, simplify, and reduce intensity.
+- [ ] Keep latency-sensitive audio/MIDI handling out of slow model calls.

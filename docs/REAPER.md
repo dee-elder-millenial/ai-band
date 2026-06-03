@@ -122,3 +122,30 @@ python -m ai_band.build
 ```
 
 This creates `dist/ai-band-phase1-alpha-0.1.0.zip`, including the generated demo MIDI, REAPER helper scripts, JSFX helpers, docs, tests, and source code.
+
+## Live Cue Scaffold
+
+To write an instruction cue from REAPER:
+
+1. Copy `Scripts/ai_band_write_live_cue.lua` into REAPER's resource-path `Scripts` folder.
+2. Load it from `Actions > Show action list > New action > Load ReaScript`.
+3. Run `ai_band_write_live_cue.lua`.
+4. Enter an instruction such as:
+
+```text
+simplify bass,bass,0.7
+```
+
+This writes:
+
+```text
+state/live_cue.json
+```
+
+The current build can read that cue with:
+
+```powershell
+python -m ai_band.live_cue
+```
+
+Regenerating music from the cue is the next implementation step.

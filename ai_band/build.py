@@ -25,6 +25,7 @@ PACKAGE_PATHS = (
     "docs",
     "Effects",
     "Scripts",
+    "state",
     "tests",
 )
 
@@ -72,6 +73,7 @@ def main() -> None:
             "rough_tones_script": "Scripts/ai_band_setup_rough_tones.lua",
             "ehaye_audition_script": "Scripts/ai_band_ehaye_audition_setup.lua",
             "tone_helpers": "Scripts/ai_band_tone_helpers.lua",
+            "live_cue_script": "Scripts/ai_band_write_live_cue.lua",
             "jsfx": "Effects/AI Band Humanizer.jsfx",
             "drum_synth_jsfx": "Effects/AI Band GM Drum Synth.jsfx",
         },
