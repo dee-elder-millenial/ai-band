@@ -27,6 +27,18 @@ def pocket_start(song: SongState, bar: int, beat: float, amount: float = 1.0) ->
     return max(song.beat_tick(bar, beat) + pocket_offset(song, bar, beat, amount), song.bar_tick(bar))
 
 
+def section_groove_offset(song: SongState, local_bar: int, section_bars: int, amount: float = 1.0) -> int:
+    if song.preset != "heartland-rock":
+        return 0
+    phrase_shape = (0.008, 0.003, -0.002, -0.007)
+    offset = phrase_shape[local_bar % len(phrase_shape)]
+    if local_bar == 0:
+        offset += 0.004
+    if local_bar >= max(section_bars - 2, 0):
+        offset -= 0.004
+    return int(song.ticks_per_beat * offset * amount)
+
+
 def played_start(song: SongState, bar: int, beat: float, amount: float = 1.0) -> int:
     return pocket_start(song, bar, beat, amount * feel_amount(song))
 

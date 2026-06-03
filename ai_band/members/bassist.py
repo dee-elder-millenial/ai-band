@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, section_lift, support_rest, transition_pickup, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, section_groove_offset, section_lift, support_rest, transition_pickup, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -21,6 +21,7 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
         flat_seventh = root + 10
         local_bar = bar - section.start_bar
         bar_lift = phrase_lift(local_bar, section.bars, 2) if song.preset == "heartland-rock" else section_lift(song, local_bar, section.bars, 2)
+        groove_offset = section_groove_offset(song, local_bar, section.bars, 0.72)
         if simplify:
             pattern = (
                 (0, root, held),
@@ -94,7 +95,7 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
             note_duration_ticks = duration
             note_velocity = velocity(base_velocity, section.energy, accent)
             if song.preset == "heartland-rock":
-                start = pocket_start(song, bar, beat, 0.55)
+                start = max(pocket_start(song, bar, beat, 0.55) + groove_offset, song.bar_tick(bar))
                 note_duration_ticks = max(note_duration(song, 0.30), duration + _heartland_duration_shift(song, bar, beat))
                 note_velocity = clamp_midi(note_velocity + velocity_shift(bar, beat, 5) + bar_lift)
                 if _should_add_dead_note(section.energy, local_bar, beat):
@@ -112,7 +113,7 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
             next_chord = bars[bar_index + 1][2] if bar_index + 1 < len(bars) else None
             if song.preset == "heartland-rock" and next_chord is not None and next_chord.root != chord.root:
                 approach = _approach_note(root, 36 + next_chord.root)
-                start = pocket_start(song, bar, 3.75, 0.70)
+                start = max(pocket_start(song, bar, 3.75, 0.70) + groove_offset, song.bar_tick(bar))
                 duration = note_duration(song, 0.20)
                 note_velocity = clamp_midi(velocity(55, section.energy, velocity_shift(bar, 3.75, 4) + bar_lift))
                 track.notes.append(MidiNote(start, duration, approach, note_velocity, BASS_CHANNEL))

@@ -7,6 +7,7 @@ from pathlib import Path
 from ai_band.bandleader import create_default_song
 from ai_band.controls import controls_from_cue
 from ai_band.generate import build_tracks
+from ai_band.humanize import section_groove_offset
 from ai_band.live_cue import LiveCue
 from ai_band.midi import write_midi
 from ai_band.theory import chord_tones
@@ -423,6 +424,7 @@ class GenerateMidiTests(unittest.TestCase):
         ]
         final_chorus_start = range(72 * bar_ticks, 76 * bar_ticks)
         final_chorus_lift = range(80 * bar_ticks, 84 * bar_ticks)
+        heartland_groove = [section_groove_offset(song, local_bar, 8) for local_bar in range(4)]
         lead_chord_tone_hits = []
         for note in lead.notes:
             if note.duration <= 44:
@@ -476,9 +478,12 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertTrue(keyboard_anchor_offsets)
         self.assertLessEqual(max(keyboard_anchor_offsets), 12)
         self.assertTrue(percussion_anchor_offsets)
-        self.assertLessEqual(max(percussion_anchor_offsets), 8)
+        self.assertLessEqual(max(percussion_anchor_offsets), 12)
         self.assertGreaterEqual(len(set(percussion_counts_by_bar.values())), 3)
         self.assertGreaterEqual(len(percussion_pickups), 8)
+        self.assertGreater(heartland_groove[0], heartland_groove[1])
+        self.assertGreater(heartland_groove[1], heartland_groove[2])
+        self.assertGreater(heartland_groove[2], heartland_groove[3])
         self.assertGreaterEqual(len(lead.events), 24)
         self.assertGreaterEqual(len(lead_bend_targets), 6)
         self.assertLessEqual(max(abs(value - 8192) for value in lead_bend_targets), 120)

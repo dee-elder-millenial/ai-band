@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, expression_curve, phrase_lift, played_duration, played_start, played_velocity, pocket_start, section_lift, support_rest, velocity_shift
+from ai_band.humanize import clamp_midi, expression_curve, phrase_lift, played_duration, played_start, played_velocity, pocket_start, section_groove_offset, section_lift, support_rest, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import chord_tones
@@ -15,6 +15,7 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
     for section, bar, chord in iter_section_bars(song):
         local_bar = bar - section.start_bar
         bar_lift = phrase_lift(local_bar, section.bars, 2) if song.preset == "heartland-rock" else section_lift(song, local_bar, section.bars, 3)
+        groove_offset = section_groove_offset(song, local_bar, section.bars, 0.55)
         is_verse = section.name == "Verse" or section.name.startswith("Verse ")
         if leave_space and local_bar % 2 == 1:
             continue
@@ -80,7 +81,7 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
                 note_duration_ticks = duration
                 note_velocity = velocity(32, section.energy)
                 if song.preset == "heartland-rock":
-                    start = pocket_start(song, bar, beat, 0.50)
+                    start = max(pocket_start(song, bar, beat, 0.50) + groove_offset, song.bar_tick(bar))
                     note_duration_ticks = max(note_duration(song, 0.30), duration + _heartland_breath(song, bar, beat))
                     note_velocity = clamp_midi(note_velocity + velocity_shift(bar, beat, 2) + bar_lift)
                 else:

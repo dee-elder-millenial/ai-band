@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, section_lift, support_rest
+from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, section_groove_offset, section_lift, support_rest
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import chord_tones
@@ -20,6 +20,7 @@ def generate(song: SongState) -> MidiTrack:
         tones = chord_tones(chord.root, chord.quality, 3)
         low_tones = chord_tones(chord.root, chord.quality, 2)
         bar_lift = phrase_lift(local_bar, section.bars, 3) if song.preset == "heartland-rock" else section_lift(song, local_bar, section.bars, 1)
+        groove_offset = section_groove_offset(song, local_bar, section.bars, 0.65)
         voicing = (tones[0], tones[2], tones[0] + 12)
         beats = (0, 2) if section.energy < 0.75 else (0, 1.5, 2.5, 3.5)
         duration = half if section.energy < 0.75 else eighth
@@ -44,7 +45,7 @@ def generate(song: SongState) -> MidiTrack:
             if song.preset in {"heartland-rock", "southern-blues"}:
                 direction = "down" if beat in {0, 2.0, 2.5} else "up"
                 anchor_offset = (
-                    _heartland_anchor_offset(song, bar, beat)
+                    _heartland_anchor_offset(song, bar, beat) + groove_offset
                     if song.preset == "heartland-rock"
                     else played_start(song, bar, beat, 0.55) - song.beat_tick(bar, beat)
                 )
@@ -94,6 +95,7 @@ def generate(song: SongState) -> MidiTrack:
                 _heartland_strum_gap(song, bar, 3.75, strum_gap) if song.preset == "heartland-rock" else strum_gap,
                 (
                     _heartland_anchor_offset(song, bar, 3.75)
+                    + groove_offset
                     if song.preset == "heartland-rock"
                     else played_start(song, bar, 3.75, 0.55) - song.beat_tick(bar, 3.75)
                 ),

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, section_lift, support_rest, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, section_groove_offset, section_lift, support_rest, velocity_shift
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -20,21 +20,22 @@ def generate(song: SongState) -> MidiTrack:
             continue
         local_bar = bar - section.start_bar
         bar_lift = phrase_lift(local_bar, section.bars, 3) if song.preset == "heartland-rock" else section_lift(song, local_bar, section.bars, 2)
+        groove_offset = section_groove_offset(song, local_bar, section.bars, 0.95)
 
         if song.preset == "heartland-rock":
             if section.energy >= 0.85:
                 for beat in _heartland_tambourine_beats(local_bar):
                     if support_rest(song, "percussion", section.energy, local_bar, section.bars, beat):
                         continue
-                    start = pocket_start(song, bar, beat, 1.15)
+                    start = max(pocket_start(song, bar, beat, 1.15) + groove_offset, song.bar_tick(bar))
                     note_velocity = clamp_midi(velocity(44, section.energy) + velocity_shift(bar, beat, 5) + bar_lift)
                     track.notes.append(
                         MidiNote(start, duration, TAMBOURINE, note_velocity, PERC_CHANNEL)
                     )
                 if local_bar % 4 in {2, 3}:
-                    _add_heartland_pickup_shake(track, song, bar, local_bar, section.energy, bar_lift)
+                    _add_heartland_pickup_shake(track, song, bar, local_bar, section.energy, bar_lift, groove_offset)
             elif section.name.startswith("Pre-Chorus"):
-                start = pocket_start(song, bar, 3.5, 1.10)
+                start = max(pocket_start(song, bar, 3.5, 1.10) + groove_offset, song.bar_tick(bar))
                 note_velocity = clamp_midi(velocity(38, section.energy) + velocity_shift(bar, 3.5, 4) + bar_lift)
                 track.notes.append(
                     MidiNote(start, duration, TAMBOURINE, note_velocity, PERC_CHANNEL)
@@ -125,9 +126,10 @@ def _add_heartland_pickup_shake(
     local_bar: int,
     energy: float,
     bar_lift: int,
+    groove_offset: int,
 ) -> None:
     duration = note_duration(song, 0.08)
     for beat in (3.70, 3.86) if local_bar % 4 == 3 else (2.86,):
-        start = pocket_start(song, bar, beat, 1.25)
+        start = max(pocket_start(song, bar, beat, 1.25) + groove_offset, song.bar_tick(bar))
         note_velocity = clamp_midi(velocity(34, energy, velocity_shift(bar, beat, 3) + bar_lift))
         track.notes.append(MidiNote(start, duration, TAMBOURINE, note_velocity, PERC_CHANNEL))

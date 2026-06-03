@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, expression_curve, phrase_lift, played_duration, played_start, played_velocity, pocket_start, section_lift, velocity_shift
+from ai_band.humanize import clamp_midi, expression_curve, phrase_lift, played_duration, played_start, played_velocity, pocket_start, section_groove_offset, section_lift, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import NOTE_NAMES, chord_tones, scale_notes
@@ -213,12 +213,13 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
             continue
 
         bar_lift = phrase_lift(local_bar, section.bars, 3)
+        groove_offset = section_groove_offset(song, local_bar, section.bars, 0.45)
         lick = solo_shapes[local_bar % len(solo_shapes)] if section_is_solo else hook_shapes[local_bar % len(hook_shapes)]
         note_pool = _heartland_lead_note_pool(song.key, chord.root, chord.quality, section_is_solo)
         for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
             beat = _phrase_beat(beat, local_bar, index)
             note = note_pool[degree % len(note_pool)]
-            start = _heartland_lead_start(song, bar, beat, index)
+            start = max(_heartland_lead_start(song, bar, beat, index) + groove_offset, song.bar_tick(bar))
             duration = played_duration(
                 song,
                 note_duration(song, beats + _heartland_phrase_length(index, local_bar)),
