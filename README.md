@@ -93,3 +93,5 @@ The current prototype generates a type-1 Standard MIDI File with separate tracks
 The generated MIDI is editable in REAPER and does not require paid third-party plugins.
 
 See [docs/FIRST_BUILD.md](docs/FIRST_BUILD.md) for the current alpha build contents and limitations.
+
+See [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) for the human-fronted band direction, including The Ehaye Band mode.

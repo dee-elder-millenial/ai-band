@@ -28,6 +28,17 @@ Goal: build the first working versions of each AI band member as separate, testa
 - [ ] Reuse motifs across sections so the song feels intentional.
 - [ ] Store the shared song state that every member reads from.
 
+### Human Frontperson / The Ehaye Band Mode
+
+- [ ] Treat Deanna as the lead singer and rhythm guitarist by default.
+- [ ] Let the AI band generate around a human rhythm guitar part instead of replacing it.
+- [ ] Support importing or recording a human guide track.
+- [ ] Extract or accept tempo, section boundaries, key, chords, and groove feel from the human guide.
+- [ ] Let the AI drummer, bass player, keyboard player, lead player, and percussion extras follow the human performance.
+- [ ] Keep AI rhythm guitar optional so it does not fight the human rhythm guitar part.
+- [ ] Add controls for "support the singer", "follow my guitar", and "fill the empty space".
+- [ ] Preserve a mode for The Ehaye Band where the AI members act as backing bandmates.
+
 ### AI Drummer
 
 - [ ] Generate basic kick, snare, and hi-hat patterns.
