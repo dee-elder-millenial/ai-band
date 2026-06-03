@@ -15,6 +15,19 @@ Goal: build the first working versions of each AI band member as separate, testa
 - [ ] Add REAPER regions or markers for song sections.
 - [ ] Add a simple command-line or ReaScript entrypoint for generating a band sketch.
 
+### AI Bandleader
+
+- [ ] Generate the overall song structure.
+- [ ] Choose or accept tempo, key, scale, and chord progression.
+- [ ] Assign each band member a role for every section.
+- [ ] Control section-level energy, density, and dynamics.
+- [ ] Decide when parts should enter, drop out, simplify, or intensify.
+- [ ] Coordinate drummer and bass player groove priorities.
+- [ ] Coordinate guitar and keyboard voicings so they do not overcrowd each other.
+- [ ] Decide when the lead player gets hooks, fills, or solos.
+- [ ] Reuse motifs across sections so the song feels intentional.
+- [ ] Store the shared song state that every member reads from.
+
 ### AI Drummer
 
 - [ ] Generate basic kick, snare, and hi-hat patterns.
@@ -81,6 +94,7 @@ Goal: build the first working versions of each AI band member as separate, testa
 ### Phase 1 Acceptance Criteria
 
 - [ ] A user can generate a complete short song sketch with drums, bass, guitar, keys, and lead.
+- [ ] The bandleader creates or maintains the shared song plan before member parts are generated.
 - [ ] Each member can be regenerated independently.
 - [ ] All generated parts stay in the same key, tempo, chord progression, and section structure.
 - [ ] Bass and drums feel rhythmically connected.
