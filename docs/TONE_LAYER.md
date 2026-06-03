@@ -87,6 +87,7 @@ Use REAPER as the granular editing lab:
 
 - drums, bass, guitar, keyboard/sax, and lead can get ReaComp
 - drums, guitar, keyboard/sax, lead, and percussion can get ReaVerbate
-- opted-in audition scripts set conservative wet/dry starter mixes so the parts get a little depth without hiding the MIDI
+- opted-in audition scripts set conservative ReaVerbate wet/dry, room, and damping parameters by name when REAPER exposes them
+- the starter balance tucks bass, keys, and lead slightly back while letting drums speak more clearly
 
 These are editable REAPER starter effects, not a finished mix. The goal is to start exploring compression, room, and space while keeping the generated MIDI and instrument choices easy to inspect.

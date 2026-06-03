@@ -4,12 +4,12 @@ local M = {}
 
 M.DEFAULT_TRACK_VOLUME = 0.14
 M.TRACK_VOLUMES = {
-  ["AI Drummer"] = 0.30,
-  ["AI Bass Player"] = 0.16,
-  ["AI Guitar Player"] = 0.12,
-  ["AI Keyboard Player"] = 0.09,
-  ["AI Lead Player"] = 0.15,
-  ["AI Percussion Extras"] = 0.10,
+  ["AI Drummer"] = 0.34,
+  ["AI Bass Player"] = 0.13,
+  ["AI Guitar Player"] = 0.13,
+  ["AI Keyboard Player"] = 0.075,
+  ["AI Lead Player"] = 0.13,
+  ["AI Percussion Extras"] = 0.09,
 }
 M.TRACK_PANS = {
   ["AI Drummer"] = 0.0,
@@ -81,28 +81,51 @@ M.TRACK_EFFECTS = {
     {name = "ReaVerbate (Cockos)", needle = "ReaVerbate"},
   },
 }
-M.EFFECT_WET_MIX = {
+M.EFFECT_PARAM_TARGETS = {
   ["AI Drummer"] = {
-    ["ReaComp"] = 0.70,
-    ["ReaVerbate"] = 0.08,
+    ["ReaVerbate"] = {
+      wet = 0.07,
+      dry = 0.92,
+      room = 0.30,
+      damp = 0.58,
+    },
   },
   ["AI Bass Player"] = {
-    ["ReaComp"] = 0.62,
+    ["ReaComp"] = {
+      wet = 0.90,
+    },
   },
   ["AI Guitar Player"] = {
-    ["ReaComp"] = 0.58,
-    ["ReaVerbate"] = 0.14,
+    ["ReaVerbate"] = {
+      wet = 0.13,
+      dry = 0.88,
+      room = 0.42,
+      damp = 0.46,
+    },
   },
   ["AI Keyboard Player"] = {
-    ["ReaComp"] = 0.48,
-    ["ReaVerbate"] = 0.18,
+    ["ReaVerbate"] = {
+      wet = 0.17,
+      dry = 0.84,
+      room = 0.50,
+      damp = 0.50,
+    },
   },
   ["AI Lead Player"] = {
-    ["ReaComp"] = 0.52,
-    ["ReaVerbate"] = 0.16,
+    ["ReaVerbate"] = {
+      wet = 0.15,
+      dry = 0.86,
+      room = 0.45,
+      damp = 0.44,
+    },
   },
   ["AI Percussion Extras"] = {
-    ["ReaVerbate"] = 0.10,
+    ["ReaVerbate"] = {
+      wet = 0.10,
+      dry = 0.88,
+      room = 0.36,
+      damp = 0.54,
+    },
   },
 }
 
@@ -231,7 +254,7 @@ function M.configure_rough_effects()
       for _, effect in ipairs(effects) do
         local fx_index, was_added = M.add_or_find_fx(track, effect.name, effect.needle)
         if fx_index >= 0 then
-          M.set_effect_wet_mix(track, fx_index, name, effect.needle)
+          M.set_effect_params(track, fx_index, name, effect.needle)
           configured = configured + 1
           if was_added then added = added + 1 end
         end
@@ -242,13 +265,41 @@ function M.configure_rough_effects()
   return configured, added
 end
 
-function M.set_effect_wet_mix(track, fx_index, track_name_value, effect_needle)
-  if not reaper.TrackFX_SetWetDryMix then return end
-  local track_settings = M.EFFECT_WET_MIX[track_name_value]
+function M.set_effect_params(track, fx_index, track_name_value, effect_needle)
+  local track_settings = M.EFFECT_PARAM_TARGETS[track_name_value]
   if not track_settings then return end
-  local wet_mix = track_settings[effect_needle]
-  if wet_mix == nil then return end
-  reaper.TrackFX_SetWetDryMix(track, fx_index, wet_mix)
+  local targets = track_settings[effect_needle]
+  if not targets then return end
+
+  if targets.wet ~= nil then
+    M.set_param_by_name(track, fx_index, {"wet"}, targets.wet)
+  end
+  if targets.dry ~= nil then
+    M.set_param_by_name(track, fx_index, {"dry"}, targets.dry)
+  end
+  if targets.room ~= nil then
+    M.set_param_by_name(track, fx_index, {"room", "size"}, targets.room)
+  end
+  if targets.damp ~= nil then
+    M.set_param_by_name(track, fx_index, {"damp"}, targets.damp)
+  end
+end
+
+function M.set_param_by_name(track, fx_index, needles, value)
+  local param_count = reaper.TrackFX_GetNumParams(track, fx_index)
+  for param = 0, param_count - 1 do
+    local ok, param_name = reaper.TrackFX_GetParamName(track, fx_index, param, "")
+    if ok then
+      local lower_name = param_name:lower()
+      for _, needle in ipairs(needles) do
+        if lower_name:find(needle) then
+          reaper.TrackFX_SetParamNormalized(track, fx_index, param, value)
+          return true
+        end
+      end
+    end
+  end
+  return false
 end
 
 return M
