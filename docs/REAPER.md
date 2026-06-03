@@ -88,6 +88,14 @@ That script only lowers and pans the imported AI Band tracks. It does not add or
 
 The current sound-check mix intentionally pushes drums a little forward and keeps keys quieter because the first listening pass showed the keys crowding the backing arrangement.
 
+To rebalance an already-imported AI Band project without importing a new MIDI file, load and run:
+
+```text
+Scripts/ai_band_apply_audition_mix.lua
+```
+
+This reapplies the shared rough tone helper: track faders, pans, preferred instruments or fallbacks, ReaComp/ReaVerbate starter FX, and conservative room/depth settings when REAPER exposes those parameters.
+
 ## Install JSFX Helpers
 
 JSFX effects belong in REAPER's resource-path `Effects` folder.

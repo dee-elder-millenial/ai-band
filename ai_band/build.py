@@ -72,6 +72,7 @@ def main() -> None:
             "sound_check_script": "Scripts/ai_band_add_sound_check_synths.lua",
             "lower_track_levels_script": "Scripts/ai_band_lower_track_levels.lua",
             "rough_tones_script": "Scripts/ai_band_setup_rough_tones.lua",
+            "audition_mix_script": "Scripts/ai_band_apply_audition_mix.lua",
             "ehaye_audition_script": "Scripts/ai_band_ehaye_audition_setup.lua",
             "county_line_audition_script": "Scripts/ai_band_county_line_audition_setup.lua",
             "hard_flag_blues_audition_script": "Scripts/ai_band_hard_flag_blues_audition_setup.lua",

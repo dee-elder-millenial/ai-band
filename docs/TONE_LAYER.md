@@ -20,16 +20,25 @@ Install the REAPER script:
 
 ```text
 Scripts/ai_band_setup_rough_tones.lua
+Scripts/ai_band_apply_audition_mix.lua
 Scripts/ai_band_tone_helpers.lua
 ```
 
-Copy both files into REAPER's resource-path `Scripts` folder and load `ai_band_setup_rough_tones.lua` from `Actions > Show action list > New action > Load ReaScript`.
+Copy these files into REAPER's resource-path `Scripts` folder and load `ai_band_setup_rough_tones.lua` or `ai_band_apply_audition_mix.lua` from `Actions > Show action list > New action > Load ReaScript`.
 
 After importing `examples/ehaye-backing-band.mid`, run:
 
 ```text
 ai_band_setup_rough_tones.lua
 ```
+
+After manually changing instruments, run:
+
+```text
+ai_band_apply_audition_mix.lua
+```
+
+That reapplies current balance, pan, preferred instrument fallback checks, and starter FX to the existing project without importing a new MIDI file.
 
 ## What It Does
 
