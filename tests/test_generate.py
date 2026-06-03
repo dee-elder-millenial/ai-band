@@ -127,6 +127,19 @@ class GenerateMidiTests(unittest.TestCase):
                 self.assertGreaterEqual(len({note.duration for note in lead.notes}), minimum_durations)
                 self.assertTrue(any(note.start % 120 != 0 for note in lead.notes))
 
+    def test_default_generation_leaves_arrangement_space(self) -> None:
+        _ticks_per_beat, _tempo_bpm, tracks = build_tracks()
+        bar_ticks = 480 * 4
+
+        for member_name in ("AI Drummer", "AI Guitar Player", "AI Percussion Extras"):
+            with self.subTest(member=member_name):
+                track = next(track for track in tracks if track.name == member_name)
+                counts_by_bar: dict[int, int] = {}
+                for note in track.notes:
+                    counts_by_bar[note.start // bar_ticks] = counts_by_bar.get(note.start // bar_ticks, 0) + 1
+
+                self.assertGreaterEqual(len(set(counts_by_bar.values())), 2)
+
     def test_ehaye_mode_defaults_to_backing_band_without_ai_rhythm_guitar(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks(mode="ehaye")
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, support_rest, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import chord_tones
@@ -72,6 +72,8 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
             duration = min(duration, note_duration(song, 0.8))
 
         for beat in beats:
+            if support_rest(song, "keys", section.energy, local_bar, section.bars, beat):
+                continue
             note_voicing = _heartland_color_voicing(voicing, tones, local_bar, beat) if song.preset == "heartland-rock" else voicing
             for note in note_voicing:
                 start = song.beat_tick(bar, beat)

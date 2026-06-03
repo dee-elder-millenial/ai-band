@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, support_rest, velocity_shift
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -53,6 +53,8 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
         for eighth in range(8):
             beat = eighth * 0.5
             if song.preset in {"bluesy-alt-country", "southern-blues"} and eighth in {1, 5} and section.energy < 0.75:
+                continue
+            if eighth not in {0, 2, 4, 6} and support_rest(song, "hat", section.energy, local_bar, section.bars, beat):
                 continue
             note = RIDE if song.preset == "heartland-rock" and energetic and eighth % 2 == 0 else OPEN_HAT if energetic and eighth == 7 else CLOSED_HAT
             start = _heartland_drum_start(song, bar, beat, "hat") if song.preset == "heartland-rock" else played_start(song, bar, beat, 0.70)

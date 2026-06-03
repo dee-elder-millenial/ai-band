@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, support_rest, velocity_shift
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -24,6 +24,8 @@ def generate(song: SongState) -> MidiTrack:
         if song.preset == "heartland-rock":
             if section.energy >= 0.85:
                 for beat in _heartland_tambourine_beats(local_bar):
+                    if support_rest(song, "percussion", section.energy, local_bar, section.bars, beat):
+                        continue
                     start = pocket_start(song, bar, beat, 1.15)
                     note_velocity = clamp_midi(velocity(44, section.energy) + velocity_shift(bar, beat, 5) + bar_lift)
                     track.notes.append(
@@ -42,6 +44,8 @@ def generate(song: SongState) -> MidiTrack:
         if song.preset == "southern-blues":
             if section.energy >= 0.75:
                 for beat in (1, 3):
+                    if support_rest(song, "percussion", section.energy, local_bar, section.bars, beat):
+                        continue
                     track.notes.append(
                         MidiNote(
                             played_start(song, bar, beat, 0.75),
@@ -65,6 +69,8 @@ def generate(song: SongState) -> MidiTrack:
 
         for sixteenth in range(16):
             beat = sixteenth * 0.25
+            if support_rest(song, "percussion", section.energy, local_bar, section.bars, beat):
+                continue
             track.notes.append(
                 MidiNote(
                     played_start(song, bar, beat, 0.35),
@@ -77,6 +83,8 @@ def generate(song: SongState) -> MidiTrack:
 
         if section.energy >= 0.75:
             for beat in (1, 3):
+                if support_rest(song, "percussion", section.energy, local_bar, section.bars, beat):
+                    continue
                 track.notes.append(
                     MidiNote(
                         played_start(song, bar, beat, 0.75),

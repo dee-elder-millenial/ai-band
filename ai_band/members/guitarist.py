@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity
+from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, support_rest
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import chord_tones
@@ -39,6 +39,8 @@ def generate(song: SongState) -> MidiTrack:
                 beats = (0, 2.5)
 
         for beat in beats:
+            if beat not in {0, 2.0} and support_rest(song, "guitar", section.energy, local_bar, section.bars, beat):
+                continue
             if song.preset in {"heartland-rock", "southern-blues"}:
                 direction = "down" if beat in {0, 2.0, 2.5} else "up"
                 anchor_offset = (

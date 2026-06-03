@@ -55,6 +55,25 @@ def played_duration(
     return max(minimum or 1, shifted)
 
 
+def support_rest(song: SongState, role: str, energy: float, local_bar: int, section_bars: int, beat: float) -> bool:
+    if local_bar == 0 or local_bar >= max(section_bars - 1, 0):
+        return False
+    if beat in {0, 1, 2, 3} and role in {"bass", "drums"}:
+        return False
+    density_bias = {
+        "hat": 6,
+        "guitar": 6,
+        "keys": 6,
+        "percussion": 6,
+        "bass": 5,
+    }.get(role, 3)
+    energy_offset = 1 if energy >= 0.88 else 0 if energy >= 0.70 else -1
+    preset_offset = 1 if song.preset == "heartland-rock" else 0
+    threshold = max(1, min(7, density_bias + energy_offset + preset_offset))
+    score = (local_bar * 3 + int(round(beat * 4)) * 5 + len(role)) % 8
+    return score >= threshold
+
+
 def phrase_lift(local_bar: int, section_bars: int, amount: int = 3) -> int:
     four_bar_shape = (-1, 0, 1, 2)
     lift = four_bar_shape[local_bar % len(four_bar_shape)]

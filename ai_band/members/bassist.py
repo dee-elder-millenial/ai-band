@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, support_rest, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -86,6 +86,8 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
             )
 
         for beat, note, duration in pattern:
+            if song.preset != "heartland-rock" and beat not in {0, 2.0} and support_rest(song, "bass", section.energy, local_bar, section.bars, beat):
+                continue
             base_velocity = 59 if song.preset == "heartland-rock" else 54 if song.preset == "southern-blues" else 60
             accent = 6 if song.preset == "heartland-rock" and beat in {0, 2.0} else 4 if song.preset == "southern-blues" and beat == 0 else 0
             start = song.beat_tick(bar, beat)
