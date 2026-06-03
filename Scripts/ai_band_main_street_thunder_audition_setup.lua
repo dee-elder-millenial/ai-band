@@ -24,7 +24,6 @@ end
 
 reaper.Undo_BeginBlock()
 reaper.SetEditCurPos(0, false, false)
-reaper.SetCurrentBPM(0, 118, true)
 reaper.InsertMedia(midi_path, 0)
 local configured, added = helpers.configure_rough_tones()
 local fx_configured, fx_added = helpers.configure_rough_effects()
@@ -32,7 +31,7 @@ reaper.GetSetProjectInfo_String(0, "PROJECT_NAME", "AI Band - Main Street Thunde
 reaper.Undo_EndBlock("Set up Main Street Thunder audition", -1)
 
 reaper.ShowMessageBox(
-  "Imported Main Street Thunder.\n\nTone tracks configured: " .. configured ..
+  "Imported Main Street Thunder.\n\nThe MIDI includes a subtle 117-119 BPM tempo feel map.\n\nTone tracks configured: " .. configured ..
   "\nInstruments added: " .. added ..
   "\nFX configured: " .. fx_configured ..
   "\nFX added: " .. fx_added ..

@@ -34,6 +34,14 @@ Scripts/ai_band_ehaye_audition_setup.lua
 
 That script imports `examples/ehaye-backing-band.mid` from the cloud mirror, applies rough tones, and labels the project.
 
+For the heartland-rock audition, load and run:
+
+```text
+Scripts/ai_band_main_street_thunder_audition_setup.lua
+```
+
+`examples/main-street-thunder.mid` includes a subtle 117-119 BPM tempo-feel map. The audition script does not force a single project BPM before import, so REAPER can preserve that MIDI tempo map when its import settings allow it.
+
 Option 2: install the helper script:
 
 1. In REAPER, choose `Options > Show REAPER resource path in explorer/finder`.
