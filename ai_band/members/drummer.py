@@ -12,8 +12,10 @@ CLOSED_HAT = 42
 OPEN_HAT = 46
 RIDE = 51
 CRASH = 49
+TOM_HIGH = 50
 TOM_LOW = 45
 TOM_MID = 47
+TOM_FLOOR = 43
 
 
 def generate(song: SongState, bigger: bool = False) -> MidiTrack:
@@ -88,16 +90,23 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
             )
 
         if bar == section.start_bar:
+            crash_start = _heartland_drum_start(song, bar, 0, "crash") if song.preset == "heartland-rock" else song.beat_tick(bar, 0)
+            crash_velocity = velocity(94, section.energy)
+            if song.preset == "heartland-rock":
+                crash_velocity = min(clamp_midi(crash_velocity + velocity_shift(bar, 0, 3)), 120)
             track.notes.append(
-                MidiNote(song.beat_tick(bar, 0), note_duration(song, 1), CRASH, velocity(94, section.energy), DRUM_CHANNEL)
+                MidiNote(crash_start, note_duration(song, 1), CRASH, crash_velocity, DRUM_CHANNEL)
             )
 
         if bar == section.start_bar + section.bars - 1:
-            fill_start = song.beat_tick(bar, 3)
-            for index, note in enumerate((TOM_MID, TOM_LOW, SNARE, CRASH)):
-                track.notes.append(
-                    MidiNote(fill_start + index * int(step / 2), int(step / 2), note, velocity(82, section.energy), DRUM_CHANNEL)
-                )
+            if song.preset == "heartland-rock":
+                _add_heartland_fill(track, song, bar, section.energy, step)
+            else:
+                fill_start = song.beat_tick(bar, 3)
+                for index, note in enumerate((TOM_MID, TOM_LOW, SNARE, CRASH)):
+                    track.notes.append(
+                        MidiNote(fill_start + index * int(step / 2), int(step / 2), note, velocity(82, section.energy), DRUM_CHANNEL)
+                    )
 
     return track
 
@@ -107,6 +116,23 @@ def _heartland_drum_start(song: SongState, bar: int, beat: float, part: str) -> 
         return pocket_start(song, bar, beat, 0.65)
     if part == "snare":
         return pocket_start(song, bar, beat, -0.45) + int(song.ticks_per_beat * 0.018)
+    if part == "crash":
+        return pocket_start(song, bar, beat, 0.40)
     if part == "ride":
         return pocket_start(song, bar, beat, 0.55)
     return pocket_start(song, bar, beat, 0.85)
+
+
+def _add_heartland_fill(track: MidiTrack, song: SongState, bar: int, energy: float, step: int) -> None:
+    shapes = (
+        ((2.5, SNARE, 0.20, -8), (2.75, TOM_HIGH, 0.18, -6), (3.0, TOM_MID, 0.20, -4), (3.25, TOM_LOW, 0.22, -2), (3.5, CRASH, 0.45, 4)),
+        ((3.0, TOM_HIGH, 0.16, -5), (3.20, TOM_MID, 0.16, -3), (3.40, TOM_LOW, 0.18, -1), (3.62, SNARE, 0.16, -4), (3.78, CRASH, 0.35, 3)),
+        ((2.75, SNARE, 0.18, -7), (3.0, SNARE, 0.14, -10), (3.25, TOM_MID, 0.18, -4), (3.5, TOM_FLOOR, 0.24, 0), (3.75, CRASH, 0.38, 2)),
+        ((2.5, TOM_MID, 0.18, -7), (2.75, TOM_LOW, 0.18, -5), (3.0, SNARE, 0.16, -6), (3.25, TOM_HIGH, 0.16, -3), (3.5, TOM_FLOOR, 0.22, 1), (3.75, CRASH, 0.36, 4)),
+    )
+    shape = shapes[bar % len(shapes)]
+    for beat, note, beats, accent in shape:
+        duration = max(int(step * 0.25), note_duration(song, beats))
+        start = _heartland_drum_start(song, bar, beat, "fill")
+        note_velocity = min(clamp_midi(velocity(82, energy, accent) + velocity_shift(bar, beat, 3)), 122)
+        track.notes.append(MidiNote(start, duration, note, note_velocity, DRUM_CHANNEL))

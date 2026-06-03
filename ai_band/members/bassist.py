@@ -13,8 +13,9 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
     short = note_duration(song, 0.45)
     long = note_duration(song, 0.9)
     held = note_duration(song, 1.35)
+    bars = list(iter_section_bars(song))
 
-    for section, bar, chord in iter_section_bars(song):
+    for bar_index, (section, bar, chord) in enumerate(bars):
         root = 36 + chord.root
         fifth = root + 7
         flat_seventh = root + 10
@@ -97,6 +98,15 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
                 MidiNote(start, note_duration_ticks, note, note_velocity, BASS_CHANNEL)
             )
 
+        if song.preset == "heartland-rock" and not simplify:
+            next_chord = bars[bar_index + 1][2] if bar_index + 1 < len(bars) else None
+            if next_chord is not None and next_chord.root != chord.root:
+                approach = _heartland_approach_note(root, 36 + next_chord.root)
+                start = pocket_start(song, bar, 3.75, 0.70)
+                duration = note_duration(song, 0.20)
+                note_velocity = clamp_midi(velocity(55, section.energy, velocity_shift(bar, 3.75, 4)))
+                track.notes.append(MidiNote(start, duration, approach, note_velocity, BASS_CHANNEL))
+
     return track
 
 
@@ -104,3 +114,12 @@ def _heartland_duration_shift(song: SongState, bar: int, beat: float) -> int:
     pattern = (-0.05, 0.02, -0.02, 0.04, -0.03, 0.03)
     index = (bar + int(beat * 2)) % len(pattern)
     return int(song.ticks_per_beat * pattern[index])
+
+
+def _heartland_approach_note(current_root: int, next_root: int) -> int:
+    approach = next_root - 1 if next_root >= current_root else next_root + 1
+    while approach < 35:
+        approach += 12
+    while approach > 52:
+        approach -= 12
+    return approach
