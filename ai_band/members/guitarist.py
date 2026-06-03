@@ -17,13 +17,14 @@ def generate(song: SongState) -> MidiTrack:
     for section, bar, chord in iter_section_bars(song):
         local_bar = bar - section.start_bar
         tones = chord_tones(chord.root, chord.quality, 3)
+        low_tones = chord_tones(chord.root, chord.quality, 2)
         voicing = (tones[0], tones[2], tones[0] + 12)
         beats = (0, 2) if section.energy < 0.75 else (0, 1.5, 2.5, 3.5)
         duration = half if section.energy < 0.75 else eighth
         base_velocity = 54
 
         if song.preset == "heartland-rock":
-            voicing = (tones[0], tones[1], tones[2], tones[0] + 12)
+            voicing = (low_tones[0], low_tones[2], tones[0], tones[1], tones[2], tones[0] + 12)
             beats = (0, 1.5, 2.5, 3.5) if section.energy < 0.85 else (0, 0.5, 1.5, 2.0, 2.5, 3.5)
             duration = note_duration(song, 0.44 if section.energy < 0.85 else 0.30)
             base_velocity = 50

@@ -256,7 +256,8 @@ class GenerateMidiTests(unittest.TestCase):
 
         self.assertGreater(len(drums.notes), 1000)
         self.assertGreater(len(bass.notes), 400)
-        self.assertGreater(len(guitar.notes), 1500)
+        self.assertGreater(len(guitar.notes), 2500)
+        self.assertLessEqual(min(note.note for note in guitar.notes), 45)
         self.assertEqual(keyboard.program, 66)
         self.assertGreaterEqual(len(lead.events), 24)
 
