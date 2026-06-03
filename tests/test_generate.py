@@ -98,11 +98,16 @@ class GenerateMidiTests(unittest.TestCase):
         )
         guitar = next(track for track in tracks if track.name == "AI Guitar Player")
         starts = [note.start for note in guitar.notes]
+        offgrid_starts = [start for start in starts if start % 480 not in {0, 240}]
 
         self.assertGreaterEqual(len(guitar.notes), 1000)
         self.assertLessEqual(len(guitar.notes), 1400)
         self.assertLessEqual(max(note.velocity for note in guitar.notes), 64)
-        self.assertTrue(any(start % 480 not in {0, 240} for start in starts))
+        self.assertTrue(offgrid_starts)
+        self.assertLessEqual(
+            max(min(abs(start % 480 - anchor) for anchor in (0, 240, 360)) for start in offgrid_starts),
+            18,
+        )
 
     def test_keyboard_part_stays_sparse_for_backing_material(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks(mode="ehaye")

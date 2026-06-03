@@ -12,7 +12,7 @@ def generate(song: SongState) -> MidiTrack:
     track = MidiTrack("AI Guitar Player", channel=GUITAR_CHANNEL, program=29)
     eighth = note_duration(song, 0.45)
     half = note_duration(song, 1.75)
-    strum_gap = max(1, int(song.ticks_per_beat * 0.035))
+    strum_gap = max(1, int(song.ticks_per_beat * 0.012))
 
     for section, bar, chord in iter_section_bars(song):
         local_bar = bar - section.start_bar

@@ -23,6 +23,8 @@ if not file_exists(midi_path) then
 end
 
 reaper.Undo_BeginBlock()
+reaper.SetEditCurPos(0, false, false)
+reaper.SetCurrentBPM(0, 86, true)
 reaper.InsertMedia(midi_path, 0)
 local configured, added = helpers.configure_rough_tones()
 reaper.GetSetProjectInfo_String(0, "PROJECT_NAME", "AI Band - Hard Flag Blues With AI Rhythm Guitar", true)
