@@ -393,6 +393,8 @@ class GenerateMidiTests(unittest.TestCase):
         keyboard_bend_targets = {value for value in keyboard_bend_values if value != 8192}
         bass_bend_values = [event.data[0] | (event.data[1] << 7) for event in bass.events]
         bass_bend_targets = {value for value in bass_bend_values if value != 8192}
+        bass_main_notes = [note for note in bass.notes if note.duration > 32 and note.velocity >= 60]
+        bass_short_articulations = [note for note in bass_main_notes if note.duration <= 180]
         bass_dead_notes = [note for note in bass.notes if note.duration <= 32 and note.velocity < 60]
         lead_grace_notes = [note for note in lead.notes if note.duration <= 44 and note.velocity < 70]
         lead_bend_values = [
@@ -475,6 +477,8 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertIn(50, drum_tom_notes)
         self.assertGreater(len(bass.notes), 400)
         self.assertGreaterEqual(len(bass_pickups), 50)
+        self.assertLessEqual(max(note.velocity for note in bass_main_notes), 91)
+        self.assertGreaterEqual(len(bass_short_articulations), 200)
         self.assertGreaterEqual(len(bass_dead_notes), 80)
         self.assertLessEqual(max(note.velocity for note in bass_dead_notes), 58)
         self.assertGreaterEqual(len(bass.events), 150)

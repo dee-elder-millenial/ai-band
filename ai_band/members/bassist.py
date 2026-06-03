@@ -96,8 +96,13 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
             note_velocity = velocity(base_velocity, section.energy, accent)
             if song.preset == "heartland-rock":
                 start = max(pocket_start(song, bar, beat, 0.55) + groove_offset, song.bar_tick(bar))
-                note_duration_ticks = max(note_duration(song, 0.30), duration + _heartland_duration_shift(song, bar, beat))
-                note_velocity = clamp_midi(note_velocity + velocity_shift(bar, beat, 5) + bar_lift)
+                note_duration_ticks = _heartland_articulated_duration(
+                    song,
+                    duration + _heartland_duration_shift(song, bar, beat),
+                    local_bar,
+                    beat,
+                )
+                note_velocity = min(clamp_midi(note_velocity + velocity_shift(bar, beat, 5) + bar_lift + _heartland_articulation_velocity(local_bar, beat)), 91)
                 if _should_add_dead_note(section.energy, local_bar, beat):
                     _add_dead_note(track, song, start, note, section.energy, bar, beat)
             else:
@@ -136,6 +141,20 @@ def _heartland_duration_shift(song: SongState, bar: int, beat: float) -> int:
     pattern = (-0.05, 0.02, -0.02, 0.04, -0.03, 0.03)
     index = (bar + int(beat * 2)) % len(pattern)
     return int(song.ticks_per_beat * pattern[index])
+
+
+def _heartland_articulated_duration(song: SongState, duration: int, local_bar: int, beat: float) -> int:
+    minimum = note_duration(song, 0.24 if beat in {0.5, 1.5, 2.5, 3.5} else 0.30)
+    if beat in {0.5, 1.5, 2.5, 3.5}:
+        mute_shape = (-0.16, -0.10, -0.13, -0.08)
+        duration += int(song.ticks_per_beat * mute_shape[(local_bar + int(beat * 2)) % len(mute_shape)])
+    return max(minimum, duration)
+
+
+def _heartland_articulation_velocity(local_bar: int, beat: float) -> int:
+    if beat in {0.5, 1.5, 2.5, 3.5}:
+        return (-5, -3, -4, -2)[(local_bar + int(beat * 2)) % 4]
+    return 0
 
 
 def _approach_note(current_root: int, next_root: int) -> int:
