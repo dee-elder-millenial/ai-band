@@ -46,6 +46,8 @@ def build_tracks(
                 "The Ehaye Band mode: Deanna is lead vocal and rhythm guitar; AI members generate backing parts.",
             )
         )
+    if preset == "bluesy-alt-country":
+        markers.metas.append(MidiMeta(0, "text", "Bluesy alt-country preset: sparse bent lead licks enabled."))
 
     tracks = [
         markers,
