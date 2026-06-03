@@ -23,12 +23,14 @@ def generate(song: SongState) -> MidiTrack:
 
         if song.preset == "heartland-rock":
             if section.energy >= 0.85:
-                for beat in (1, 2, 3, 3.5):
+                for beat in _heartland_tambourine_beats(local_bar):
                     start = pocket_start(song, bar, beat, 1.15)
                     note_velocity = clamp_midi(velocity(44, section.energy) + velocity_shift(bar, beat, 5) + bar_lift)
                     track.notes.append(
                         MidiNote(start, duration, TAMBOURINE, note_velocity, PERC_CHANNEL)
                     )
+                if local_bar % 4 in {2, 3}:
+                    _add_heartland_pickup_shake(track, song, bar, local_bar, section.energy, bar_lift)
             elif section.name.startswith("Pre-Chorus"):
                 start = pocket_start(song, bar, 3.5, 1.10)
                 note_velocity = clamp_midi(velocity(38, section.energy) + velocity_shift(bar, 3.5, 4) + bar_lift)
@@ -65,3 +67,29 @@ def generate(song: SongState) -> MidiTrack:
             )
 
     return track
+
+
+def _heartland_tambourine_beats(local_bar: int) -> tuple[float, ...]:
+    patterns = (
+        (1.0, 2.0, 3.0, 3.5),
+        (1.0, 3.0, 3.5),
+        (1.0, 2.0, 3.5),
+        (2.0, 3.0, 3.5),
+        (1.0, 2.0, 3.0),
+    )
+    return patterns[local_bar % len(patterns)]
+
+
+def _add_heartland_pickup_shake(
+    track: MidiTrack,
+    song: SongState,
+    bar: int,
+    local_bar: int,
+    energy: float,
+    bar_lift: int,
+) -> None:
+    duration = note_duration(song, 0.08)
+    for beat in (3.70, 3.86) if local_bar % 4 == 3 else (2.86,):
+        start = pocket_start(song, bar, beat, 1.25)
+        note_velocity = clamp_midi(velocity(34, energy, velocity_shift(bar, beat, 3) + bar_lift))
+        track.notes.append(MidiNote(start, duration, TAMBOURINE, note_velocity, PERC_CHANNEL))

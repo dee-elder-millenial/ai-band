@@ -277,7 +277,11 @@ class GenerateMidiTests(unittest.TestCase):
         bass_starts = [note.start for note in bass.notes]
         guitar_starts = [note.start for note in guitar.notes]
         keyboard_starts = [note.start for note in keyboard.notes]
-        percussion_starts = [note.start for note in percussion.notes]
+        percussion_starts = [note.start for note in percussion.notes if note.duration > 45]
+        percussion_counts_by_bar = {}
+        for note in percussion.notes:
+            percussion_counts_by_bar[note.start // bar_ticks] = percussion_counts_by_bar.get(note.start // bar_ticks, 0) + 1
+        percussion_pickups = [note for note in percussion.notes if note.start % bar_ticks > int(3.65 * 480)]
         drum_anchor_offsets = [
             min(min(abs(start % 480 - anchor), 480 - abs(start % 480 - anchor)) for anchor in (0, 120, 240, 360))
             for start in drum_starts
@@ -340,6 +344,8 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertLessEqual(max(keyboard_anchor_offsets), 12)
         self.assertTrue(percussion_anchor_offsets)
         self.assertLessEqual(max(percussion_anchor_offsets), 8)
+        self.assertGreaterEqual(len(set(percussion_counts_by_bar.values())), 3)
+        self.assertGreaterEqual(len(percussion_pickups), 8)
         self.assertGreaterEqual(len(lead.events), 24)
         self.assertGreaterEqual(len(lead_bend_targets), 6)
         self.assertGreaterEqual(len(lead_grace_notes), 20)
