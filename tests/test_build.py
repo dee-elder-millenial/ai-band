@@ -11,6 +11,7 @@ class BuildPackageTests(unittest.TestCase):
         reaper = manifest["reaper"]
 
         self.assertEqual(reaper["audition_mix_script"], "Scripts/ai_band_apply_audition_mix.lua")
+        self.assertEqual(reaper["reaper_audition_settings_script"], "Scripts/ai_band_apply_reaper_audition_settings.lua")
         for relative_path in reaper.values():
             with self.subTest(path=relative_path):
                 self.assertTrue((build.REPO_ROOT / relative_path).exists(), relative_path)
@@ -24,6 +25,13 @@ class BuildPackageTests(unittest.TestCase):
         for profile in ("balanced", "drums-forward", "warmer-room", "lead-back"):
             with self.subTest(profile=profile):
                 self.assertIn(profile, helper)
+
+    def test_reaper_audition_settings_script_sets_safe_project_defaults(self) -> None:
+        script = (build.REPO_ROOT / "Scripts" / "ai_band_apply_reaper_audition_settings.lua").read_text(encoding="utf-8")
+
+        self.assertIn("CSurf_OnPlayRateChange(1.0)", script)
+        self.assertIn("ReaLimit", script)
+        self.assertIn('SetMediaTrackInfo_Value(master, "D_VOL", 0.82)', script)
 
 
 if __name__ == "__main__":

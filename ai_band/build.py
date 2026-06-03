@@ -86,6 +86,7 @@ def build_manifest(ticks_per_beat: int, tempo_bpm: int) -> dict[str, object]:
             "script": "Scripts/ai_band_import_generated_midi.lua",
             "sound_check_script": "Scripts/ai_band_add_sound_check_synths.lua",
             "lower_track_levels_script": "Scripts/ai_band_lower_track_levels.lua",
+            "reaper_audition_settings_script": "Scripts/ai_band_apply_reaper_audition_settings.lua",
             "rough_tones_script": "Scripts/ai_band_setup_rough_tones.lua",
             "audition_mix_script": "Scripts/ai_band_apply_audition_mix.lua",
             "ehaye_audition_script": "Scripts/ai_band_ehaye_audition_setup.lua",

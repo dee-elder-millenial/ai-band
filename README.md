@@ -94,6 +94,7 @@ ai-band/
     ai_band_import_generated_midi.lua
     ai_band_add_sound_check_synths.lua
     ai_band_lower_track_levels.lua
+    ai_band_apply_reaper_audition_settings.lua
     ai_band_setup_rough_tones.lua
     ai_band_apply_audition_mix.lua
     ai_band_ehaye_audition_setup.lua
