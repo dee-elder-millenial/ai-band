@@ -44,12 +44,13 @@ def generate(song: SongState) -> MidiTrack:
                 anchor_offset = _heartland_anchor_offset(song, bar, beat) if song.preset == "heartland-rock" else 0
                 velocity_shift = _heartland_velocity_shift(bar, beat) if song.preset == "heartland-rock" else 0
                 string_gap = _heartland_strum_gap(song, bar, beat, strum_gap) if song.preset == "heartland-rock" else strum_gap
+                strum_voicing = _heartland_color_voicing(voicing, tones, local_bar, beat) if song.preset == "heartland-rock" else voicing
                 _add_strum(
                     track,
                     song,
                     bar,
                     beat,
-                    voicing,
+                    strum_voicing,
                     duration,
                     base_velocity + velocity_shift + bar_lift,
                     section.energy,
@@ -71,7 +72,7 @@ def generate(song: SongState) -> MidiTrack:
                 song,
                 bar,
                 3.75,
-                (tones[1], tones[2], tones[0] + 12),
+                _heartland_fill_voicing(tones, local_bar) if song.preset == "heartland-rock" else (tones[1], tones[2], tones[0] + 12),
                 note_duration(song, 0.18),
                 (46 + bar_lift) if song.preset == "heartland-rock" else 38,
                 section.energy,
@@ -149,3 +150,30 @@ def _heartland_string_velocities(bar: int, beat: float) -> tuple[int, ...]:
         (0, -2, 2, -1, 1, -2),
     )
     return patterns[(bar + int(beat * 2)) % len(patterns)]
+
+
+def _heartland_color_voicing(
+    voicing: tuple[int, ...],
+    tones: tuple[int, int, int],
+    local_bar: int,
+    beat: float,
+) -> tuple[int, ...]:
+    root, third, fifth = tones
+    second = root + 2
+    fourth = root + 5
+    sixth = root + 9
+    shape = (local_bar + int(beat * 2)) % 8
+    if shape == 1 and beat >= 1.0:
+        return (voicing[0], voicing[1], root, fourth, fifth, root + 12)
+    if shape == 4 and beat >= 2.0:
+        return (voicing[0], voicing[1], root, third, sixth, root + 12)
+    if shape == 6 and beat >= 2.5:
+        return (voicing[0], voicing[1], second, third, fifth, root + 12)
+    return voicing
+
+
+def _heartland_fill_voicing(tones: tuple[int, int, int], local_bar: int) -> tuple[int, ...]:
+    root, third, fifth = tones
+    if local_bar % 8 in {3, 7}:
+        return (root + 2, third, fifth, root + 12)
+    return (third, fifth, root + 12)

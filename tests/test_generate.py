@@ -255,6 +255,8 @@ class GenerateMidiTests(unittest.TestCase):
         lead = next(track for track in tracks if track.name == "AI Lead Player")
         percussion = next(track for track in tracks if track.name == "AI Percussion Extras")
         guitar_durations = {note.duration for note in guitar.notes}
+        guitar_pitches = {note.note for note in guitar.notes}
+        keyboard_pitches = {note.note for note in keyboard.notes}
         lead_bend_values = [event.data[0] | (event.data[1] << 7) for event in lead.events]
         lead_bend_targets = {value for value in lead_bend_values if value != 8192}
         bass_pickups = [note for note in bass.notes if 340 <= note.start % 480 <= 380]
@@ -306,6 +308,7 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertGreater(average_velocity(bass, final_chorus_lift), average_velocity(bass, final_chorus_start))
         self.assertGreater(len(guitar.notes), 2500)
         self.assertLessEqual(min(note.note for note in guitar.notes), 45)
+        self.assertGreaterEqual(len(guitar_pitches), 20)
         self.assertGreater(average_velocity(guitar, final_chorus_lift), average_velocity(guitar, final_chorus_start))
         self.assertTrue(drum_anchor_offsets)
         self.assertLessEqual(max(drum_anchor_offsets), 18)
@@ -315,6 +318,7 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertLessEqual(max(guitar_anchor_offsets), 42)
         self.assertGreaterEqual(len(guitar_durations), 10)
         self.assertEqual(keyboard.program, 66)
+        self.assertGreaterEqual(len(keyboard_pitches), 12)
         self.assertTrue(keyboard_anchor_offsets)
         self.assertLessEqual(max(keyboard_anchor_offsets), 12)
         self.assertTrue(percussion_anchor_offsets)

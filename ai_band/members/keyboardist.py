@@ -72,7 +72,8 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
             duration = min(duration, note_duration(song, 0.8))
 
         for beat in beats:
-            for note in voicing:
+            note_voicing = _heartland_color_voicing(voicing, tones, local_bar, beat) if song.preset == "heartland-rock" else voicing
+            for note in note_voicing:
                 start = song.beat_tick(bar, beat)
                 note_duration_ticks = duration
                 note_velocity = velocity(32, section.energy)
@@ -91,3 +92,17 @@ def _heartland_breath(song: SongState, bar: int, beat: float) -> int:
     pattern = (0.04, -0.03, 0.02, -0.02)
     index = (bar + int(beat * 2)) % len(pattern)
     return int(song.ticks_per_beat * pattern[index])
+
+
+def _heartland_color_voicing(
+    voicing: tuple[int, ...],
+    tones: tuple[int, int, int],
+    local_bar: int,
+    beat: float,
+) -> tuple[int, ...]:
+    root, third, fifth = tones
+    if len(voicing) == 1 and local_bar % 4 == 2 and beat >= 2.5:
+        return (root + 12, root + 14)
+    if len(voicing) > 1 and (local_bar + int(beat * 2)) % 6 == 3:
+        return (third + 12, root + 17)
+    return voicing
