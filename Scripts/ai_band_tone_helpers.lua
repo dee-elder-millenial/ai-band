@@ -5,7 +5,7 @@ local M = {}
 M.DEFAULT_TRACK_VOLUME = 0.14
 M.TRACK_VOLUMES = {
   ["AI Drummer"] = 0.30,
-  ["AI Bass Player"] = 0.20,
+  ["AI Bass Player"] = 0.16,
   ["AI Guitar Player"] = 0.12,
   ["AI Keyboard Player"] = 0.09,
   ["AI Lead Player"] = 0.15,
@@ -54,7 +54,7 @@ function M.set_reasynth(track, fx_index, track_name_value)
   local sustain = 0.18
 
   if track_name_value == "AI Bass Player" then
-    volume = 0.05
+    volume = 0.04
     attack = 0.03
     decay = 0.18
     sustain = 0.30
@@ -122,4 +122,3 @@ function M.configure_rough_tones()
 end
 
 return M
-

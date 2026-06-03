@@ -54,3 +54,5 @@ Early REAPER audition feedback:
 - keys should be sparse because they can crowd the backing arrangement
 - the backing-band direction is starting to work
 - the first ReaSynth-only audition sounded like The Legend of Zelda, so rough tone setup needs separate drum/percussion treatment and calmer synth settings
+- with better instruments, the bass was a little heavy and slightly off, so backing mode should keep bass simpler and more kick-locked
+- lead guitar sounded robotic, so generated lead needs phrase gaps, varied timing, and less repetition

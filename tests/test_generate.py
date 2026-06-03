@@ -80,6 +80,21 @@ class GenerateMidiTests(unittest.TestCase):
 
         self.assertGreaterEqual(max(note.velocity for note in drums.notes), 100)
 
+    def test_bass_part_is_lighter_in_backing_mode(self) -> None:
+        _ticks_per_beat, _tempo_bpm, tracks = build_tracks(mode="ehaye")
+        bass = next(track for track in tracks if track.name == "AI Bass Player")
+
+        self.assertLessEqual(len(bass.notes), 44)
+        self.assertLessEqual(max(note.velocity for note in bass.notes), 82)
+
+    def test_lead_part_has_phrase_space_and_timing_variation(self) -> None:
+        song_ticks, _tempo_bpm, tracks = build_tracks(mode="ehaye")
+        lead = next(track for track in tracks if track.name == "AI Lead Player")
+        starts = [note.start for note in lead.notes]
+
+        self.assertLess(len(lead.notes), 64)
+        self.assertTrue(any(start % song_ticks != 0 for start in starts))
+
 
 if __name__ == "__main__":
     unittest.main()
