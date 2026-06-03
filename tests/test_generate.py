@@ -257,6 +257,13 @@ class GenerateMidiTests(unittest.TestCase):
         guitar_durations = {note.duration for note in guitar.notes}
         guitar_pitches = {note.note for note in guitar.notes}
         keyboard_pitches = {note.note for note in keyboard.notes}
+        keyboard_expression_events = [event for event in keyboard.events if event.status == 0xB0 | 2 and event.data[0] == 11]
+        keyboard_bend_values = [
+            event.data[0] | (event.data[1] << 7)
+            for event in keyboard.events
+            if event.status == 0xE0 | 2
+        ]
+        keyboard_bend_targets = {value for value in keyboard_bend_values if value != 8192}
         bass_bend_values = [event.data[0] | (event.data[1] << 7) for event in bass.events]
         bass_bend_targets = {value for value in bass_bend_values if value != 8192}
         lead_grace_notes = [note for note in lead.notes if note.duration <= 44 and note.velocity < 70]
@@ -327,6 +334,8 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertGreaterEqual(len(guitar_durations), 10)
         self.assertEqual(keyboard.program, 66)
         self.assertGreaterEqual(len(keyboard_pitches), 12)
+        self.assertGreaterEqual(len(keyboard_expression_events), 300)
+        self.assertGreaterEqual(len(keyboard_bend_targets), 4)
         self.assertTrue(keyboard_anchor_offsets)
         self.assertLessEqual(max(keyboard_anchor_offsets), 12)
         self.assertTrue(percussion_anchor_offsets)

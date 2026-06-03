@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
 from ai_band.humanize import clamp_midi, phrase_lift, pocket_start, velocity_shift
-from ai_band.midi import MidiNote, MidiTrack
+from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import chord_tones
 
@@ -84,6 +84,8 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
                 track.notes.append(
                     MidiNote(start, note_duration_ticks, note, note_velocity, KEYS_CHANNEL)
                 )
+                if song.preset == "heartland-rock":
+                    _add_heartland_sax_expression(track, start, note_duration_ticks, bar, beat)
 
     return track
 
@@ -106,3 +108,28 @@ def _heartland_color_voicing(
     if len(voicing) > 1 and (local_bar + int(beat * 2)) % 6 == 3:
         return (third + 12, root + 17)
     return voicing
+
+
+def _add_heartland_sax_expression(track: MidiTrack, start: int, duration: int, bar: int, beat: float) -> None:
+    swell = (82, 88, 84, 90)[(bar + int(beat * 2)) % 4]
+    fall = max(70, swell - 10)
+    scoop = (320, 460, 260, 380)[(bar + int(beat * 2)) % 4]
+    direction = -1 if (bar + int(beat * 2)) % 3 else 1
+    track.events.extend(
+        (
+            _control_change(start, 11, max(62, swell - 18)),
+            _pitch_bend(start, 8192 + direction * scoop),
+            _control_change(start + int(duration * 0.28), 11, swell),
+            _pitch_bend(start + int(duration * 0.35), 8192),
+            _control_change(start + int(duration * 0.82), 11, fall),
+        )
+    )
+
+
+def _control_change(tick: int, controller: int, value: int) -> MidiEvent:
+    return MidiEvent(tick=tick, status=0xB0 | KEYS_CHANNEL, data=(controller, max(0, min(127, value))))
+
+
+def _pitch_bend(tick: int, value: int) -> MidiEvent:
+    value = max(0, min(16383, value))
+    return MidiEvent(tick=tick, status=0xE0 | KEYS_CHANNEL, data=(value & 0x7F, (value >> 7) & 0x7F))
