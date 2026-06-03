@@ -22,7 +22,7 @@ def generate(song: SongState) -> MidiTrack:
         base_velocity = 54
 
         if song.preset == "southern-blues":
-            voicing = (tones[0], tones[2])
+            voicing = (tones[0], tones[1], tones[2])
             beats = (0, 2.5) if section.energy < 0.75 else (0, 2, 3.5)
             duration = note_duration(song, 0.7 if section.energy < 0.75 else 0.38)
             base_velocity = 42

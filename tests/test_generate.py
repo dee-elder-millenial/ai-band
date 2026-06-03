@@ -87,7 +87,7 @@ class GenerateMidiTests(unittest.TestCase):
 
         self.assertIn("AI Guitar Player", [track.name for track in tracks])
 
-    def test_southern_blues_can_include_restrained_ai_rhythm_guitar(self) -> None:
+    def test_southern_blues_can_include_restrained_chordal_ai_rhythm_guitar(self) -> None:
         _ticks, _tempo, tracks = build_tracks(
             mode="ehaye",
             include_ai_rhythm_guitar=True,
@@ -98,7 +98,7 @@ class GenerateMidiTests(unittest.TestCase):
         )
         guitar = next(track for track in tracks if track.name == "AI Guitar Player")
 
-        self.assertLessEqual(len(guitar.notes), 360)
+        self.assertLessEqual(len(guitar.notes), 500)
         self.assertLessEqual(max(note.velocity for note in guitar.notes), 64)
 
     def test_keyboard_part_stays_sparse_for_backing_material(self) -> None:
