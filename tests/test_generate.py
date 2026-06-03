@@ -267,6 +267,7 @@ class GenerateMidiTests(unittest.TestCase):
         keyboard_bend_targets = {value for value in keyboard_bend_values if value != 8192}
         bass_bend_values = [event.data[0] | (event.data[1] << 7) for event in bass.events]
         bass_bend_targets = {value for value in bass_bend_values if value != 8192}
+        bass_dead_notes = [note for note in bass.notes if note.duration <= 32 and note.velocity < 60]
         lead_grace_notes = [note for note in lead.notes if note.duration <= 44 and note.velocity < 70]
         lead_bend_values = [event.data[0] | (event.data[1] << 7) for event in lead.events]
         lead_bend_targets = {value for value in lead_bend_values if value != 8192}
@@ -276,7 +277,7 @@ class GenerateMidiTests(unittest.TestCase):
         drum_tom_notes = {note.note for note in drums.notes}
         bar_ticks = 480 * 4
         drum_starts = [note.start for note in drums.notes]
-        bass_starts = [note.start for note in bass.notes]
+        bass_starts = [note.start for note in bass.notes if note.duration > 32 or note.velocity >= 60]
         guitar_starts = [note.start for note in guitar.notes]
         keyboard_starts = [note.start for note in keyboard.notes]
         percussion_starts = [note.start for note in percussion.notes if note.duration > 45]
@@ -324,6 +325,8 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertIn(50, drum_tom_notes)
         self.assertGreater(len(bass.notes), 400)
         self.assertGreaterEqual(len(bass_pickups), 50)
+        self.assertGreaterEqual(len(bass_dead_notes), 80)
+        self.assertLessEqual(max(note.velocity for note in bass_dead_notes), 58)
         self.assertGreaterEqual(len(bass.events), 150)
         self.assertGreaterEqual(len(bass_bend_targets), 4)
         self.assertGreater(average_velocity(bass, final_chorus_lift), average_velocity(bass, final_chorus_start))

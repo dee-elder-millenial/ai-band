@@ -95,6 +95,8 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
                 start = pocket_start(song, bar, beat, 0.55)
                 note_duration_ticks = max(note_duration(song, 0.30), duration + _heartland_duration_shift(song, bar, beat))
                 note_velocity = clamp_midi(note_velocity + velocity_shift(bar, beat, 5) + bar_lift)
+                if _should_add_dead_note(section.energy, local_bar, beat):
+                    _add_dead_note(track, song, start, note, section.energy, bar, beat)
             track.notes.append(
                 MidiNote(start, note_duration_ticks, note, note_velocity, BASS_CHANNEL)
             )
@@ -125,6 +127,22 @@ def _heartland_approach_note(current_root: int, next_root: int) -> int:
     while approach > 52:
         approach -= 12
     return approach
+
+
+def _should_add_dead_note(energy: float, local_bar: int, beat: float) -> bool:
+    if energy < 0.72:
+        return False
+    return beat in {0.5, 1.5, 2.5, 3.5} and (local_bar + int(beat * 2)) % 3 != 1
+
+
+def _add_dead_note(track: MidiTrack, song: SongState, start: int, note: int, energy: float, bar: int, beat: float) -> None:
+    dead_start = max(start - int(song.ticks_per_beat * 0.070), song.bar_tick(bar))
+    if dead_start >= start:
+        return
+    duration = max(18, int(song.ticks_per_beat * 0.060))
+    dead_note = note - 12 if note >= 48 else note
+    note_velocity = min(clamp_midi(velocity(28, energy, velocity_shift(bar, beat, 2))), 58)
+    track.notes.append(MidiNote(dead_start, duration, dead_note, note_velocity, BASS_CHANNEL))
 
 
 def _add_heartland_slide(track: MidiTrack, start: int, duration: int, bar: int) -> None:
