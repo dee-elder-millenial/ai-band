@@ -96,6 +96,13 @@ Scripts/ai_band_apply_audition_mix.lua
 
 This reapplies the shared rough tone helper: track faders, pans, preferred instruments or fallbacks, ReaComp/ReaVerbate starter FX, and conservative room/depth settings when REAPER exposes those parameters.
 
+The script prompts for a mix profile:
+
+- `balanced`: the default current audition mix
+- `drums-forward`: more drum center, less room wash
+- `warmer-room`: more shared space when the MIDI feels too dry or fake
+- `lead-back`: tucks the lead guitar farther behind the rhythm section
+
 ## Install JSFX Helpers
 
 JSFX effects belong in REAPER's resource-path `Effects` folder.

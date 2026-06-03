@@ -40,6 +40,13 @@ ai_band_apply_audition_mix.lua
 
 That reapplies current balance, pan, preferred instrument fallback checks, and starter FX to the existing project without importing a new MIDI file.
 
+The audition mix script prompts for a profile:
+
+- `balanced`: current default
+- `drums-forward`: use when kick/snare disappear
+- `warmer-room`: use when the parts feel dry or MIDI-like
+- `lead-back`: use when lead guitar crowds the backing track
+
 ## What It Does
 
 - AI Drummer: prefers `MT-PowerDrumKit (MANDA AUDIO)`

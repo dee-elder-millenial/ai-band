@@ -128,6 +128,56 @@ M.EFFECT_PARAM_TARGETS = {
     },
   },
 }
+M.MIX_PROFILE_NAMES = "balanced, drums-forward, warmer-room, lead-back"
+M.MIX_PROFILES = {
+  ["drums-forward"] = {
+    volumes = {
+      ["AI Drummer"] = 0.38,
+      ["AI Bass Player"] = 0.12,
+      ["AI Keyboard Player"] = 0.070,
+      ["AI Lead Player"] = 0.12,
+      ["AI Percussion Extras"] = 0.08,
+    },
+    effects = {
+      ["AI Drummer"] = {
+        ["ReaVerbate"] = {wet = 0.055, dry = 0.95, room = 0.26, damp = 0.62},
+      },
+    },
+  },
+  ["warmer-room"] = {
+    volumes = {
+      ["AI Guitar Player"] = 0.12,
+      ["AI Keyboard Player"] = 0.070,
+      ["AI Lead Player"] = 0.12,
+    },
+    effects = {
+      ["AI Drummer"] = {
+        ["ReaVerbate"] = {wet = 0.085, dry = 0.90, room = 0.34, damp = 0.58},
+      },
+      ["AI Guitar Player"] = {
+        ["ReaVerbate"] = {wet = 0.18, dry = 0.84, room = 0.52, damp = 0.50},
+      },
+      ["AI Keyboard Player"] = {
+        ["ReaVerbate"] = {wet = 0.22, dry = 0.80, room = 0.58, damp = 0.54},
+      },
+      ["AI Lead Player"] = {
+        ["ReaVerbate"] = {wet = 0.20, dry = 0.82, room = 0.55, damp = 0.50},
+      },
+    },
+  },
+  ["lead-back"] = {
+    volumes = {
+      ["AI Lead Player"] = 0.095,
+      ["AI Guitar Player"] = 0.14,
+      ["AI Keyboard Player"] = 0.070,
+    },
+    effects = {
+      ["AI Lead Player"] = {
+        ["ReaVerbate"] = {wet = 0.19, dry = 0.80, room = 0.50, damp = 0.54},
+      },
+    },
+  },
+}
 
 function M.track_name(track)
   local ok, name = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
@@ -170,6 +220,50 @@ function M.add_preferred_instrument(track, track_name_value)
 
   fx_index, was_added = M.add_or_find_fx(track, preferred.fallback_name, preferred.fallback_needle)
   return fx_index, was_added, "fallback"
+end
+
+function M.normalize_mix_profile(profile)
+  local normalized = (profile or ""):lower():gsub("^%s+", ""):gsub("%s+$", ""):gsub("%s+", "-")
+  if normalized == "" or normalized == "default" or normalized == "1" then
+    return "balanced"
+  end
+  if normalized == "2" or normalized == "drums" then
+    return "drums-forward"
+  end
+  if normalized == "3" or normalized == "warm" or normalized == "room" then
+    return "warmer-room"
+  end
+  if normalized == "4" or normalized == "lead" then
+    return "lead-back"
+  end
+  if M.MIX_PROFILES[normalized] then
+    return normalized
+  end
+  return "balanced"
+end
+
+function M.apply_mix_profile(profile)
+  local normalized = M.normalize_mix_profile(profile)
+  local profile_settings = M.MIX_PROFILES[normalized]
+  if not profile_settings then
+    return normalized
+  end
+
+  for track_name_value, volume in pairs(profile_settings.volumes or {}) do
+    M.TRACK_VOLUMES[track_name_value] = volume
+  end
+
+  for track_name_value, effects in pairs(profile_settings.effects or {}) do
+    M.EFFECT_PARAM_TARGETS[track_name_value] = M.EFFECT_PARAM_TARGETS[track_name_value] or {}
+    for effect_name, params in pairs(effects) do
+      M.EFFECT_PARAM_TARGETS[track_name_value][effect_name] = M.EFFECT_PARAM_TARGETS[track_name_value][effect_name] or {}
+      for param_name, value in pairs(params) do
+        M.EFFECT_PARAM_TARGETS[track_name_value][effect_name][param_name] = value
+      end
+    end
+  end
+
+  return normalized
 end
 
 function M.set_reasynth(track, fx_index, track_name_value)
