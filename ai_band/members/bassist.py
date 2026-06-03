@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
 from ai_band.humanize import clamp_midi, phrase_lift, pocket_start, velocity_shift
-from ai_band.midi import MidiNote, MidiTrack
+from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
 BASS_CHANNEL = 0
@@ -107,6 +107,7 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
                 duration = note_duration(song, 0.20)
                 note_velocity = clamp_midi(velocity(55, section.energy, velocity_shift(bar, 3.75, 4) + bar_lift))
                 track.notes.append(MidiNote(start, duration, approach, note_velocity, BASS_CHANNEL))
+                _add_heartland_slide(track, start, duration, bar)
 
     return track
 
@@ -124,3 +125,20 @@ def _heartland_approach_note(current_root: int, next_root: int) -> int:
     while approach > 52:
         approach -= 12
     return approach
+
+
+def _add_heartland_slide(track: MidiTrack, start: int, duration: int, bar: int) -> None:
+    amount = (700, 950, 550, 820)[bar % 4]
+    direction = -1 if bar % 3 != 1 else 1
+    track.events.extend(
+        (
+            _pitch_bend(start, 8192 + direction * amount),
+            _pitch_bend(start + int(duration * 0.48), 8192 + direction * int(amount * 0.35)),
+            _pitch_bend(start + int(duration * 0.84), 8192),
+        )
+    )
+
+
+def _pitch_bend(tick: int, value: int) -> MidiEvent:
+    value = max(0, min(16383, value))
+    return MidiEvent(tick=tick, status=0xE0 | BASS_CHANNEL, data=(value & 0x7F, (value >> 7) & 0x7F))
