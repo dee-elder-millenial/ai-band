@@ -229,7 +229,12 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
                 note_duration(song, 0.18),
             )
             note_velocity = played_velocity(
-                clamp_midi(velocity(base_velocity, section.energy, accent=(index % 2) * 4) + velocity_shift(bar, beat, 3) + bar_lift),
+                clamp_midi(
+                    velocity(base_velocity, section.energy, accent=(index % 2) * 4)
+                    + velocity_shift(bar, beat, 3)
+                    + bar_lift
+                    + _heartland_phrase_accent(index, local_bar, section_is_solo)
+                ),
                 song,
                 bar,
                 beat,
@@ -293,6 +298,13 @@ def _heartland_lead_start(song: SongState, bar: int, beat: float, index: int) ->
 def _heartland_phrase_length(index: int, local_bar: int) -> float:
     phrase_shape = (0.00, 0.035, -0.025, 0.020)[local_bar % 4]
     return (0.04, -0.03, 0.02, 0.05, -0.02)[index % 5] + phrase_shape
+
+
+def _heartland_phrase_accent(index: int, local_bar: int, section_is_solo: bool) -> int:
+    answer_shape = (-4, 1, 4, -1)
+    solo_shape = (-3, 2, 5, 1)
+    shape = solo_shape if section_is_solo else answer_shape
+    return shape[(index + local_bar) % len(shape)]
 
 
 def _should_add_heartland_grace(section_name: str, local_bar: int, index: int, bend: bool) -> bool:
