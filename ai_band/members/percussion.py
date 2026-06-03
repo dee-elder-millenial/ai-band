@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
+from ai_band.humanize import clamp_midi, pocket_start, velocity_shift
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -21,12 +22,16 @@ def generate(song: SongState) -> MidiTrack:
         if song.preset == "heartland-rock":
             if section.energy >= 0.85:
                 for beat in (1, 2, 3, 3.5):
+                    start = pocket_start(song, bar, beat, 1.15)
+                    note_velocity = clamp_midi(velocity(44, section.energy) + velocity_shift(bar, beat, 5))
                     track.notes.append(
-                        MidiNote(song.beat_tick(bar, beat), duration, TAMBOURINE, velocity(44, section.energy), PERC_CHANNEL)
+                        MidiNote(start, duration, TAMBOURINE, note_velocity, PERC_CHANNEL)
                     )
             elif section.name.startswith("Pre-Chorus"):
+                start = pocket_start(song, bar, 3.5, 1.10)
+                note_velocity = clamp_midi(velocity(38, section.energy) + velocity_shift(bar, 3.5, 4))
                 track.notes.append(
-                    MidiNote(song.beat_tick(bar, 3.5), duration, TAMBOURINE, velocity(38, section.energy), PERC_CHANNEL)
+                    MidiNote(start, duration, TAMBOURINE, note_velocity, PERC_CHANNEL)
                 )
             continue
 

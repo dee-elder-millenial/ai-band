@@ -253,9 +253,12 @@ class GenerateMidiTests(unittest.TestCase):
         guitar = next(track for track in tracks if track.name == "AI Guitar Player")
         keyboard = next(track for track in tracks if track.name == "AI Keyboard Player")
         lead = next(track for track in tracks if track.name == "AI Lead Player")
+        percussion = next(track for track in tracks if track.name == "AI Percussion Extras")
         drum_starts = [note.start for note in drums.notes]
         bass_starts = [note.start for note in bass.notes]
         guitar_starts = [note.start for note in guitar.notes]
+        keyboard_starts = [note.start for note in keyboard.notes]
+        percussion_starts = [note.start for note in percussion.notes]
         drum_anchor_offsets = [
             min(min(abs(start % 480 - anchor), 480 - abs(start % 480 - anchor)) for anchor in (0, 120, 240, 360))
             for start in drum_starts
@@ -271,6 +274,16 @@ class GenerateMidiTests(unittest.TestCase):
             for start in guitar_starts
             if start % 480 not in {0, 240, 360}
         ]
+        keyboard_anchor_offsets = [
+            min(min(abs(start % 480 - anchor), 480 - abs(start % 480 - anchor)) for anchor in (0, 240, 360))
+            for start in keyboard_starts
+            if start % 480 not in {0, 240, 360}
+        ]
+        percussion_anchor_offsets = [
+            min(min(abs(start % 480 - anchor), 480 - abs(start % 480 - anchor)) for anchor in (0, 240, 360))
+            for start in percussion_starts
+            if start % 480 not in {0, 240, 360}
+        ]
 
         self.assertGreater(len(drums.notes), 1000)
         self.assertLessEqual(max(note.velocity for note in drums.notes), 122)
@@ -284,6 +297,10 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertTrue(guitar_anchor_offsets)
         self.assertLessEqual(max(guitar_anchor_offsets), 26)
         self.assertEqual(keyboard.program, 66)
+        self.assertTrue(keyboard_anchor_offsets)
+        self.assertLessEqual(max(keyboard_anchor_offsets), 12)
+        self.assertTrue(percussion_anchor_offsets)
+        self.assertLessEqual(max(percussion_anchor_offsets), 8)
         self.assertGreaterEqual(len(lead.events), 24)
 
 
