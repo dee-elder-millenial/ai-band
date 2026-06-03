@@ -45,6 +45,8 @@ def generate(song: SongState) -> MidiTrack:
                 velocity_shift = _heartland_velocity_shift(bar, beat) if song.preset == "heartland-rock" else 0
                 string_gap = _heartland_strum_gap(song, bar, beat, strum_gap) if song.preset == "heartland-rock" else strum_gap
                 strum_voicing = _heartland_color_voicing(voicing, tones, local_bar, beat) if song.preset == "heartland-rock" else voicing
+                if song.preset == "heartland-rock" and _should_add_heartland_rake(section.energy, local_bar, beat, direction):
+                    _add_heartland_rake(track, song, bar, beat, strum_voicing, section.energy, anchor_offset)
                 _add_strum(
                     track,
                     song,
@@ -150,6 +152,30 @@ def _heartland_string_velocities(bar: int, beat: float) -> tuple[int, ...]:
         (0, -2, 2, -1, 1, -2),
     )
     return patterns[(bar + int(beat * 2)) % len(patterns)]
+
+
+def _should_add_heartland_rake(energy: float, local_bar: int, beat: float, direction: str) -> bool:
+    if energy < 0.78 or direction != "down":
+        return False
+    return beat in {0, 2.0, 2.5} and (local_bar + int(beat * 2)) % 4 in {0, 3}
+
+
+def _add_heartland_rake(
+    track: MidiTrack,
+    song: SongState,
+    bar: int,
+    beat: float,
+    voicing: tuple[int, ...],
+    energy: float,
+    anchor_offset: int,
+) -> None:
+    rake_start = max(song.beat_tick(bar, beat) + anchor_offset - int(song.ticks_per_beat * 0.055), song.bar_tick(bar))
+    gap = max(1, int(song.ticks_per_beat * 0.010))
+    duration = max(16, int(song.ticks_per_beat * 0.045))
+    rake_notes = voicing[:3]
+    for index, note in enumerate(rake_notes):
+        note_velocity = min(clamp_midi(velocity(26, energy, index + _heartland_velocity_shift(bar, beat))), 58)
+        track.notes.append(MidiNote(rake_start + index * gap, duration, note, note_velocity, GUITAR_CHANNEL))
 
 
 def _heartland_color_voicing(
