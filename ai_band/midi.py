@@ -121,7 +121,11 @@ def _event_order(data: bytes) -> int:
         return 0
     if status == 0x80:
         return 1
-    return 2
+    if status in {0xB0, 0xE0}:
+        return 2
+    if status == 0x90:
+        return 3
+    return 4
 
 
 def _vlq(value: int) -> bytes:

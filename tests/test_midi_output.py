@@ -7,11 +7,21 @@ from pathlib import Path
 from ai_band.controls import controls_from_cue
 from ai_band.generate import build_tracks, tempo_events_for_preset
 from ai_band.live_cue import LiveCue
-from ai_band.midi import write_midi
+from ai_band.midi import _event_order, write_midi
 from ai_band.midi_read import read_midi_summary
 
 
 class MidiOutputTests(unittest.TestCase):
+    def test_midi_writer_orders_same_tick_setup_events_before_note_ons(self) -> None:
+        note_off = bytes([0x80, 60, 0])
+        expression = bytes([0xB0, 11, 90])
+        pitch_bend = bytes([0xE0, 0, 64])
+        note_on = bytes([0x90, 60, 96])
+
+        self.assertLess(_event_order(note_off), _event_order(expression))
+        self.assertLess(_event_order(expression), _event_order(note_on))
+        self.assertLess(_event_order(pitch_bend), _event_order(note_on))
+
     def test_generated_midi_reads_back_expected_band_structure(self) -> None:
         ticks_per_beat, tempo_bpm, tracks = build_tracks()
 
