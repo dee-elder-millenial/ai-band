@@ -58,6 +58,8 @@ Scripts/ai_band_lower_track_levels.lua
 
 That script only lowers and pans the imported AI Band tracks. It does not add or remove instruments.
 
+The current sound-check mix intentionally pushes drums a little forward and keeps keys quieter because the first listening pass showed the keys crowding the backing arrangement.
+
 ## Install JSFX Helpers
 
 JSFX effects belong in REAPER's resource-path `Effects` folder.

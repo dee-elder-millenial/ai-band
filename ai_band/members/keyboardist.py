@@ -10,18 +10,26 @@ KEYS_CHANNEL = 2
 
 def generate(song: SongState) -> MidiTrack:
     track = MidiTrack("AI Keyboard Player", channel=KEYS_CHANNEL, program=4)
-    pad_duration = note_duration(song, 3.75)
 
     for section, bar, chord in iter_section_bars(song):
-        tones = chord_tones(chord.root, chord.quality, 4)
-        voicing = (tones[0], tones[1], tones[2], tones[0] + 12)
-        if section.energy >= 0.75:
-            voicing = (tones[1], tones[2], tones[0] + 12)
+        local_bar = bar - section.start_bar
+        if section.name in {"Intro", "Verse", "Outro"} and local_bar % 2 == 1:
+            continue
 
-        for note in voicing:
-            track.notes.append(
-                MidiNote(song.beat_tick(bar, 0), pad_duration, note, velocity(42, section.energy), KEYS_CHANNEL)
-            )
+        tones = chord_tones(chord.root, chord.quality, 4)
+        voicing = (tones[1], tones[2])
+        beats = (2.0,)
+        duration = note_duration(song, 1.6)
+
+        if section.energy >= 0.75:
+            voicing = (tones[1], tones[2] + 12)
+            beats = (1.5, 3.0)
+            duration = note_duration(song, 0.45)
+
+        for beat in beats:
+            for note in voicing:
+                track.notes.append(
+                    MidiNote(song.beat_tick(bar, beat), duration, note, velocity(32, section.energy), KEYS_CHANNEL)
+                )
 
     return track
-

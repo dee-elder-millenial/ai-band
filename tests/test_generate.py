@@ -66,6 +66,20 @@ class GenerateMidiTests(unittest.TestCase):
 
         self.assertIn("AI Guitar Player", [track.name for track in tracks])
 
+    def test_keyboard_part_stays_sparse_for_backing_material(self) -> None:
+        _ticks_per_beat, _tempo_bpm, tracks = build_tracks(mode="ehaye")
+        keyboard = next(track for track in tracks if track.name == "AI Keyboard Player")
+        lead = next(track for track in tracks if track.name == "AI Lead Player")
+
+        self.assertLess(len(keyboard.notes), len(lead.notes))
+        self.assertLessEqual(max(note.velocity for note in keyboard.notes), 56)
+
+    def test_drum_part_uses_forward_velocities(self) -> None:
+        _ticks_per_beat, _tempo_bpm, tracks = build_tracks(mode="ehaye")
+        drums = next(track for track in tracks if track.name == "AI Drummer")
+
+        self.assertGreaterEqual(max(note.velocity for note in drums.notes), 100)
+
 
 if __name__ == "__main__":
     unittest.main()

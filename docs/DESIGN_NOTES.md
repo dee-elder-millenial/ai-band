@@ -43,3 +43,13 @@ python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --output examples/
 ```
 
 In `ehaye` mode, AI rhythm guitar is off by default so the generated arrangement leaves room for Deanna's rhythm guitar part. It can be forced back on with `--ai-rhythm-guitar`.
+
+## First Listening Notes
+
+Early REAPER audition feedback:
+
+- overall level must stay safe and conservative
+- drums need to be easier to hear in the audition mix
+- lead is close enough to keep for now
+- keys should be sparse because they can crowd the backing arrangement
+- the backing-band direction is starting to work

@@ -28,30 +28,29 @@ def generate(song: SongState) -> MidiTrack:
             beat = eighth * 0.5
             note = OPEN_HAT if energetic and eighth == 7 else CLOSED_HAT
             track.notes.append(
-                MidiNote(song.beat_tick(bar, beat), hat_duration, note, velocity(48, section.energy), DRUM_CHANNEL)
+                MidiNote(song.beat_tick(bar, beat), hat_duration, note, velocity(58, section.energy), DRUM_CHANNEL)
             )
 
         for beat in kick_beats:
             track.notes.append(
-                MidiNote(song.beat_tick(bar, beat), step, KICK, velocity(72, section.energy, 8), DRUM_CHANNEL)
+                MidiNote(song.beat_tick(bar, beat), step, KICK, velocity(88, section.energy, 8), DRUM_CHANNEL)
             )
 
         for beat in snare_beats:
             track.notes.append(
-                MidiNote(song.beat_tick(bar, beat), step, SNARE, velocity(70, section.energy, 6), DRUM_CHANNEL)
+                MidiNote(song.beat_tick(bar, beat), step, SNARE, velocity(86, section.energy, 6), DRUM_CHANNEL)
             )
 
         if bar == section.start_bar:
             track.notes.append(
-                MidiNote(song.beat_tick(bar, 0), note_duration(song, 1), CRASH, velocity(80, section.energy), DRUM_CHANNEL)
+                MidiNote(song.beat_tick(bar, 0), note_duration(song, 1), CRASH, velocity(94, section.energy), DRUM_CHANNEL)
             )
 
         if bar == section.start_bar + section.bars - 1:
             fill_start = song.beat_tick(bar, 3)
             for index, note in enumerate((TOM_MID, TOM_LOW, SNARE, CRASH)):
                 track.notes.append(
-                    MidiNote(fill_start + index * int(step / 2), int(step / 2), note, velocity(68, section.energy), DRUM_CHANNEL)
+                    MidiNote(fill_start + index * int(step / 2), int(step / 2), note, velocity(82, section.energy), DRUM_CHANNEL)
                 )
 
     return track
-

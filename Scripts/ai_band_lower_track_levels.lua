@@ -1,6 +1,14 @@
 -- AI Band: lower imported MIDI track levels for safer auditioning.
 
-local TRACK_VOLUME = 0.18
+local DEFAULT_TRACK_VOLUME = 0.16
+local TRACK_VOLUMES = {
+  ["AI Drummer"] = 0.28,
+  ["AI Bass Player"] = 0.18,
+  ["AI Guitar Player"] = 0.14,
+  ["AI Keyboard Player"] = 0.10,
+  ["AI Lead Player"] = 0.16,
+  ["AI Percussion Extras"] = 0.11,
+}
 local TRACK_PANS = {
   ["AI Drummer"] = 0.0,
   ["AI Bass Player"] = 0.0,
@@ -31,7 +39,7 @@ for index = 0, reaper.CountTracks(0) - 1 do
   local name = track_name(track)
 
   if not should_skip(name) then
-    reaper.SetMediaTrackInfo_Value(track, "D_VOL", TRACK_VOLUME)
+    reaper.SetMediaTrackInfo_Value(track, "D_VOL", TRACK_VOLUMES[name] or DEFAULT_TRACK_VOLUME)
     reaper.SetMediaTrackInfo_Value(track, "D_PAN", TRACK_PANS[name] or 0.0)
     changed = changed + 1
   end
