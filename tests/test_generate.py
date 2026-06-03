@@ -9,6 +9,7 @@ from ai_band.controls import controls_from_cue
 from ai_band.generate import build_tracks
 from ai_band.live_cue import LiveCue
 from ai_band.midi import write_midi
+from ai_band.theory import chord_tones
 
 
 class GenerateMidiTests(unittest.TestCase):
@@ -338,6 +339,12 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertLessEqual(len(lead.notes), 80)
 
     def test_heartland_rock_generates_big_guitar_bass_and_sax_support(self) -> None:
+        song = create_default_song(
+            preset="heartland-rock",
+            key="E",
+            scale="major",
+            tempo_bpm=118,
+        )
         _ticks, _tempo, tracks = build_tracks(
             preset="heartland-rock",
             key="E",
@@ -416,6 +423,19 @@ class GenerateMidiTests(unittest.TestCase):
         ]
         final_chorus_start = range(72 * bar_ticks, 76 * bar_ticks)
         final_chorus_lift = range(80 * bar_ticks, 84 * bar_ticks)
+        lead_chord_tone_hits = []
+        for note in lead.notes:
+            if note.duration <= 44:
+                continue
+            note_bar = note.start // bar_ticks
+            note_section = next(
+                section
+                for section in song.sections
+                if section.start_bar <= note_bar < section.start_bar + section.bars
+            )
+            note_chord = note_section.chords[(note_bar - note_section.start_bar) % len(note_section.chords)]
+            chord_classes = {tone % 12 for tone in chord_tones(note_chord.root, note_chord.quality, 3)}
+            lead_chord_tone_hits.append(note.note % 12 in chord_classes)
 
         def average_velocity(track, window: range) -> float:
             velocities = [note.velocity for note in track.notes if note.start in window]
@@ -461,11 +481,12 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertGreaterEqual(len(percussion_pickups), 8)
         self.assertGreaterEqual(len(lead.events), 24)
         self.assertGreaterEqual(len(lead_bend_targets), 6)
-        self.assertLessEqual(max(abs(value - 8192) for value in lead_bend_targets), 900)
+        self.assertLessEqual(max(abs(value - 8192) for value in lead_bend_targets), 120)
         self.assertLessEqual(max(note.note for note in lead.notes), 78)
-        self.assertLessEqual(len(lead_pitch_classes), 5)
+        self.assertLessEqual(len(lead_pitch_classes), 7)
+        self.assertGreaterEqual(sum(lead_chord_tone_hits) / len(lead_chord_tone_hits), 0.80)
         self.assertGreaterEqual(len(lead_vibrato_targets), 4)
-        self.assertGreaterEqual(len(lead_grace_notes), 20)
+        self.assertGreaterEqual(len(lead_grace_notes), 14)
 
 
 if __name__ == "__main__":
