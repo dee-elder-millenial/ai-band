@@ -81,6 +81,30 @@ M.TRACK_EFFECTS = {
     {name = "ReaVerbate (Cockos)", needle = "ReaVerbate"},
   },
 }
+M.EFFECT_WET_MIX = {
+  ["AI Drummer"] = {
+    ["ReaComp"] = 0.70,
+    ["ReaVerbate"] = 0.08,
+  },
+  ["AI Bass Player"] = {
+    ["ReaComp"] = 0.62,
+  },
+  ["AI Guitar Player"] = {
+    ["ReaComp"] = 0.58,
+    ["ReaVerbate"] = 0.14,
+  },
+  ["AI Keyboard Player"] = {
+    ["ReaComp"] = 0.48,
+    ["ReaVerbate"] = 0.18,
+  },
+  ["AI Lead Player"] = {
+    ["ReaComp"] = 0.52,
+    ["ReaVerbate"] = 0.16,
+  },
+  ["AI Percussion Extras"] = {
+    ["ReaVerbate"] = 0.10,
+  },
+}
 
 function M.track_name(track)
   local ok, name = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
@@ -207,6 +231,7 @@ function M.configure_rough_effects()
       for _, effect in ipairs(effects) do
         local fx_index, was_added = M.add_or_find_fx(track, effect.name, effect.needle)
         if fx_index >= 0 then
+          M.set_effect_wet_mix(track, fx_index, name, effect.needle)
           configured = configured + 1
           if was_added then added = added + 1 end
         end
@@ -215,6 +240,15 @@ function M.configure_rough_effects()
   end
 
   return configured, added
+end
+
+function M.set_effect_wet_mix(track, fx_index, track_name_value, effect_needle)
+  if not reaper.TrackFX_SetWetDryMix then return end
+  local track_settings = M.EFFECT_WET_MIX[track_name_value]
+  if not track_settings then return end
+  local wet_mix = track_settings[effect_needle]
+  if wet_mix == nil then return end
+  reaper.TrackFX_SetWetDryMix(track, fx_index, wet_mix)
 end
 
 return M
