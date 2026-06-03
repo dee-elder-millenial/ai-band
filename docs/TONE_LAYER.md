@@ -2,6 +2,8 @@
 
 The generator writes MIDI. REAPER needs instruments on those MIDI tracks before the sketch sounds like music.
 
+Sound quality work should happen in REAPER first. Standalone desktop, mobile, and plugin ideas stay downstream until the backing band feels convincing through real audition instruments.
+
 The emergency sound-check script uses ReaSynth everywhere. That is useful for proving MIDI routing, but it sounds toy-like. The rough tone layer is the next step.
 
 ## Rough Tone Setup
@@ -68,3 +70,13 @@ Future tone work should move toward:
 - sparse warm keyboard texture
 - lead sound that supports the vocal instead of dominating it
 - automatic gain staging and master safety
+
+## Current Listening Priorities
+
+Use REAPER as the granular editing lab:
+
+- adjust bass weight and note timing against the kick
+- bring drums forward without clipping or harshness
+- choose a keyboard pad that leaves room for vocal and rhythm guitar
+- make lead phrases feel less robotic with timing, bends, rests, and shorter motifs
+- keep each change traceable back to either a generator rule or an instrument-profile setting

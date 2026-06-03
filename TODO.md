@@ -114,6 +114,28 @@ Goal: build the first working versions of each AI band member as separate, testa
 - [ ] The project can run without paid third-party plugins.
 - [ ] The repo includes install and usage notes for the phase 1 prototype.
 
+## Phase 1.5: REAPER Sound And Feel
+
+Goal: make the generated band sound and feel good in REAPER before investing heavily in standalone desktop, mobile, or plugin packaging.
+
+### REAPER Audition Quality
+
+- [ ] Keep REAPER as the main listening and editing environment while the arrangements mature.
+- [ ] Prioritize tone, groove, dynamics, and arrangement feel over app-shell work.
+- [ ] Tune generated MIDI against Deanna's installed instruments before generalizing instrument profiles.
+- [ ] Keep generated parts editable so rough notes can be fixed directly inside REAPER.
+- [ ] Add a repeatable listening checklist for bass weight, drum audibility, lead realism, key crowding, and overall level.
+- [ ] Capture REAPER feedback as small generator changes instead of one-off MIDI edits when the lesson should apply to future songs.
+
+### Instrument And Mix Polish
+
+- [ ] Add per-member default velocity and register settings for the current preferred instruments.
+- [ ] Add safer bass defaults for Ample Bass P Lite II.
+- [ ] Improve drum presence for MT-PowerDrumKit without raising the whole mix too much.
+- [ ] Add keyboard pad profile notes for Splice INSTRUMENT.
+- [ ] Add lead guitar phrasing profiles that reduce robotic repetition with Ample Guitar M II Lite.
+- [ ] Document sample-library mappings separately from the musical core.
+
 ## Phase 2: Live Follow And Instruction Mode
 
 Goal: let the AI band respond to Deanna's direction and, later, to live/project audio context inside REAPER.

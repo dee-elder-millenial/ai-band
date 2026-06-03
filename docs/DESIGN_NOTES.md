@@ -77,3 +77,5 @@ True audio listening should come after this control loop exists. It should analy
 AI Band should eventually support a simple open-mic setup: vocal mic on mixer channel 1, Deanna's guitar on channel 2, and a phone/tablet aux output carrying the AI backing band on channel 3.
 
 That means the core generator should stay separate from REAPER and from specific registered sample libraries. REAPER can remain the first production host, while future desktop or mobile apps use the same song/member logic with their own sound engines, cached backing parts, and conservative live playback controls.
+
+This is a later product direction. The near-term priority is still making the REAPER-backed band sound good with granular arrangement, MIDI, instrument, and mix changes.
