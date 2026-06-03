@@ -31,14 +31,16 @@ ai_band_setup_rough_tones.lua
 
 ## What It Does
 
-- AI Drummer: uses `AI Band GM Drum Synth.jsfx`
-- AI Percussion Extras: uses `AI Band GM Drum Synth.jsfx` at a lower level
-- AI Bass Player: uses darker, quieter ReaSynth settings
-- AI Keyboard Player: uses softer, slower ReaSynth settings
-- AI Lead Player: uses a restrained ReaSynth lead
-- AI Guitar Player: uses a quieter fallback if present
+- AI Drummer: prefers `MT-PowerDrumKit (MANDA AUDIO)`
+- AI Percussion Extras: prefers `MT-PowerDrumKit (MANDA AUDIO)` at a lower level
+- AI Bass Player: prefers `Ample Bass P Lite II (Ample Sound)`
+- AI Keyboard Player: prefers `Splice INSTRUMENT (Splice)`
+- AI Lead Player: prefers `Ample Guitar M II Lite (Ample Sound)`
+- AI Guitar Player: prefers `Ample Guitar M II Lite (Ample Sound)` if present
 
 This is still a rough audition layer, not the final product tone.
+
+If a preferred instrument cannot be loaded, the script falls back to the built-in rough tone chain.
 
 ## One-Click Ehaye Audition
 

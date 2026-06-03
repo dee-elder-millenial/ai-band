@@ -57,6 +57,7 @@ Early REAPER audition feedback:
 - the first ReaSynth-only audition sounded like The Legend of Zelda, so rough tone setup needs separate drum/percussion treatment and calmer synth settings
 - with better instruments, the bass was a little heavy and slightly off, so backing mode should keep bass simpler and more kick-locked
 - lead guitar sounded robotic, so generated lead needs phrase gaps, varied timing, and less repetition
+- current preferred audition instruments are MT-PowerDrumKit, Ample Bass P Lite II, Splice INSTRUMENT, and Ample Guitar M II Lite
 
 ## Live Follow Direction
 

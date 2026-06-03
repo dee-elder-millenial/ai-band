@@ -19,6 +19,44 @@ M.TRACK_PANS = {
   ["AI Lead Player"] = 0.10,
   ["AI Percussion Extras"] = -0.12,
 }
+M.PREFERRED_INSTRUMENTS = {
+  ["AI Drummer"] = {
+    name = "VST3i: MT-PowerDrumKit (MANDA AUDIO) (16 out)",
+    needle = "MT%-PowerDrumKit",
+    fallback_name = "JS: AI Band GM Drum Synth",
+    fallback_needle = "AI Band GM Drum Synth",
+  },
+  ["AI Percussion Extras"] = {
+    name = "VST3i: MT-PowerDrumKit (MANDA AUDIO) (16 out)",
+    needle = "MT%-PowerDrumKit",
+    fallback_name = "JS: AI Band GM Drum Synth",
+    fallback_needle = "AI Band GM Drum Synth",
+  },
+  ["AI Bass Player"] = {
+    name = "VSTi: Ample Bass P Lite II (Ample Sound)",
+    needle = "Ample Bass P Lite II",
+    fallback_name = "ReaSynth",
+    fallback_needle = "ReaSynth",
+  },
+  ["AI Keyboard Player"] = {
+    name = "VST3i: Splice INSTRUMENT (Splice)",
+    needle = "Splice INSTRUMENT",
+    fallback_name = "ReaSynth",
+    fallback_needle = "ReaSynth",
+  },
+  ["AI Lead Player"] = {
+    name = "VSTi: Ample Guitar M II Lite (Ample Sound)",
+    needle = "Ample Guitar M II Lite",
+    fallback_name = "ReaSynth",
+    fallback_needle = "ReaSynth",
+  },
+  ["AI Guitar Player"] = {
+    name = "VSTi: Ample Guitar M II Lite (Ample Sound)",
+    needle = "Ample Guitar M II Lite",
+    fallback_name = "ReaSynth",
+    fallback_needle = "ReaSynth",
+  },
+}
 
 function M.track_name(track)
   local ok, name = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
@@ -45,6 +83,22 @@ function M.add_or_find_fx(track, name, needle)
   if fx_index >= 0 then return fx_index, false end
   fx_index = reaper.TrackFX_AddByName(track, name, false, -1)
   return fx_index, fx_index >= 0
+end
+
+function M.add_preferred_instrument(track, track_name_value)
+  local preferred = M.PREFERRED_INSTRUMENTS[track_name_value]
+  if not preferred then
+    local fx_index, was_added = M.add_or_find_fx(track, "ReaSynth", "ReaSynth")
+    return fx_index, was_added, "fallback"
+  end
+
+  local fx_index, was_added = M.add_or_find_fx(track, preferred.name, preferred.needle)
+  if fx_index >= 0 then
+    return fx_index, was_added, "preferred"
+  end
+
+  fx_index, was_added = M.add_or_find_fx(track, preferred.fallback_name, preferred.fallback_needle)
+  return fx_index, was_added, "fallback"
 end
 
 function M.set_reasynth(track, fx_index, track_name_value)
@@ -100,20 +154,15 @@ function M.configure_rough_tones()
       reaper.SetMediaTrackInfo_Value(track, "D_VOL", M.TRACK_VOLUMES[name] or M.DEFAULT_TRACK_VOLUME)
       reaper.SetMediaTrackInfo_Value(track, "D_PAN", M.TRACK_PANS[name] or 0.0)
 
-      if name == "AI Drummer" or name == "AI Percussion Extras" then
-        local fx_index, was_added = M.add_or_find_fx(track, "JS: AI Band GM Drum Synth", "AI Band GM Drum Synth")
-        if fx_index >= 0 then
+      local fx_index, was_added, source = M.add_preferred_instrument(track, name)
+      if fx_index >= 0 then
+        if source == "fallback" and (name == "AI Drummer" or name == "AI Percussion Extras") then
           M.set_drum_synth(track, fx_index, name)
-          configured = configured + 1
-          if was_added then added = added + 1 end
-        end
-      else
-        local fx_index, was_added = M.add_or_find_fx(track, "ReaSynth", "ReaSynth")
-        if fx_index >= 0 then
+        elseif source == "fallback" then
           M.set_reasynth(track, fx_index, name)
-          configured = configured + 1
-          if was_added then added = added + 1 end
         end
+        configured = configured + 1
+        if was_added then added = added + 1 end
       end
     end
   end
