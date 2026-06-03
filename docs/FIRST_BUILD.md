@@ -33,6 +33,7 @@ The zip contains:
 - REAPER sound-check synth helper script
 - REAPER track-level safety helper script
 - REAPER rough-tone setup script
+- REAPER one-click Ehaye audition setup script
 - JSFX MIDI humanizer helper
 - JSFX GM drum synth helper
 - REAPER setup notes

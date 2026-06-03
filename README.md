@@ -65,6 +65,8 @@ ai-band/
     ai_band_add_sound_check_synths.lua
     ai_band_lower_track_levels.lua
     ai_band_setup_rough_tones.lua
+    ai_band_ehaye_audition_setup.lua
+    ai_band_tone_helpers.lua
   Effects/
     AI Band Humanizer.jsfx
     AI Band GM Drum Synth.jsfx

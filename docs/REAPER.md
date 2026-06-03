@@ -26,6 +26,14 @@ python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --output examples/
 
 Option 1: drag `examples/first-sketch.mid` into REAPER.
 
+Option 1a: for The Ehaye Band backing sketch, load and run:
+
+```text
+Scripts/ai_band_ehaye_audition_setup.lua
+```
+
+That script imports `examples/ehaye-backing-band.mid` from the cloud mirror, applies rough tones, and labels the project.
+
 Option 2: install the helper script:
 
 1. In REAPER, choose `Options > Show REAPER resource path in explorer/finder`.
@@ -42,7 +50,7 @@ If the MIDI imports and plays but you hear silence, the file probably has notes 
 Recommended rough-tone setup:
 
 1. Copy `Effects/AI Band GM Drum Synth.jsfx` into REAPER's resource-path `Effects` folder.
-2. Copy `Scripts/ai_band_setup_rough_tones.lua` into REAPER's resource-path `Scripts` folder.
+2. Copy `Scripts/ai_band_setup_rough_tones.lua` and `Scripts/ai_band_tone_helpers.lua` into REAPER's resource-path `Scripts` folder.
 3. In REAPER, open `Actions > Show action list`.
 4. Choose `New action > Load ReaScript`.
 5. Select `ai_band_setup_rough_tones.lua`.

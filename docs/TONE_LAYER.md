@@ -18,9 +18,10 @@ Install the REAPER script:
 
 ```text
 Scripts/ai_band_setup_rough_tones.lua
+Scripts/ai_band_tone_helpers.lua
 ```
 
-Copy it into REAPER's resource-path `Scripts` folder and load it from `Actions > Show action list > New action > Load ReaScript`.
+Copy both files into REAPER's resource-path `Scripts` folder and load `ai_band_setup_rough_tones.lua` from `Actions > Show action list > New action > Load ReaScript`.
 
 After importing `examples/ehaye-backing-band.mid`, run:
 
@@ -39,6 +40,23 @@ ai_band_setup_rough_tones.lua
 
 This is still a rough audition layer, not the final product tone.
 
+## One-Click Ehaye Audition
+
+For the fastest audition path, copy these scripts into REAPER's `Scripts` folder:
+
+```text
+Scripts/ai_band_ehaye_audition_setup.lua
+Scripts/ai_band_tone_helpers.lua
+```
+
+Then load and run:
+
+```text
+ai_band_ehaye_audition_setup.lua
+```
+
+It imports the current cloud-mirror `examples/ehaye-backing-band.mid`, applies rough tones, and labels the project.
+
 ## Tone Direction
 
 Future tone work should move toward:
@@ -48,4 +66,3 @@ Future tone work should move toward:
 - sparse warm keyboard texture
 - lead sound that supports the vocal instead of dominating it
 - automatic gain staging and master safety
-
