@@ -48,6 +48,12 @@ Generate a bluesy alt-country backing sketch:
 python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --preset bluesy-alt-country --title "County Line Ghosts" --style "bluesy alt-country" --tempo 96 --key D --scale major --output examples/county-line-ghosts.mid
 ```
 
+Generate a longer southern-blues backing song:
+
+```powershell
+python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --preset southern-blues --title "Hard Flag Blues" --style "southern blues" --tempo 86 --key E --scale minor --output examples/hard-flag-blues.mid
+```
+
 Create the Phase 1 alpha build package:
 
 ```powershell
@@ -79,6 +85,7 @@ ai-band/
     ai_band_setup_rough_tones.lua
     ai_band_ehaye_audition_setup.lua
     ai_band_county_line_audition_setup.lua
+    ai_band_hard_flag_blues_audition_setup.lua
     ai_band_tone_helpers.lua
     ai_band_write_live_cue.lua
   Effects/

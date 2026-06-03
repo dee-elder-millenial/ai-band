@@ -59,6 +59,7 @@ Early REAPER audition feedback:
 - lead guitar sounded robotic, so generated lead needs phrase gaps, varied timing, and less repetition
 - current preferred audition instruments are MT-PowerDrumKit, Ample Bass P Lite II, Splice INSTRUMENT, and Ample Guitar M II Lite
 - added a bluesy alt-country preset for rootsy backing sketches without copying a specific band or song
+- added a longer southern-blues preset for protest-song energy without requiring lyrics
 
 ## Live Follow Direction
 

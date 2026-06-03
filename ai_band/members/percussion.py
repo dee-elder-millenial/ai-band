@@ -18,6 +18,18 @@ def generate(song: SongState) -> MidiTrack:
         if section.energy < 0.5:
             continue
 
+        if song.preset == "southern-blues":
+            if section.energy >= 0.75:
+                for beat in (1, 3):
+                    track.notes.append(
+                        MidiNote(song.beat_tick(bar, beat), duration, CLAP, velocity(42, section.energy), PERC_CHANNEL)
+                    )
+                if (bar - section.start_bar) % 2 == 0:
+                    track.notes.append(
+                        MidiNote(song.beat_tick(bar, 3.5), duration, TAMBOURINE, velocity(46, section.energy), PERC_CHANNEL)
+                    )
+            continue
+
         for sixteenth in range(16):
             beat = sixteenth * 0.25
             track.notes.append(
@@ -34,4 +46,3 @@ def generate(song: SongState) -> MidiTrack:
             )
 
     return track
-

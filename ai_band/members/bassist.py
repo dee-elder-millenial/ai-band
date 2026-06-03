@@ -22,6 +22,18 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
             pattern = (
                 (0, root, held),
             )
+        elif song.preset == "southern-blues" and section.energy >= 0.75:
+            pattern = (
+                (0, root, long),
+                (1.75, fifth, short),
+                (2.5, root, short),
+                (3.5, flat_seventh, short),
+            )
+        elif song.preset == "southern-blues":
+            pattern = (
+                (0, root, held),
+                (2.5, fifth, short),
+            )
         elif song.preset == "bluesy-alt-country" and section.energy >= 0.75:
             pattern = (
                 (0, root, long),

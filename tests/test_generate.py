@@ -40,6 +40,17 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertEqual([section.name for section in song.sections], ["Intro", "Verse", "Chorus", "Outro"])
         self.assertIn("C", [chord.symbol for chord in song.sections[1].chords])
 
+    def test_southern_blues_preset_uses_full_song_form(self) -> None:
+        song = create_default_song(key="E", scale="minor", preset="southern-blues", tempo_bpm=86)
+
+        self.assertEqual(song.total_bars, 76)
+        self.assertEqual(song.preset, "southern-blues")
+        self.assertEqual(
+            [section.name for section in song.sections],
+            ["Intro", "Verse 1", "Chorus 1", "Verse 2", "Chorus 2", "Bridge", "Solo", "Final Chorus", "Outro"],
+        )
+        self.assertIn("C", [chord.symbol for chord in song.sections[1].chords])
+
     def test_tracks_include_phase1_band_members(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks()
 
@@ -152,6 +163,21 @@ class GenerateMidiTests(unittest.TestCase):
 
         self.assertLessEqual(len(lead.notes), 24)
         self.assertGreaterEqual(len(lead.events), 6)
+
+    def test_southern_blues_generates_long_backing_song(self) -> None:
+        _ticks, _tempo, tracks = build_tracks(
+            mode="ehaye",
+            preset="southern-blues",
+            key="E",
+            scale="minor",
+            tempo_bpm=86,
+        )
+        lead = next(track for track in tracks if track.name == "AI Lead Player")
+
+        self.assertNotIn("AI Guitar Player", [track.name for track in tracks])
+        self.assertGreater(len(next(track for track in tracks if track.name == "AI Drummer").notes), 500)
+        self.assertGreaterEqual(len(lead.events), 18)
+        self.assertLessEqual(len(next(track for track in tracks if track.name == "AI Percussion Extras").notes), 120)
 
 
 if __name__ == "__main__":

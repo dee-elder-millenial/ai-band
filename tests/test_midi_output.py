@@ -105,6 +105,24 @@ class MidiOutputTests(unittest.TestCase):
         lead_track = next(track for track in summary.tracks if track.name == "AI Lead Player")
         self.assertGreater(lead_track.pitch_bend_count, 0)
 
+    def test_southern_blues_midi_contains_long_form_markers(self) -> None:
+        ticks_per_beat, tempo_bpm, tracks = build_tracks(
+            mode="ehaye",
+            preset="southern-blues",
+            key="E",
+            scale="minor",
+            tempo_bpm=86,
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "southern.mid"
+            write_midi(output, tracks, ticks_per_beat=ticks_per_beat, tempo_bpm=tempo_bpm)
+            summary = read_midi_summary(output)
+
+        bandleader = summary.tracks[1]
+        self.assertIn("Final Chorus", bandleader.markers)
+        self.assertIn("Southern blues preset", " ".join(bandleader.text))
+
 
 if __name__ == "__main__":
     unittest.main()

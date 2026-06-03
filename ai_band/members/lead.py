@@ -10,6 +10,8 @@ LEAD_CHANNEL = 3
 
 def generate(song: SongState, sparse: bool = False) -> MidiTrack:
     track = MidiTrack("AI Lead Player", channel=LEAD_CHANNEL, program=81)
+    if song.preset == "southern-blues":
+        return _generate_southern_blues(song, sparse=sparse)
     if song.preset == "bluesy-alt-country":
         return _generate_bluesy_alt_country(song, sparse=sparse)
 
@@ -98,6 +100,56 @@ def _generate_bluesy_alt_country(song: SongState, sparse: bool = False) -> MidiT
                     duration,
                     note,
                     velocity(base_velocity, section.energy, accent=(index % 2) * 4),
+                    LEAD_CHANNEL,
+                )
+            )
+            if bend:
+                _add_bend(track, start, duration, LEAD_CHANNEL)
+
+    return track
+
+
+def _generate_southern_blues(song: SongState, sparse: bool = False) -> MidiTrack:
+    track = MidiTrack("AI Lead Player", channel=LEAD_CHANNEL, program=81)
+    scale = scale_notes(song.key, "minor", 5)
+    low_scale = scale_notes(song.key, "minor", 4)
+    lick_shapes = (
+        ((0.12, 0, 0.70, 54, True), (1.20, 2, 0.42, 48, False), (2.35, 4, 0.54, 56, True)),
+        ((1.80, 5, 0.50, 58, True), (2.60, 4, 0.38, 50, False), (3.20, 2, 0.44, 52, False)),
+        ((0.30, 3, 0.44, 55, False), (1.05, 4, 0.64, 58, True)),
+        ((2.15, 2, 0.46, 52, False), (2.95, 0, 0.74, 57, True)),
+    )
+
+    for section, bar, _chord in iter_section_bars(song):
+        local_bar = bar - section.start_bar
+        section_is_big = section.name.startswith("Chorus") or section.name in {"Solo", "Final Chorus"}
+        section_is_call = section.name in {"Intro", "Bridge", "Outro"}
+        if not section_is_big and not section_is_call:
+            continue
+        if section.name == "Intro" and local_bar not in {1, 3}:
+            continue
+        if section.name == "Bridge" and local_bar not in {3, 7}:
+            continue
+        if section.name == "Outro" and local_bar not in {1, 3}:
+            continue
+        if section_is_big and local_bar % (3 if section.name == "Solo" else 2) == 1:
+            continue
+        if sparse and local_bar % 4 == 2:
+            continue
+
+        lick = lick_shapes[(local_bar + section.start_bar) % len(lick_shapes)]
+        note_pool = low_scale if section.name in {"Bridge", "Outro"} else scale
+        for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
+            note = note_pool[degree % len(note_pool)]
+            drift = int(song.ticks_per_beat * (0.028 * ((index % 2) * 2 - 1)))
+            start = max(song.beat_tick(bar, beat) + drift, song.bar_tick(bar))
+            duration = note_duration(song, beats)
+            track.notes.append(
+                MidiNote(
+                    start,
+                    duration,
+                    note,
+                    velocity(base_velocity, section.energy, accent=(index % 2) * 5),
                     LEAD_CHANNEL,
                 )
             )

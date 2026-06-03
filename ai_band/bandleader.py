@@ -52,7 +52,55 @@ def create_default_song(
     scale: str = "minor",
     preset: str = "default",
 ) -> SongState:
-    if preset == "bluesy-alt-country":
+    if preset == "southern-blues":
+        intro = (
+            _chord_from_degree(key, 0, "minor"),
+            _chord_from_degree(key, 3, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "minor"),
+        )
+        verse = (
+            _chord_from_degree(key, 0, "minor"),
+            _chord_from_degree(key, 0, "minor"),
+            _chord_from_degree(key, 3, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "minor"),
+            _chord_from_degree(key, 0, "minor"),
+            _chord_from_degree(key, 8, "major"),
+            _chord_from_degree(key, 7, "major"),
+        )
+        chorus = (
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 8, "major"),
+            _chord_from_degree(key, 0, "minor"),
+            _chord_from_degree(key, 0, "minor"),
+            _chord_from_degree(key, 3, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 8, "major"),
+            _chord_from_degree(key, 7, "major"),
+        )
+        bridge = (
+            _chord_from_degree(key, 8, "major"),
+            _chord_from_degree(key, 3, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "minor"),
+            _chord_from_degree(key, 8, "major"),
+            _chord_from_degree(key, 3, "major"),
+            _chord_from_degree(key, 7, "major"),
+            _chord_from_degree(key, 7, "major"),
+        )
+        sections = (
+            Section("Intro", 0, 4, 0.45, intro),
+            Section("Verse 1", 4, 12, 0.52, verse),
+            Section("Chorus 1", 16, 8, 0.78, chorus),
+            Section("Verse 2", 24, 12, 0.58, verse),
+            Section("Chorus 2", 36, 8, 0.84, chorus),
+            Section("Bridge", 44, 8, 0.62, bridge),
+            Section("Solo", 52, 12, 0.88, chorus),
+            Section("Final Chorus", 64, 8, 0.9, chorus),
+            Section("Outro", 72, 4, 0.55, intro),
+        )
+    elif preset == "bluesy-alt-country":
         progression = (
             _chord_from_degree(key, 0, "major"),
             _chord_from_degree(key, 0, "major"),
