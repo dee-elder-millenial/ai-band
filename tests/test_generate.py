@@ -259,6 +259,7 @@ class GenerateMidiTests(unittest.TestCase):
         lead_bend_targets = {value for value in lead_bend_values if value != 8192}
         bass_pickups = [note for note in bass.notes if 340 <= note.start % 480 <= 380]
         drum_tom_notes = {note.note for note in drums.notes}
+        bar_ticks = 480 * 4
         drum_starts = [note.start for note in drums.notes]
         bass_starts = [note.start for note in bass.notes]
         guitar_starts = [note.start for note in guitar.notes]
@@ -289,6 +290,12 @@ class GenerateMidiTests(unittest.TestCase):
             for start in percussion_starts
             if start % 480 not in {0, 240, 360}
         ]
+        final_chorus_start = range(72 * bar_ticks, 76 * bar_ticks)
+        final_chorus_lift = range(80 * bar_ticks, 84 * bar_ticks)
+
+        def average_velocity(track, window: range) -> float:
+            velocities = [note.velocity for note in track.notes if note.start in window]
+            return sum(velocities) / len(velocities)
 
         self.assertGreater(len(drums.notes), 1000)
         self.assertLessEqual(max(note.velocity for note in drums.notes), 122)
@@ -296,8 +303,10 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertIn(50, drum_tom_notes)
         self.assertGreater(len(bass.notes), 400)
         self.assertGreaterEqual(len(bass_pickups), 50)
+        self.assertGreater(average_velocity(bass, final_chorus_lift), average_velocity(bass, final_chorus_start))
         self.assertGreater(len(guitar.notes), 2500)
         self.assertLessEqual(min(note.note for note in guitar.notes), 45)
+        self.assertGreater(average_velocity(guitar, final_chorus_lift), average_velocity(guitar, final_chorus_start))
         self.assertTrue(drum_anchor_offsets)
         self.assertLessEqual(max(drum_anchor_offsets), 18)
         self.assertTrue(bass_anchor_offsets)

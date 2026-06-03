@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, pocket_start, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, pocket_start, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import scale_notes
@@ -201,13 +201,14 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
         if sparse and local_bar % 4 == 1:
             continue
 
+        bar_lift = phrase_lift(local_bar, section.bars, 3)
         lick = solo_shapes[local_bar % len(solo_shapes)] if section_is_solo else hook_shapes[local_bar % len(hook_shapes)]
         note_pool = low_scale if section.name == "Outro" else scale
         for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
             note = note_pool[degree % len(note_pool)]
             start = _heartland_lead_start(song, bar, beat, index)
             duration = note_duration(song, beats + _heartland_phrase_length(index))
-            note_velocity = clamp_midi(velocity(base_velocity, section.energy, accent=(index % 2) * 4) + velocity_shift(bar, beat, 3))
+            note_velocity = clamp_midi(velocity(base_velocity, section.energy, accent=(index % 2) * 4) + velocity_shift(bar, beat, 3) + bar_lift)
             track.notes.append(
                 MidiNote(
                     start,

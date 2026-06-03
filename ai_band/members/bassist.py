@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, pocket_start, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, pocket_start, velocity_shift
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -20,6 +20,7 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
         fifth = root + 7
         flat_seventh = root + 10
         local_bar = bar - section.start_bar
+        bar_lift = phrase_lift(local_bar, section.bars, 2) if song.preset == "heartland-rock" else 0
         if simplify:
             pattern = (
                 (0, root, held),
@@ -93,7 +94,7 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
             if song.preset == "heartland-rock":
                 start = pocket_start(song, bar, beat, 0.55)
                 note_duration_ticks = max(note_duration(song, 0.30), duration + _heartland_duration_shift(song, bar, beat))
-                note_velocity = clamp_midi(note_velocity + velocity_shift(bar, beat, 5))
+                note_velocity = clamp_midi(note_velocity + velocity_shift(bar, beat, 5) + bar_lift)
             track.notes.append(
                 MidiNote(start, note_duration_ticks, note, note_velocity, BASS_CHANNEL)
             )
@@ -104,7 +105,7 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
                 approach = _heartland_approach_note(root, 36 + next_chord.root)
                 start = pocket_start(song, bar, 3.75, 0.70)
                 duration = note_duration(song, 0.20)
-                note_velocity = clamp_midi(velocity(55, section.energy, velocity_shift(bar, 3.75, 4)))
+                note_velocity = clamp_midi(velocity(55, section.energy, velocity_shift(bar, 3.75, 4) + bar_lift))
                 track.notes.append(MidiNote(start, duration, approach, note_velocity, BASS_CHANNEL))
 
     return track

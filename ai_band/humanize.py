@@ -22,5 +22,15 @@ def velocity_shift(bar: int, beat: float, amount: int = 3) -> int:
     return int(raw * amount / 3)
 
 
+def phrase_lift(local_bar: int, section_bars: int, amount: int = 3) -> int:
+    four_bar_shape = (-1, 0, 1, 2)
+    lift = four_bar_shape[local_bar % len(four_bar_shape)]
+    if local_bar == 0:
+        lift -= 1
+    if local_bar >= max(section_bars - 2, 0):
+        lift += 2
+    return int(lift * amount / 3)
+
+
 def clamp_midi(value: int) -> int:
     return max(1, min(127, value))
