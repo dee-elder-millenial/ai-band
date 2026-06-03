@@ -71,3 +71,9 @@ The AI band should eventually feel like it can listen and respond, but the first
 - update the MIDI in REAPER
 
 True audio listening should come after this control loop exists. It should analyze snapshots and update at musical boundaries rather than trying to call a slow AI model inside the audio thread.
+
+## Portable Live Rig Direction
+
+AI Band should eventually support a simple open-mic setup: vocal mic on mixer channel 1, Deanna's guitar on channel 2, and a phone/tablet aux output carrying the AI backing band on channel 3.
+
+That means the core generator should stay separate from REAPER and from specific registered sample libraries. REAPER can remain the first production host, while future desktop or mobile apps use the same song/member logic with their own sound engines, cached backing parts, and conservative live playback controls.

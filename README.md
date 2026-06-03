@@ -135,3 +135,5 @@ See [docs/FIRST_BUILD.md](docs/FIRST_BUILD.md) for the current alpha build conte
 See [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) for the human-fronted band direction, including The Ehaye Band mode.
 
 For a less toy-like REAPER audition setup, see [docs/TONE_LAYER.md](docs/TONE_LAYER.md).
+
+For the longer-term desktop/mobile/live-rig direction, see [docs/PORTABILITY.md](docs/PORTABILITY.md).

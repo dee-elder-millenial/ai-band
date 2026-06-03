@@ -136,3 +136,25 @@ Goal: let the AI band respond to Deanna's direction and, later, to live/project 
 - [ ] Update band behavior only at musical boundaries where possible.
 - [ ] Add emergency controls for mute, simplify, and reduce intensity.
 - [ ] Keep latency-sensitive audio/MIDI handling out of slow model calls.
+
+## Phase 3: Portable App Foundation
+
+Goal: keep AI Band ready for a standalone desktop app, mobile app, or live playback rig without tying the musical core to REAPER or to any one paid sample library.
+
+### Core Separation
+
+- [ ] Move shared musical logic toward a host-agnostic `ai_band_core` boundary.
+- [ ] Keep REAPER Lua scripts as thin host adapters.
+- [ ] Keep standard MIDI as the first interchange format.
+- [ ] Add user-editable instrument profiles for installed sample libraries.
+- [ ] Support General MIDI or bundled fallback sounds for smoke tests.
+- [ ] Keep paid/registered sample assets out of the repo and out of the core generator.
+
+### Open Mic Mode
+
+- [ ] Design a queue-and-play workflow for phone/tablet use.
+- [ ] Support a live rig where mixer channel 1 is vocal mic, channel 2 is guitar, and channel 3 is phone/tablet aux backing band.
+- [ ] Add count-in, play, stop, panic mute, next section, and setlist controls.
+- [ ] Cache generated backing parts so live playback does not depend on slow model calls.
+- [ ] Keep default arrangements sparse enough for live vocal and rhythm guitar.
+- [ ] Support rendered stereo backing mixes for songs that rely on desktop-only sample libraries.
