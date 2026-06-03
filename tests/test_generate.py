@@ -100,15 +100,32 @@ class GenerateMidiTests(unittest.TestCase):
                 "AI Bass Player",
                 "AI Guitar Player",
                 "AI Keyboard Player",
+                "AI Lead Player",
                 "AI Percussion Extras",
             }
         }
 
-        self.assertEqual(len(members), 5)
+        self.assertEqual(len(members), 6)
         for name, track in members.items():
             with self.subTest(member=name):
                 self.assertTrue(any(note.start % 120 != 0 for note in track.notes))
                 self.assertGreaterEqual(len({note.velocity for note in track.notes}), 8)
+
+    def test_lead_generation_varies_phrase_shapes_across_presets(self) -> None:
+        scenarios = (
+            ({}, 7, 12),
+            ({"mode": "ehaye", "preset": "southern-blues", "key": "E", "scale": "minor", "tempo_bpm": 86}, 8, 12),
+            ({"preset": "heartland-rock", "key": "E", "scale": "major", "tempo_bpm": 118}, 10, 24),
+        )
+
+        for kwargs, minimum_pitches, minimum_durations in scenarios:
+            with self.subTest(preset=kwargs.get("preset", "default")):
+                _ticks_per_beat, _tempo_bpm, tracks = build_tracks(**kwargs)
+                lead = next(track for track in tracks if track.name == "AI Lead Player")
+
+                self.assertGreaterEqual(len({note.note for note in lead.notes}), minimum_pitches)
+                self.assertGreaterEqual(len({note.duration for note in lead.notes}), minimum_durations)
+                self.assertTrue(any(note.start % 120 != 0 for note in lead.notes))
 
     def test_ehaye_mode_defaults_to_backing_band_without_ai_rhythm_guitar(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks(mode="ehaye")

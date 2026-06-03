@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, pocket_start, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import scale_notes
@@ -52,18 +52,19 @@ def generate(song: SongState, sparse: bool = False) -> MidiTrack:
             phrase = phrase[:4]
 
         for index, scale_degree in enumerate(phrase):
-            beat = start_beat + index * 0.5
+            beat = _phrase_beat(start_beat + index * 0.5, local_bar, index)
             if beat >= song.beats_per_bar:
                 break
-            note = scale[scale_degree % len(scale)]
-            timing_offset = int(song.ticks_per_beat * ((index % 3) - 1) * 0.015)
-            note_start = max(song.beat_tick(bar, beat) + timing_offset, song.bar_tick(bar))
+            note = scale[_phrase_degree(scale_degree, local_bar, index, len(scale))]
+            note_start = played_start(song, bar, beat, 0.75)
+            duration = played_duration(song, durations[index % len(durations)], bar, beat, 0.60, note_duration(song, 0.18))
+            note_velocity = played_velocity(velocity(50, section.energy, accent=(index % 4) * 3), song, bar, beat, 2)
             track.notes.append(
                 MidiNote(
                     note_start,
-                    durations[index % len(durations)],
+                    duration,
                     note,
-                    velocity(50, section.energy, accent=(index % 4) * 3),
+                    note_velocity,
                     LEAD_CHANNEL,
                 )
             )
@@ -93,16 +94,17 @@ def _generate_bluesy_alt_country(song: SongState, sparse: bool = False) -> MidiT
 
         lick = lick_shapes[local_bar % len(lick_shapes)]
         for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
-            note = scale[degree % len(scale)]
-            drift = int(song.ticks_per_beat * (0.02 * ((index % 2) * 2 - 1)))
-            start = max(song.beat_tick(bar, beat) + drift, song.bar_tick(bar))
-            duration = note_duration(song, beats)
+            beat = _phrase_beat(beat, local_bar, index)
+            note = scale[_phrase_degree(degree, local_bar, index, len(scale), bend)]
+            start = played_start(song, bar, beat, 0.85)
+            duration = played_duration(song, note_duration(song, beats), bar, beat, 0.65, note_duration(song, 0.20))
+            note_velocity = played_velocity(velocity(base_velocity, section.energy, accent=(index % 2) * 4), song, bar, beat, 2)
             track.notes.append(
                 MidiNote(
                     start,
                     duration,
                     note,
-                    velocity(base_velocity, section.energy, accent=(index % 2) * 4),
+                    note_velocity,
                     LEAD_CHANNEL,
                 )
             )
@@ -152,16 +154,17 @@ def _generate_southern_blues(song: SongState, sparse: bool = False) -> MidiTrack
         lick = solo_shapes[local_bar % len(solo_shapes)] if section_is_solo else answer_shapes[local_bar % len(answer_shapes)]
         note_pool = low_scale if section.name in {"Bridge", "Outro"} else scale
         for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
-            note = note_pool[degree % len(note_pool)]
-            drift = int(song.ticks_per_beat * (0.028 * ((index % 2) * 2 - 1)))
-            start = max(song.beat_tick(bar, beat) + drift, song.bar_tick(bar))
-            duration = note_duration(song, beats)
+            beat = _phrase_beat(beat, local_bar, index)
+            note = note_pool[_phrase_degree(degree, local_bar, index, len(note_pool), bend)]
+            start = played_start(song, bar, beat, 0.90)
+            duration = played_duration(song, note_duration(song, beats), bar, beat, 0.70, note_duration(song, 0.18))
+            note_velocity = played_velocity(velocity(base_velocity, section.energy, accent=(index % 2) * 5), song, bar, beat, 2)
             track.notes.append(
                 MidiNote(
                     start,
                     duration,
                     note,
-                    velocity(base_velocity, section.energy, accent=(index % 2) * 5),
+                    note_velocity,
                     LEAD_CHANNEL,
                 )
             )
@@ -205,10 +208,24 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
         lick = solo_shapes[local_bar % len(solo_shapes)] if section_is_solo else hook_shapes[local_bar % len(hook_shapes)]
         note_pool = low_scale if section.name == "Outro" else scale
         for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
-            note = note_pool[degree % len(note_pool)]
+            beat = _phrase_beat(beat, local_bar, index)
+            note = note_pool[_phrase_degree(degree, local_bar, index, len(note_pool), bend)]
             start = _heartland_lead_start(song, bar, beat, index)
-            duration = note_duration(song, beats + _heartland_phrase_length(index))
-            note_velocity = clamp_midi(velocity(base_velocity, section.energy, accent=(index % 2) * 4) + velocity_shift(bar, beat, 3) + bar_lift)
+            duration = played_duration(
+                song,
+                note_duration(song, beats + _heartland_phrase_length(index, local_bar)),
+                bar,
+                beat,
+                0.55,
+                note_duration(song, 0.18),
+            )
+            note_velocity = played_velocity(
+                clamp_midi(velocity(base_velocity, section.energy, accent=(index % 2) * 4) + velocity_shift(bar, beat, 3) + bar_lift),
+                song,
+                bar,
+                beat,
+                2,
+            )
             if _should_add_heartland_grace(section.name, local_bar, index, bend):
                 _add_heartland_grace(track, song, start, note, note_velocity, bar, index)
             track.notes.append(
@@ -228,13 +245,27 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
     return track
 
 
+def _phrase_beat(beat: float, local_bar: int, index: int) -> float:
+    offsets = (0.00, 0.035, -0.020, 0.045, -0.010)
+    shifted = beat + offsets[(local_bar * 2 + index) % len(offsets)]
+    return max(0.0, min(3.95, shifted))
+
+
+def _phrase_degree(degree: int, local_bar: int, index: int, note_count: int, bend: bool = False) -> int:
+    if bend or index == 0:
+        return degree % note_count
+    shifts = (0, 1, 0, -1, 0, 0, 1, -1)
+    return (degree + shifts[(local_bar + index * 2) % len(shifts)]) % note_count
+
+
 def _heartland_lead_start(song: SongState, bar: int, beat: float, index: int) -> int:
     phrase_drag = 0.012 if index in {0, 3} else -0.006 if index == 1 else 0.004
     return max(pocket_start(song, bar, beat, 0.45) + int(song.ticks_per_beat * phrase_drag), song.bar_tick(bar))
 
 
-def _heartland_phrase_length(index: int) -> float:
-    return (0.04, -0.03, 0.02, 0.05, -0.02)[index % 5]
+def _heartland_phrase_length(index: int, local_bar: int) -> float:
+    phrase_shape = (0.00, 0.035, -0.025, 0.020)[local_bar % 4]
+    return (0.04, -0.03, 0.02, 0.05, -0.02)[index % 5] + phrase_shape
 
 
 def _should_add_heartland_grace(section_name: str, local_bar: int, index: int, bend: bool) -> bool:
