@@ -39,6 +39,18 @@ Option 2: install the helper script:
 
 If the MIDI imports and plays but you hear silence, the file probably has notes but the tracks do not have instruments yet.
 
+Recommended rough-tone setup:
+
+1. Copy `Effects/AI Band GM Drum Synth.jsfx` into REAPER's resource-path `Effects` folder.
+2. Copy `Scripts/ai_band_setup_rough_tones.lua` into REAPER's resource-path `Scripts` folder.
+3. In REAPER, open `Actions > Show action list`.
+4. Choose `New action > Load ReaScript`.
+5. Select `ai_band_setup_rough_tones.lua`.
+6. Import the generated AI Band MIDI.
+7. Run `ai_band_setup_rough_tones.lua`.
+
+This uses a simple AI Band drum synth for drums/percussion and calmer ReaSynth settings for bass, keys, lead, and optional guitar.
+
 Install the sound-check helper script:
 
 1. Copy `Scripts/ai_band_add_sound_check_synths.lua` into the REAPER `Scripts` folder.
@@ -68,6 +80,7 @@ Copy:
 
 ```text
 Effects/AI Band Humanizer.jsfx
+Effects/AI Band GM Drum Synth.jsfx
 ```
 
 to:
@@ -76,7 +89,7 @@ to:
 <REAPER resource path>/Effects/
 ```
 
-Then choose `FX > Add FX` and search for `AI Band Humanizer`.
+Then choose `FX > Add FX` and search for `AI Band Humanizer` or `AI Band GM Drum Synth`.
 
 ## Current Prototype Behavior
 
@@ -100,4 +113,4 @@ From the repo root, run:
 python -m ai_band.build
 ```
 
-This creates `dist/ai-band-phase1-alpha-0.1.0.zip`, including the generated demo MIDI, REAPER helper script, JSFX humanizer, docs, tests, and source code.
+This creates `dist/ai-band-phase1-alpha-0.1.0.zip`, including the generated demo MIDI, REAPER helper scripts, JSFX helpers, docs, tests, and source code.

@@ -69,7 +69,9 @@ def main() -> None:
             "script": "Scripts/ai_band_import_generated_midi.lua",
             "sound_check_script": "Scripts/ai_band_add_sound_check_synths.lua",
             "lower_track_levels_script": "Scripts/ai_band_lower_track_levels.lua",
+            "rough_tones_script": "Scripts/ai_band_setup_rough_tones.lua",
             "jsfx": "Effects/AI Band Humanizer.jsfx",
+            "drum_synth_jsfx": "Effects/AI Band GM Drum Synth.jsfx",
         },
     }
     (BUILD_DIR / "BUILD_MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

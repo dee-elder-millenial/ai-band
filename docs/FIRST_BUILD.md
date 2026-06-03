@@ -32,7 +32,9 @@ The zip contains:
 - REAPER import helper script
 - REAPER sound-check synth helper script
 - REAPER track-level safety helper script
+- REAPER rough-tone setup script
 - JSFX MIDI humanizer helper
+- JSFX GM drum synth helper
 - REAPER setup notes
 - smoke tests
 - project TODO

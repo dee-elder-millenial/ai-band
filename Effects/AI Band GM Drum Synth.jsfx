@@ -1,0 +1,81 @@
+desc:AI Band GM Drum Synth
+tags:instrument MIDI drum AI Band
+
+slider1:0.55<0,1,0.01>Output
+slider2:0.60<0,1,0.01>Kick
+slider3:0.45<0,1,0.01>Snare
+slider4:0.22<0,1,0.01>Hat
+
+@init
+two_pi = 2 * $pi;
+kick_env = 0;
+kick_phase = 0;
+kick_vel = 0;
+snare_env = 0;
+snare_vel = 0;
+hat_env = 0;
+hat_vel = 0;
+tom_env = 0;
+tom_phase = 0;
+tom_vel = 0;
+crash_env = 0;
+crash_vel = 0;
+
+@block
+while (midirecv(offset, msg1, msg23)) (
+  status = msg1 & $xF0;
+  note = msg23 & $x7F;
+  vel = (msg23 / 256) & $x7F;
+
+  status == $x90 && vel > 0 ? (
+    amp = vel / 127;
+    note == 36 ? (
+      kick_env = 1;
+      kick_phase = 0;
+      kick_vel = amp;
+    ) : note == 38 || note == 39 ? (
+      snare_env = 1;
+      snare_vel = amp;
+    ) : note == 42 || note == 46 || note == 54 || note == 82 ? (
+      hat_env = 1;
+      hat_vel = amp;
+    ) : note == 45 || note == 47 ? (
+      tom_env = 1;
+      tom_phase = 0;
+      tom_vel = amp;
+    ) : note == 49 ? (
+      crash_env = 1;
+      crash_vel = amp;
+    );
+  );
+);
+
+@sample
+kick_freq = 44 + kick_env * 95;
+kick_phase += two_pi * kick_freq / srate;
+kick = sin(kick_phase) * kick_env * kick_vel * slider2;
+kick_env *= 0.995;
+
+noise = rand(2) - 1;
+snare = noise * snare_env * snare_vel * slider3;
+snare_env *= 0.985;
+
+hat_noise = rand(2) - 1;
+hat = (hat_noise - last_hat_noise) * hat_env * hat_vel * slider4;
+last_hat_noise = hat_noise;
+hat_env *= 0.94;
+
+tom_freq = 95 + tom_env * 40;
+tom_phase += two_pi * tom_freq / srate;
+tom = sin(tom_phase) * tom_env * tom_vel * 0.35;
+tom_env *= 0.992;
+
+crash_noise = rand(2) - 1;
+crash = (crash_noise - last_crash_noise) * crash_env * crash_vel * 0.14;
+last_crash_noise = crash_noise;
+crash_env *= 0.997;
+
+out = (kick + snare + hat + tom + crash) * slider1;
+spl0 += out;
+spl1 += out;
+

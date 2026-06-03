@@ -64,8 +64,10 @@ ai-band/
     ai_band_import_generated_midi.lua
     ai_band_add_sound_check_synths.lua
     ai_band_lower_track_levels.lua
+    ai_band_setup_rough_tones.lua
   Effects/
     AI Band Humanizer.jsfx
+    AI Band GM Drum Synth.jsfx
   ai_band/
     build.py
     bandleader.py
@@ -103,3 +105,5 @@ The generated MIDI is editable in REAPER and does not require paid third-party p
 See [docs/FIRST_BUILD.md](docs/FIRST_BUILD.md) for the current alpha build contents and limitations.
 
 See [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) for the human-fronted band direction, including The Ehaye Band mode.
+
+For a less toy-like REAPER audition setup, see [docs/TONE_LAYER.md](docs/TONE_LAYER.md).
