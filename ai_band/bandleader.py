@@ -3,6 +3,8 @@ from __future__ import annotations
 from ai_band.song_state import Chord, Section, SongState
 from ai_band.theory import NOTE_NAMES
 
+NOTE_SYMBOLS = ("C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B")
+
 
 def chord(symbol: str) -> Chord:
     quality = "major"
@@ -16,6 +18,32 @@ def chord(symbol: str) -> Chord:
     return Chord(symbol=symbol, root=NOTE_NAMES[root_name], quality=quality)
 
 
+def _chord_from_degree(key: str, interval: int, quality: str) -> Chord:
+    root = (NOTE_NAMES[key] + interval) % 12
+    symbol = NOTE_SYMBOLS[root]
+    if quality == "minor":
+        symbol = f"{symbol}m"
+    if quality == "dim":
+        symbol = f"{symbol}dim"
+    return Chord(symbol=symbol, root=root, quality=quality)
+
+
+def default_progression(key: str, scale: str) -> tuple[Chord, ...]:
+    if scale == "major":
+        return (
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 9, "minor"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 7, "major"),
+        )
+    return (
+        _chord_from_degree(key, 0, "minor"),
+        _chord_from_degree(key, 8, "major"),
+        _chord_from_degree(key, 3, "major"),
+        _chord_from_degree(key, 10, "major"),
+    )
+
+
 def create_default_song(
     title: str = "First AI Band Sketch",
     style: str = "moody alt-rock",
@@ -23,7 +51,7 @@ def create_default_song(
     key: str = "A",
     scale: str = "minor",
 ) -> SongState:
-    progression = (chord("Am"), chord("F"), chord("C"), chord("G"))
+    progression = default_progression(key, scale)
     sections = (
         Section("Intro", 0, 4, 0.35, progression),
         Section("Verse", 4, 4, 0.45, progression),
@@ -40,4 +68,3 @@ def create_default_song(
         ticks_per_beat=480,
         sections=sections,
     )
-

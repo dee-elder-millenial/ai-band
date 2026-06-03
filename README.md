@@ -24,6 +24,23 @@ python -m ai_band.generate --output examples/first-sketch.mid
 
 Then import `examples/first-sketch.mid` into REAPER.
 
+Generate a custom sketch:
+
+```powershell
+python -m ai_band.generate --output examples/c-major-sketch.mid --title "C Major Sketch" --style "clean indie rock" --tempo 124 --key C --scale major
+```
+
+Create the Phase 1 alpha build package:
+
+```powershell
+python -m ai_band.build
+```
+
+The build command writes:
+
+- `build/ai-band-phase1-alpha/`
+- `dist/ai-band-phase1-alpha-0.1.0.zip`
+
 Run the current smoke test:
 
 ```powershell
@@ -42,6 +59,7 @@ ai-band/
   Effects/
     AI Band Humanizer.jsfx
   ai_band/
+    build.py
     bandleader.py
     generate.py
     midi.py
@@ -54,6 +72,7 @@ ai-band/
       lead.py
       percussion.py
   docs/
+    FIRST_BUILD.md
     REAPER.md
   examples/
     .gitkeep
@@ -72,3 +91,5 @@ The current prototype generates a type-1 Standard MIDI File with separate tracks
 - percussion
 
 The generated MIDI is editable in REAPER and does not require paid third-party plugins.
+
+See [docs/FIRST_BUILD.md](docs/FIRST_BUILD.md) for the current alpha build contents and limitations.

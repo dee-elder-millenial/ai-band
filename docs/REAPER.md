@@ -10,6 +10,12 @@ From the repo root:
 python -m ai_band.generate --output examples/first-sketch.mid
 ```
 
+Optional controls:
+
+```powershell
+python -m ai_band.generate --output examples/c-major-sketch.mid --title "C Major Sketch" --style "clean indie rock" --tempo 124 --key C --scale major
+```
+
 ## Import The MIDI
 
 Option 1: drag `examples/first-sketch.mid` into REAPER.
@@ -55,3 +61,12 @@ The first generator creates:
 
 REAPER may ask how to import the MIDI file. Choose the option that preserves separate tracks when available.
 
+## Phase 1 Alpha Build
+
+From the repo root, run:
+
+```powershell
+python -m ai_band.build
+```
+
+This creates `dist/ai-band-phase1-alpha-0.1.0.zip`, including the generated demo MIDI, REAPER helper script, JSFX humanizer, docs, tests, and source code.

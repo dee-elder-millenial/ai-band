@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from ai_band.bandleader import create_default_song
 from ai_band.generate import build_tracks
 from ai_band.midi import write_midi
 
@@ -22,7 +23,29 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertEqual(int.from_bytes(data[10:12], "big"), 8)
         self.assertEqual(int.from_bytes(data[12:14], "big"), 480)
 
+    def test_bandleader_progression_follows_key_and_scale(self) -> None:
+        major_song = create_default_song(key="C", scale="major")
+        minor_song = create_default_song(key="A", scale="minor")
+
+        self.assertEqual([chord.symbol for chord in major_song.sections[0].chords], ["C", "Am", "F", "G"])
+        self.assertEqual([chord.symbol for chord in minor_song.sections[0].chords], ["Am", "F", "C", "G"])
+
+    def test_tracks_include_phase1_band_members(self) -> None:
+        _ticks_per_beat, _tempo_bpm, tracks = build_tracks()
+
+        self.assertEqual(
+            [track.name for track in tracks],
+            [
+                "AI Bandleader",
+                "AI Drummer",
+                "AI Bass Player",
+                "AI Guitar Player",
+                "AI Keyboard Player",
+                "AI Lead Player",
+                "AI Percussion Extras",
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
-
