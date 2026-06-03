@@ -61,6 +61,7 @@ def main() -> None:
         },
         "entrypoints": {
             "generate": "python -m ai_band.generate --output examples/first-sketch.mid",
+            "generate_ehaye": "python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --output examples/ehaye-backing-band.mid",
             "build": "python -m ai_band.build",
             "tests": "python -m unittest discover -s tests",
         },

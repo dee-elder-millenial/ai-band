@@ -33,3 +33,13 @@ Before full audio analysis exists, the product can support this workflow with ma
 - vocal presence sections
 
 Then the AI members can generate parts around those constraints.
+
+## Current CLI Support
+
+The generator supports an early backing-band mode:
+
+```powershell
+python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --output examples/ehaye-backing-band.mid
+```
+
+In `ehaye` mode, AI rhythm guitar is off by default so the generated arrangement leaves room for Deanna's rhythm guitar part. It can be forced back on with `--ai-rhythm-guitar`.

@@ -16,6 +16,12 @@ Optional controls:
 python -m ai_band.generate --output examples/c-major-sketch.mid --title "C Major Sketch" --style "clean indie rock" --tempo 124 --key C --scale major
 ```
 
+The Ehaye Band backing-band mode:
+
+```powershell
+python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --output examples/ehaye-backing-band.mid
+```
+
 ## Import The MIDI
 
 Option 1: drag `examples/first-sketch.mid` into REAPER.

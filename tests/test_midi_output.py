@@ -52,7 +52,29 @@ class MidiOutputTests(unittest.TestCase):
         self.assertEqual(summary.tracks[6].channels, {3})
         self.assertEqual(summary.tracks[7].channels, {9})
 
+    def test_ehaye_mode_reads_back_without_ai_rhythm_guitar(self) -> None:
+        ticks_per_beat, tempo_bpm, tracks = build_tracks(mode="ehaye")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "ehaye.mid"
+            write_midi(output, tracks, ticks_per_beat=ticks_per_beat, tempo_bpm=tempo_bpm)
+            summary = read_midi_summary(output)
+
+        self.assertEqual(summary.track_count, 7)
+        self.assertEqual(
+            [track.name for track in summary.tracks],
+            [
+                None,
+                "AI Bandleader",
+                "AI Drummer",
+                "AI Bass Player",
+                "AI Keyboard Player",
+                "AI Lead Player",
+                "AI Percussion Extras",
+            ],
+        )
+        self.assertIn("The Ehaye Band mode", " ".join(summary.tracks[1].text))
+
 
 if __name__ == "__main__":
     unittest.main()
-

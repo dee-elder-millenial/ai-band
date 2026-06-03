@@ -14,8 +14,13 @@ def build_tracks(
     tempo_bpm: int = 108,
     key: str = "A",
     scale: str = "minor",
+    mode: str = "full-band",
+    include_ai_rhythm_guitar: bool | None = None,
 ) -> tuple[int, int, list[MidiTrack]]:
     song = create_default_song(title=title, style=style, tempo_bpm=tempo_bpm, key=key, scale=scale)
+    if include_ai_rhythm_guitar is None:
+        include_ai_rhythm_guitar = mode != "ehaye"
+
     markers = MidiTrack("AI Bandleader")
     for section in song.sections:
         markers.metas.append(MidiMeta(song.bar_tick(section.start_bar), "marker", section.name))
@@ -26,16 +31,29 @@ def build_tracks(
                 f"{section.name}: energy={section.energy:.2f}, chords={' '.join(chord.symbol for chord in section.chords)}",
             )
         )
+    if mode == "ehaye":
+        markers.metas.append(
+            MidiMeta(
+                0,
+                "text",
+                "The Ehaye Band mode: Deanna is lead vocal and rhythm guitar; AI members generate backing parts.",
+            )
+        )
 
     tracks = [
         markers,
         drummer.generate(song),
         bassist.generate(song),
-        guitarist.generate(song),
-        keyboardist.generate(song),
-        lead.generate(song),
-        percussion.generate(song),
     ]
+    if include_ai_rhythm_guitar:
+        tracks.append(guitarist.generate(song))
+    tracks.extend(
+        [
+            keyboardist.generate(song),
+            lead.generate(song),
+            percussion.generate(song),
+        ]
+    )
     return song.ticks_per_beat, song.tempo_bpm, tracks
 
 
@@ -47,7 +65,28 @@ def main() -> None:
     parser.add_argument("--tempo", type=int, default=108, help="Tempo in beats per minute")
     parser.add_argument("--key", default="A", choices=("C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"))
     parser.add_argument("--scale", default="minor", choices=("major", "minor"))
+    parser.add_argument(
+        "--mode",
+        default="full-band",
+        choices=("full-band", "ehaye"),
+        help="Generation mode. 'ehaye' treats the AI as backing bandmates for lead vocal and human rhythm guitar.",
+    )
+    parser.add_argument(
+        "--no-ai-rhythm-guitar",
+        action="store_true",
+        help="Do not generate the AI rhythm guitar track.",
+    )
+    parser.add_argument(
+        "--ai-rhythm-guitar",
+        action="store_true",
+        help="Generate the AI rhythm guitar track even in modes where it is normally disabled.",
+    )
     args = parser.parse_args()
+    include_ai_rhythm_guitar = None
+    if args.no_ai_rhythm_guitar:
+        include_ai_rhythm_guitar = False
+    if args.ai_rhythm_guitar:
+        include_ai_rhythm_guitar = True
 
     ticks_per_beat, tempo_bpm, tracks = build_tracks(
         title=args.title,
@@ -55,6 +94,8 @@ def main() -> None:
         tempo_bpm=args.tempo,
         key=args.key,
         scale=args.scale,
+        mode=args.mode,
+        include_ai_rhythm_guitar=include_ai_rhythm_guitar,
     )
     output = Path(args.output)
     write_midi(output, tracks, ticks_per_beat=ticks_per_beat, tempo_bpm=tempo_bpm)

@@ -46,6 +46,26 @@ class GenerateMidiTests(unittest.TestCase):
             ],
         )
 
+    def test_ehaye_mode_defaults_to_backing_band_without_ai_rhythm_guitar(self) -> None:
+        _ticks_per_beat, _tempo_bpm, tracks = build_tracks(mode="ehaye")
+
+        self.assertEqual(
+            [track.name for track in tracks],
+            [
+                "AI Bandleader",
+                "AI Drummer",
+                "AI Bass Player",
+                "AI Keyboard Player",
+                "AI Lead Player",
+                "AI Percussion Extras",
+            ],
+        )
+
+    def test_ehaye_mode_can_force_ai_rhythm_guitar_back_on(self) -> None:
+        _ticks_per_beat, _tempo_bpm, tracks = build_tracks(mode="ehaye", include_ai_rhythm_guitar=True)
+
+        self.assertIn("AI Guitar Player", [track.name for track in tracks])
+
 
 if __name__ == "__main__":
     unittest.main()
