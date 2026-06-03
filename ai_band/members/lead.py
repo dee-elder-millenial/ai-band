@@ -3,8 +3,8 @@ from __future__ import annotations
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
 from ai_band.humanize import clamp_midi, expression_curve, phrase_lift, played_duration, played_start, played_velocity, pocket_start, section_lift, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
-from ai_band.song_state import SongState
-from ai_band.theory import scale_notes
+from ai_band.song_state import Chord, SongState
+from ai_band.theory import chord_tones, scale_notes
 
 LEAD_CHANNEL = 3
 
@@ -182,20 +182,18 @@ def _generate_southern_blues(song: SongState, sparse: bool = False) -> MidiTrack
 
 def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack:
     track = MidiTrack("AI Lead Player", channel=LEAD_CHANNEL, program=81)
-    scale = scale_notes(song.key, "major", 5)
-    low_scale = scale_notes(song.key, "major", 4)
     hook_shapes = (
-        ((2.00, 4, 0.36, 58, True), (2.55, 5, 0.34, 54, False), (3.10, 4, 0.44, 58, False)),
-        ((1.55, 2, 0.38, 56, False), (2.20, 4, 0.42, 60, True), (3.00, 0, 0.52, 57, False)),
-        ((2.05, 5, 0.40, 62, True), (2.70, 4, 0.34, 54, False), (3.30, 2, 0.40, 56, False)),
+        ((2.00, 2, 0.42, 52, False), (2.70, 4, 0.36, 50, False), (3.18, 2, 0.50, 53, False)),
+        ((1.65, 0, 0.44, 51, False), (2.35, 2, 0.42, 54, False), (3.08, 4, 0.46, 52, False)),
+        ((2.10, 4, 0.42, 55, True), (2.82, 2, 0.36, 49, False)),
     )
     solo_shapes = (
-        ((0.18, 0, 0.34, 58, True), (0.72, 2, 0.30, 54, False), (1.18, 4, 0.34, 60, True), (2.05, 5, 0.46, 63, True), (3.00, 4, 0.34, 57, False)),
-        ((0.35, 5, 0.36, 62, True), (0.92, 4, 0.28, 55, False), (1.45, 2, 0.32, 56, False), (2.20, 0, 0.48, 59, True)),
-        ((0.15, 2, 0.34, 57, False), (0.72, 4, 0.32, 60, True), (1.35, 5, 0.34, 62, False), (2.40, 7, 0.50, 64, True)),
+        ((0.22, 0, 0.40, 54, False), (0.88, 2, 0.34, 50, False), (1.48, 4, 0.42, 56, True), (2.48, 2, 0.52, 53, False)),
+        ((0.40, 4, 0.40, 56, True), (1.08, 2, 0.32, 50, False), (1.82, 0, 0.46, 52, False), (2.72, 4, 0.44, 55, False)),
+        ((0.28, 2, 0.38, 53, False), (1.05, 4, 0.38, 56, True), (1.78, 5, 0.34, 54, False), (2.58, 2, 0.54, 52, False)),
     )
 
-    for section, bar, _chord in iter_section_bars(song):
+    for section, bar, chord in iter_section_bars(song):
         local_bar = bar - section.start_bar
         section_is_solo = section.name == "Guitar Solo"
         section_is_hook = section.name in {"Intro", "Outro"} or section.name.startswith("Chorus") or section.name == "Final Chorus"
@@ -207,15 +205,19 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
             continue
         if section_is_hook and local_bar % 2 == 0 and section.name not in {"Intro", "Outro"}:
             continue
+        if section_is_hook and section.name not in {"Intro", "Outro"} and local_bar % 4 == 3:
+            continue
+        if section_is_solo and local_bar % 4 == 2:
+            continue
         if sparse and local_bar % 4 == 1:
             continue
 
         bar_lift = phrase_lift(local_bar, section.bars, 3)
         lick = solo_shapes[local_bar % len(solo_shapes)] if section_is_solo else hook_shapes[local_bar % len(hook_shapes)]
-        note_pool = low_scale if section.name == "Outro" else scale
+        note_pool = _heartland_chord_note_pool(chord, section_is_solo)
         for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
             beat = _phrase_beat(beat, local_bar, index)
-            note = note_pool[_phrase_degree(degree, local_bar, index, len(note_pool), bend)]
+            note = note_pool[degree % len(note_pool)]
             start = _heartland_lead_start(song, bar, beat, index)
             duration = played_duration(
                 song,
@@ -250,6 +252,14 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
                 _add_heartland_vibrato(track, start, duration, bar, index)
 
     return track
+
+
+def _heartland_chord_note_pool(chord: Chord, section_is_solo: bool) -> tuple[int, ...]:
+    tones = chord_tones(chord.root, chord.quality, 4 if section_is_solo else 3)
+    root, third, fifth = tones
+    if section_is_solo:
+        return (root, third, fifth, root + 12)
+    return (root, third, fifth, root + 12, fifth + 12)
 
 
 def _phrase_beat(beat: float, local_bar: int, index: int) -> float:
@@ -303,16 +313,16 @@ def _add_heartland_grace(
 
 def _heartland_bend_profile(bar: int, index: int) -> tuple[tuple[float, int], ...]:
     shapes = (
-        ((0.14, 1400), (0.34, 2300), (0.58, 2050), (0.82, 0)),
-        ((0.20, 1800), (0.44, 2800), (0.68, 2450), (0.86, 0)),
-        ((0.16, 1200), (0.36, 2100), (0.62, 1800), (0.78, 0)),
-        ((0.22, 2000), (0.48, 3000), (0.70, 2550), (0.88, 0)),
+        ((0.18, 420), (0.40, 760), (0.66, 520), (0.86, 0)),
+        ((0.22, 520), (0.46, 900), (0.70, 640), (0.88, 0)),
+        ((0.18, 360), (0.40, 680), (0.66, 460), (0.84, 0)),
+        ((0.24, 580), (0.50, 840), (0.72, 600), (0.90, 0)),
     )
     return shapes[(bar + index) % len(shapes)]
 
 
 def _add_heartland_vibrato(track: MidiTrack, start: int, duration: int, bar: int, index: int) -> None:
-    depth = (120, 160, 100, 140)[(bar + index) % 4]
+    depth = (50, 70, 45, 60)[(bar + index) % 4]
     onset = 0.46 if duration < 220 else 0.38
     profile = (
         (onset, depth),
@@ -334,7 +344,7 @@ def _add_bend(
     profile: tuple[tuple[float, int], ...] | None = None,
 ) -> None:
     if profile is None:
-        profile = ((0.18, 1800), (0.38, 2600), (0.78, 0))
+        profile = ((0.22, 500), (0.48, 850), (0.82, 0))
     track.events.extend(
         _pitch_bend(start + int(duration * timing), channel, 8192 + amount)
         for timing, amount in profile

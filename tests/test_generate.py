@@ -365,9 +365,14 @@ class GenerateMidiTests(unittest.TestCase):
         bass_bend_targets = {value for value in bass_bend_values if value != 8192}
         bass_dead_notes = [note for note in bass.notes if note.duration <= 32 and note.velocity < 60]
         lead_grace_notes = [note for note in lead.notes if note.duration <= 44 and note.velocity < 70]
-        lead_bend_values = [event.data[0] | (event.data[1] << 7) for event in lead.events]
+        lead_bend_values = [
+            event.data[0] | (event.data[1] << 7)
+            for event in lead.events
+            if event.status == 0xE0 | 3
+        ]
         lead_bend_targets = {value for value in lead_bend_values if value != 8192}
         lead_vibrato_targets = {value for value in lead_bend_targets if abs(value - 8192) <= 180}
+        lead_pitch_classes = {note.note % 12 for note in lead.notes if note.duration > 44}
         bass_pickups = [note for note in bass.notes if 340 <= note.start % 480 <= 380]
         drum_ghost_snares = [note for note in drums.notes if note.note == 38 and note.duration > 32 and note.velocity < 70]
         drum_snare_flams = [
@@ -456,6 +461,9 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertGreaterEqual(len(percussion_pickups), 8)
         self.assertGreaterEqual(len(lead.events), 24)
         self.assertGreaterEqual(len(lead_bend_targets), 6)
+        self.assertLessEqual(max(abs(value - 8192) for value in lead_bend_targets), 900)
+        self.assertLessEqual(max(note.note for note in lead.notes), 78)
+        self.assertLessEqual(len(lead_pitch_classes), 7)
         self.assertGreaterEqual(len(lead_vibrato_targets), 4)
         self.assertGreaterEqual(len(lead_grace_notes), 20)
 
