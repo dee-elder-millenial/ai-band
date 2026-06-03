@@ -144,6 +144,16 @@ class GenerateMidiTests(unittest.TestCase):
                 last_tick = max(tick for tick, _value in bend_values)
                 self.assertIn((last_tick, 8192), bend_values)
 
+    def test_heartland_bandleader_includes_reaper_audition_hint(self) -> None:
+        _ticks, _tempo, tracks = build_tracks(preset="heartland-rock", key="E", scale="major", tempo_bpm=118)
+        bandleader = next(track for track in tracks if track.name == "AI Bandleader")
+        text = " ".join(meta.text for meta in bandleader.metas if meta.kind == "text")
+
+        self.assertIn("ai_band_apply_audition_mix.lua", text)
+        self.assertIn("lead-back", text)
+        self.assertIn("warmer-room", text)
+        self.assertIn("drums-forward", text)
+
     def test_default_generation_leaves_arrangement_space(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks()
         bar_ticks = 480 * 4

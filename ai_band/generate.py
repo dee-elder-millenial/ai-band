@@ -71,6 +71,13 @@ def build_tracks(
         markers.metas.append(MidiMeta(0, "text", "Southern blues preset: long protest-roadhouse form, sparse vocal-support lead."))
     if preset == "heartland-rock":
         markers.metas.append(MidiMeta(0, "text", "Heartland rock preset: driving bass, deep drums, rich electric guitar, sax-like pad support."))
+        markers.metas.append(
+            MidiMeta(
+                0,
+                "text",
+                "REAPER audition hint: run ai_band_apply_audition_mix.lua; try lead-back if lead crowds, warmer-room if dry, drums-forward if groove disappears.",
+            )
+        )
 
     tracks = [
         markers,
