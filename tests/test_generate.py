@@ -253,11 +253,19 @@ class GenerateMidiTests(unittest.TestCase):
         guitar = next(track for track in tracks if track.name == "AI Guitar Player")
         keyboard = next(track for track in tracks if track.name == "AI Keyboard Player")
         lead = next(track for track in tracks if track.name == "AI Lead Player")
+        guitar_starts = [note.start for note in guitar.notes]
+        guitar_anchor_offsets = [
+            min(min(abs(start % 480 - anchor), 480 - abs(start % 480 - anchor)) for anchor in (0, 240, 360))
+            for start in guitar_starts
+            if start % 480 not in {0, 240, 360}
+        ]
 
         self.assertGreater(len(drums.notes), 1000)
         self.assertGreater(len(bass.notes), 400)
         self.assertGreater(len(guitar.notes), 2500)
         self.assertLessEqual(min(note.note for note in guitar.notes), 45)
+        self.assertTrue(guitar_anchor_offsets)
+        self.assertLessEqual(max(guitar_anchor_offsets), 26)
         self.assertEqual(keyboard.program, 66)
         self.assertGreaterEqual(len(lead.events), 24)
 

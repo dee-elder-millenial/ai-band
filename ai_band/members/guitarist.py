@@ -39,7 +39,21 @@ def generate(song: SongState) -> MidiTrack:
         for beat in beats:
             if song.preset in {"heartland-rock", "southern-blues"}:
                 direction = "down" if beat in {0, 2.0, 2.5} else "up"
-                _add_strum(track, song, bar, beat, voicing, duration, base_velocity, section.energy, direction, strum_gap)
+                anchor_offset = _heartland_anchor_offset(song, bar, beat) if song.preset == "heartland-rock" else 0
+                velocity_shift = _heartland_velocity_shift(bar, beat) if song.preset == "heartland-rock" else 0
+                _add_strum(
+                    track,
+                    song,
+                    bar,
+                    beat,
+                    voicing,
+                    duration,
+                    base_velocity + velocity_shift,
+                    section.energy,
+                    direction,
+                    strum_gap,
+                    anchor_offset,
+                )
             else:
                 for note in voicing:
                     track.notes.append(
@@ -58,6 +72,7 @@ def generate(song: SongState) -> MidiTrack:
                 section.energy,
                 "up",
                 strum_gap,
+                _heartland_anchor_offset(song, bar, 3.75) if song.preset == "heartland-rock" else 0,
             )
 
     return track
@@ -74,10 +89,23 @@ def _add_strum(
     energy: float,
     direction: str,
     gap: int,
+    anchor_offset: int = 0,
 ) -> None:
     notes = voicing if direction == "down" else tuple(reversed(voicing))
-    start = song.beat_tick(bar, beat)
+    start = max(song.beat_tick(bar, beat) + anchor_offset, song.bar_tick(bar))
     for index, note in enumerate(notes):
         track.notes.append(
             MidiNote(start + index * gap, duration, note, velocity(base_velocity, energy, index), GUITAR_CHANNEL)
         )
+
+
+def _heartland_anchor_offset(song: SongState, bar: int, beat: float) -> int:
+    pattern = (-0.010, 0.000, 0.006, -0.004)
+    index = (bar * 4 + int(beat * 2)) % len(pattern)
+    return int(song.ticks_per_beat * pattern[index])
+
+
+def _heartland_velocity_shift(bar: int, beat: float) -> int:
+    pattern = (0, -4, 3, -2, 2, -3)
+    index = (bar + int(beat * 2)) % len(pattern)
+    return pattern[index]

@@ -60,6 +60,7 @@ M.PREFERRED_INSTRUMENTS = {
 M.TRACK_EFFECTS = {
   ["AI Drummer"] = {
     {name = "ReaComp (Cockos)", needle = "ReaComp"},
+    {name = "ReaVerbate (Cockos)", needle = "ReaVerbate"},
   },
   ["AI Bass Player"] = {
     {name = "ReaComp (Cockos)", needle = "ReaComp"},

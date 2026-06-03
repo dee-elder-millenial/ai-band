@@ -86,6 +86,6 @@ Use REAPER as the granular editing lab:
 `ai_band_tone_helpers.lua` includes a first rough effects pass for audition scripts that opt in:
 
 - drums, bass, guitar, keyboard/sax, and lead can get ReaComp
-- guitar, keyboard/sax, lead, and percussion can get ReaVerbate
+- drums, guitar, keyboard/sax, lead, and percussion can get ReaVerbate
 
 These are editable REAPER starter effects, not a finished mix. The goal is to start exploring compression, room, and space while keeping the generated MIDI and instrument choices easy to inspect.
