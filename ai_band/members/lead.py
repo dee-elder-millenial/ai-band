@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
+from ai_band.humanize import clamp_midi, pocket_start, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import scale_notes
@@ -204,15 +205,15 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
         note_pool = low_scale if section.name == "Outro" else scale
         for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
             note = note_pool[degree % len(note_pool)]
-            drift = int(song.ticks_per_beat * (0.014 * ((index % 2) * 2 - 1)))
-            start = max(song.beat_tick(bar, beat) + drift, song.bar_tick(bar))
-            duration = note_duration(song, beats)
+            start = _heartland_lead_start(song, bar, beat, index)
+            duration = note_duration(song, beats + _heartland_phrase_length(index))
+            note_velocity = clamp_midi(velocity(base_velocity, section.energy, accent=(index % 2) * 4) + velocity_shift(bar, beat, 3))
             track.notes.append(
                 MidiNote(
                     start,
                     duration,
                     note,
-                    velocity(base_velocity, section.energy, accent=(index % 2) * 4),
+                    note_velocity,
                     LEAD_CHANNEL,
                 )
             )
@@ -220,6 +221,15 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
                 _add_bend(track, start, duration, LEAD_CHANNEL)
 
     return track
+
+
+def _heartland_lead_start(song: SongState, bar: int, beat: float, index: int) -> int:
+    phrase_drag = 0.012 if index in {0, 3} else -0.006 if index == 1 else 0.004
+    return max(pocket_start(song, bar, beat, 0.45) + int(song.ticks_per_beat * phrase_drag), song.bar_tick(bar))
+
+
+def _heartland_phrase_length(index: int) -> float:
+    return (0.04, -0.03, 0.02, 0.05, -0.02)[index % 5]
 
 
 def _add_bend(track: MidiTrack, start: int, duration: int, channel: int) -> None:

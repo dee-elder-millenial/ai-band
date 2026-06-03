@@ -253,7 +253,19 @@ class GenerateMidiTests(unittest.TestCase):
         guitar = next(track for track in tracks if track.name == "AI Guitar Player")
         keyboard = next(track for track in tracks if track.name == "AI Keyboard Player")
         lead = next(track for track in tracks if track.name == "AI Lead Player")
+        drum_starts = [note.start for note in drums.notes]
+        bass_starts = [note.start for note in bass.notes]
         guitar_starts = [note.start for note in guitar.notes]
+        drum_anchor_offsets = [
+            min(min(abs(start % 480 - anchor), 480 - abs(start % 480 - anchor)) for anchor in (0, 120, 240, 360))
+            for start in drum_starts
+            if start % 480 not in {0, 120, 240, 360}
+        ]
+        bass_anchor_offsets = [
+            min(min(abs(start % 480 - anchor), 480 - abs(start % 480 - anchor)) for anchor in (0, 240, 360))
+            for start in bass_starts
+            if start % 480 not in {0, 240, 360}
+        ]
         guitar_anchor_offsets = [
             min(min(abs(start % 480 - anchor), 480 - abs(start % 480 - anchor)) for anchor in (0, 240, 360))
             for start in guitar_starts
@@ -261,9 +273,14 @@ class GenerateMidiTests(unittest.TestCase):
         ]
 
         self.assertGreater(len(drums.notes), 1000)
+        self.assertLessEqual(max(note.velocity for note in drums.notes), 122)
         self.assertGreater(len(bass.notes), 400)
         self.assertGreater(len(guitar.notes), 2500)
         self.assertLessEqual(min(note.note for note in guitar.notes), 45)
+        self.assertTrue(drum_anchor_offsets)
+        self.assertLessEqual(max(drum_anchor_offsets), 18)
+        self.assertTrue(bass_anchor_offsets)
+        self.assertLessEqual(max(bass_anchor_offsets), 14)
         self.assertTrue(guitar_anchor_offsets)
         self.assertLessEqual(max(guitar_anchor_offsets), 26)
         self.assertEqual(keyboard.program, 66)

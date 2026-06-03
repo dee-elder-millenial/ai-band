@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
+from ai_band.humanize import clamp_midi, pocket_start, velocity_shift
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -83,10 +84,23 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
             )
 
         for beat, note, duration in pattern:
-            base_velocity = 62 if song.preset == "heartland-rock" else 54 if song.preset == "southern-blues" else 60
+            base_velocity = 59 if song.preset == "heartland-rock" else 54 if song.preset == "southern-blues" else 60
             accent = 6 if song.preset == "heartland-rock" and beat in {0, 2.0} else 4 if song.preset == "southern-blues" and beat == 0 else 0
+            start = song.beat_tick(bar, beat)
+            note_duration_ticks = duration
+            note_velocity = velocity(base_velocity, section.energy, accent)
+            if song.preset == "heartland-rock":
+                start = pocket_start(song, bar, beat, 0.55)
+                note_duration_ticks = max(note_duration(song, 0.30), duration + _heartland_duration_shift(song, bar, beat))
+                note_velocity = clamp_midi(note_velocity + velocity_shift(bar, beat, 5))
             track.notes.append(
-                MidiNote(song.beat_tick(bar, beat), duration, note, velocity(base_velocity, section.energy, accent), BASS_CHANNEL)
+                MidiNote(start, note_duration_ticks, note, note_velocity, BASS_CHANNEL)
             )
 
     return track
+
+
+def _heartland_duration_shift(song: SongState, bar: int, beat: float) -> int:
+    pattern = (-0.05, 0.02, -0.02, 0.04, -0.03, 0.03)
+    index = (bar + int(beat * 2)) % len(pattern)
+    return int(song.ticks_per_beat * pattern[index])
