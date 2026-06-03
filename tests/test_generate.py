@@ -254,6 +254,8 @@ class GenerateMidiTests(unittest.TestCase):
         keyboard = next(track for track in tracks if track.name == "AI Keyboard Player")
         lead = next(track for track in tracks if track.name == "AI Lead Player")
         percussion = next(track for track in tracks if track.name == "AI Percussion Extras")
+        lead_bend_values = [event.data[0] | (event.data[1] << 7) for event in lead.events]
+        lead_bend_targets = {value for value in lead_bend_values if value != 8192}
         drum_starts = [note.start for note in drums.notes]
         bass_starts = [note.start for note in bass.notes]
         guitar_starts = [note.start for note in guitar.notes]
@@ -302,6 +304,7 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertTrue(percussion_anchor_offsets)
         self.assertLessEqual(max(percussion_anchor_offsets), 8)
         self.assertGreaterEqual(len(lead.events), 24)
+        self.assertGreaterEqual(len(lead_bend_targets), 6)
 
 
 if __name__ == "__main__":

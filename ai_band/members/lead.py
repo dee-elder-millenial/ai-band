@@ -218,7 +218,7 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
                 )
             )
             if bend:
-                _add_bend(track, start, duration, LEAD_CHANNEL)
+                _add_bend(track, start, duration, LEAD_CHANNEL, _heartland_bend_profile(bar, index))
 
     return track
 
@@ -232,13 +232,28 @@ def _heartland_phrase_length(index: int) -> float:
     return (0.04, -0.03, 0.02, 0.05, -0.02)[index % 5]
 
 
-def _add_bend(track: MidiTrack, start: int, duration: int, channel: int) -> None:
+def _heartland_bend_profile(bar: int, index: int) -> tuple[tuple[float, int], ...]:
+    shapes = (
+        ((0.14, 1400), (0.34, 2300), (0.58, 2050), (0.82, 0)),
+        ((0.20, 1800), (0.44, 2800), (0.68, 2450), (0.86, 0)),
+        ((0.16, 1200), (0.36, 2100), (0.62, 1800), (0.78, 0)),
+        ((0.22, 2000), (0.48, 3000), (0.70, 2550), (0.88, 0)),
+    )
+    return shapes[(bar + index) % len(shapes)]
+
+
+def _add_bend(
+    track: MidiTrack,
+    start: int,
+    duration: int,
+    channel: int,
+    profile: tuple[tuple[float, int], ...] | None = None,
+) -> None:
+    if profile is None:
+        profile = ((0.18, 1800), (0.38, 2600), (0.78, 0))
     track.events.extend(
-        (
-            _pitch_bend(start + int(duration * 0.18), channel, 8192 + 1800),
-            _pitch_bend(start + int(duration * 0.38), channel, 8192 + 2600),
-            _pitch_bend(start + int(duration * 0.78), channel, 8192),
-        )
+        _pitch_bend(start + int(duration * timing), channel, 8192 + amount)
+        for timing, amount in profile
     )
 
 
