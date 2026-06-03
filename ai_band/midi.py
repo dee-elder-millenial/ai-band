@@ -46,8 +46,14 @@ class MidiTrack:
             self.events = []
 
 
-def write_midi(path: str | Path, tracks: Iterable[MidiTrack], ticks_per_beat: int, tempo_bpm: int) -> None:
-    track_data = [_render_conductor_track(tempo_bpm)]
+def write_midi(
+    path: str | Path,
+    tracks: Iterable[MidiTrack],
+    ticks_per_beat: int,
+    tempo_bpm: int,
+    tempo_events: Iterable[tuple[int, int]] | None = None,
+) -> None:
+    track_data = [_render_conductor_track(tempo_bpm, tempo_events)]
     track_data.extend(_render_track(track) for track in tracks)
 
     header = b"MThd" + (6).to_bytes(4, "big")
@@ -60,12 +66,15 @@ def write_midi(path: str | Path, tracks: Iterable[MidiTrack], ticks_per_beat: in
     Path(path).write_bytes(header + body)
 
 
-def _render_conductor_track(tempo_bpm: int) -> bytes:
-    micros_per_quarter = int(60_000_000 / tempo_bpm)
-    events = [
-        (0, b"\xff\x51\x03" + micros_per_quarter.to_bytes(3, "big")),
-        (0, b"\xff\x58\x04\x04\x02\x18\x08"),
-    ]
+def _render_conductor_track(tempo_bpm: int, tempo_events: Iterable[tuple[int, int]] | None = None) -> bytes:
+    tempo_points = list(tempo_events or ())
+    if not tempo_points or tempo_points[0][0] != 0:
+        tempo_points.insert(0, (0, tempo_bpm))
+    events = [(0, b"\xff\x58\x04\x04\x02\x18\x08")]
+    for tick, bpm in tempo_points:
+        micros_per_quarter = int(60_000_000 / bpm)
+        events.append((tick, b"\xff\x51\x03" + micros_per_quarter.to_bytes(3, "big")))
+    events.sort(key=lambda item: (item[0], 0 if item[1][0] == 0xFF else 1))
     return _events_to_track(events)
 
 

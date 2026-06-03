@@ -10,6 +10,25 @@ from ai_band.midi import MidiMeta, MidiTrack, write_midi
 from ai_band.members import bassist, drummer, guitarist, keyboardist, lead, percussion
 
 
+def tempo_events_for_preset(preset: str, tempo_bpm: int, ticks_per_beat: int, total_bars: int) -> list[tuple[int, int]]:
+    if preset != "heartland-rock":
+        return []
+    bar_ticks = ticks_per_beat * 4
+    contour = (0, 0, 1, 0, -1, 0, 1, 0, -1, 0, 1, 0)
+    events: list[tuple[int, int]] = []
+    for index, bar in enumerate(range(0, total_bars, 4)):
+        drift = contour[index % len(contour)]
+        if bar >= max(total_bars - 16, 0):
+            drift += 1
+        drift = max(-1, min(1, drift))
+        bpm = max(40, tempo_bpm + drift)
+        if not events or events[-1][1] != bpm:
+            events.append((bar * bar_ticks, bpm))
+    if events and events[0][0] != 0:
+        events.insert(0, (0, tempo_bpm))
+    return events
+
+
 def build_tracks(
     title: str = "First AI Band Sketch",
     style: str = "moody alt-rock",
@@ -115,8 +134,9 @@ def main() -> None:
         include_ai_rhythm_guitar=include_ai_rhythm_guitar,
         controls=controls,
     )
+    tempo_events = tempo_events_for_preset(args.preset, tempo_bpm, ticks_per_beat, create_default_song(preset=args.preset).total_bars)
     output = Path(args.output)
-    write_midi(output, tracks, ticks_per_beat=ticks_per_beat, tempo_bpm=tempo_bpm)
+    write_midi(output, tracks, ticks_per_beat=ticks_per_beat, tempo_bpm=tempo_bpm, tempo_events=tempo_events)
     print(f"Wrote {output}")
 
 

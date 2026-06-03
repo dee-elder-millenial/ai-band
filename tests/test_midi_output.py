@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from ai_band.controls import controls_from_cue
-from ai_band.generate import build_tracks
+from ai_band.generate import build_tracks, tempo_events_for_preset
 from ai_band.live_cue import LiveCue
 from ai_band.midi import write_midi
 from ai_band.midi_read import read_midi_summary
@@ -122,6 +122,25 @@ class MidiOutputTests(unittest.TestCase):
         bandleader = summary.tracks[1]
         self.assertIn("Final Chorus", bandleader.markers)
         self.assertIn("Southern blues preset", " ".join(bandleader.text))
+
+    def test_heartland_midi_can_include_human_tempo_map(self) -> None:
+        ticks_per_beat, tempo_bpm, tracks = build_tracks(
+            preset="heartland-rock",
+            key="E",
+            scale="major",
+            tempo_bpm=118,
+        )
+        tempo_events = tempo_events_for_preset("heartland-rock", tempo_bpm, ticks_per_beat, total_bars=88)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "heartland.mid"
+            write_midi(output, tracks, ticks_per_beat=ticks_per_beat, tempo_bpm=tempo_bpm, tempo_events=tempo_events)
+            data = output.read_bytes()
+
+        self.assertGreaterEqual(len(tempo_events), 8)
+        self.assertGreater(data.count(b"\xff\x51\x03"), 1)
+        self.assertIn(117, [bpm for _tick, bpm in tempo_events])
+        self.assertIn(119, [bpm for _tick, bpm in tempo_events])
 
 
 if __name__ == "__main__":
