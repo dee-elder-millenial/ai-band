@@ -66,6 +66,7 @@ def main() -> None:
         },
         "reaper": {
             "script": "Scripts/ai_band_import_generated_midi.lua",
+            "sound_check_script": "Scripts/ai_band_add_sound_check_synths.lua",
             "jsfx": "Effects/AI Band Humanizer.jsfx",
         },
     }
@@ -84,4 +85,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

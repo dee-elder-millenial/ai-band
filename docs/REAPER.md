@@ -29,6 +29,21 @@ Option 2: install the helper script:
 5. Select `ai_band_import_generated_midi.lua`.
 6. Run the action and choose the generated `.mid` file.
 
+## Quick Sound Check
+
+If the MIDI imports and plays but you hear silence, the file probably has notes but the tracks do not have instruments yet.
+
+Install the sound-check helper script:
+
+1. Copy `Scripts/ai_band_add_sound_check_synths.lua` into the REAPER `Scripts` folder.
+2. In REAPER, open `Actions > Show action list`.
+3. Choose `New action > Load ReaScript`.
+4. Select `ai_band_add_sound_check_synths.lua`.
+5. Import the generated AI Band MIDI.
+6. Run `ai_band_add_sound_check_synths.lua`.
+
+The script adds REAPER's built-in `ReaSynth` to each playable AI Band track and skips the bandleader marker track. This is only for testing that MIDI notes are reaching instruments; it is not the final sound of the product.
+
 ## Install JSFX Helpers
 
 JSFX effects belong in REAPER's resource-path `Effects` folder.

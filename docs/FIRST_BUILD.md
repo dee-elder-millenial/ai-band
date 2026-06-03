@@ -30,6 +30,7 @@ The zip contains:
 - `examples/first-sketch.mid`
 - `BUILD_MANIFEST.json`
 - REAPER import helper script
+- REAPER sound-check synth helper script
 - JSFX MIDI humanizer helper
 - REAPER setup notes
 - smoke tests

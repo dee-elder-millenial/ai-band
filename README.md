@@ -56,6 +56,7 @@ ai-band/
   pyproject.toml
   Scripts/
     ai_band_import_generated_midi.lua
+    ai_band_add_sound_check_synths.lua
   Effects/
     AI Band Humanizer.jsfx
   ai_band/
