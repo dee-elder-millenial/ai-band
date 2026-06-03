@@ -91,6 +91,9 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
                 MidiNote(start, step, SNARE, note_velocity, DRUM_CHANNEL)
             )
 
+        if song.preset == "heartland-rock":
+            _add_heartland_ghosts(track, song, bar, local_bar, section.energy, bar_lift)
+
         if bar == section.start_bar:
             crash_start = _heartland_drum_start(song, bar, 0, "crash") if song.preset == "heartland-rock" else song.beat_tick(bar, 0)
             crash_velocity = velocity(94, section.energy)
@@ -138,3 +141,26 @@ def _add_heartland_fill(track: MidiTrack, song: SongState, bar: int, energy: flo
         start = _heartland_drum_start(song, bar, beat, "fill")
         note_velocity = min(clamp_midi(velocity(82, energy, accent) + velocity_shift(bar, beat, 3)), 122)
         track.notes.append(MidiNote(start, duration, note, note_velocity, DRUM_CHANNEL))
+
+
+def _add_heartland_ghosts(
+    track: MidiTrack,
+    song: SongState,
+    bar: int,
+    local_bar: int,
+    energy: float,
+    bar_lift: int,
+) -> None:
+    shapes = (
+        ((0.75, -4), (2.75, -2)),
+        ((1.75, -6), (2.75, -3), (3.25, -5)),
+        ((0.75, -5), (2.25, -7)),
+        ((1.75, -4), (2.75, -6)),
+    )
+    if energy < 0.70 and local_bar % 2 == 1:
+        return
+    duration = note_duration(song, 0.11)
+    for beat, accent in shapes[local_bar % len(shapes)]:
+        start = _heartland_drum_start(song, bar, beat, "ghost")
+        note_velocity = min(clamp_midi(velocity(24, energy, accent) + velocity_shift(bar, beat, 2) + bar_lift), 58)
+        track.notes.append(MidiNote(start, duration, SNARE, note_velocity, DRUM_CHANNEL))
