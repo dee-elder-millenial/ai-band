@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
+from ai_band.humanize import clamp_midi
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import chord_tones
@@ -41,6 +42,7 @@ def generate(song: SongState) -> MidiTrack:
                 direction = "down" if beat in {0, 2.0, 2.5} else "up"
                 anchor_offset = _heartland_anchor_offset(song, bar, beat) if song.preset == "heartland-rock" else 0
                 velocity_shift = _heartland_velocity_shift(bar, beat) if song.preset == "heartland-rock" else 0
+                string_gap = _heartland_strum_gap(song, bar, beat, strum_gap) if song.preset == "heartland-rock" else strum_gap
                 _add_strum(
                     track,
                     song,
@@ -51,8 +53,10 @@ def generate(song: SongState) -> MidiTrack:
                     base_velocity + velocity_shift,
                     section.energy,
                     direction,
-                    strum_gap,
+                    string_gap,
                     anchor_offset,
+                    _heartland_string_durations(song, bar, beat) if song.preset == "heartland-rock" else None,
+                    _heartland_string_velocities(bar, beat) if song.preset == "heartland-rock" else None,
                 )
             else:
                 for note in voicing:
@@ -71,8 +75,10 @@ def generate(song: SongState) -> MidiTrack:
                 46 if song.preset == "heartland-rock" else 38,
                 section.energy,
                 "up",
-                strum_gap,
+                _heartland_strum_gap(song, bar, 3.75, strum_gap) if song.preset == "heartland-rock" else strum_gap,
                 _heartland_anchor_offset(song, bar, 3.75) if song.preset == "heartland-rock" else 0,
+                _heartland_string_durations(song, bar, 3.75) if song.preset == "heartland-rock" else None,
+                _heartland_string_velocities(bar, 3.75) if song.preset == "heartland-rock" else None,
             )
 
     return track
@@ -90,12 +96,20 @@ def _add_strum(
     direction: str,
     gap: int,
     anchor_offset: int = 0,
+    duration_offsets: tuple[int, ...] | None = None,
+    velocity_offsets: tuple[int, ...] | None = None,
 ) -> None:
     notes = voicing if direction == "down" else tuple(reversed(voicing))
     start = max(song.beat_tick(bar, beat) + anchor_offset, song.bar_tick(bar))
     for index, note in enumerate(notes):
+        note_duration_ticks = duration
+        if duration_offsets:
+            note_duration_ticks = max(gap * 3, duration + duration_offsets[index % len(duration_offsets)])
+        note_velocity = velocity(base_velocity, energy, index)
+        if velocity_offsets:
+            note_velocity = clamp_midi(note_velocity + velocity_offsets[index % len(velocity_offsets)])
         track.notes.append(
-            MidiNote(start + index * gap, duration, note, velocity(base_velocity, energy, index), GUITAR_CHANNEL)
+            MidiNote(start + index * gap, note_duration_ticks, note, note_velocity, GUITAR_CHANNEL)
         )
 
 
@@ -109,3 +123,28 @@ def _heartland_velocity_shift(bar: int, beat: float) -> int:
     pattern = (0, -4, 3, -2, 2, -3)
     index = (bar + int(beat * 2)) % len(pattern)
     return pattern[index]
+
+
+def _heartland_strum_gap(song: SongState, bar: int, beat: float, base_gap: int) -> int:
+    pattern = (0.010, 0.015, 0.012, 0.018, 0.011, 0.016)
+    index = (bar * 3 + int(beat * 4)) % len(pattern)
+    return max(base_gap, int(song.ticks_per_beat * pattern[index]))
+
+
+def _heartland_string_durations(song: SongState, bar: int, beat: float) -> tuple[int, ...]:
+    patterns = (
+        (0.03, -0.02, 0.01, -0.03, 0.02, -0.01),
+        (-0.02, 0.02, -0.01, 0.03, -0.03, 0.01),
+        (0.01, -0.03, 0.03, -0.01, 0.02, -0.02),
+    )
+    pattern = patterns[(bar + int(beat * 2)) % len(patterns)]
+    return tuple(int(song.ticks_per_beat * amount) for amount in pattern)
+
+
+def _heartland_string_velocities(bar: int, beat: float) -> tuple[int, ...]:
+    patterns = (
+        (2, -1, 0, -2, 1, -3),
+        (-1, 1, -2, 2, -1, 0),
+        (0, -2, 2, -1, 1, -2),
+    )
+    return patterns[(bar + int(beat * 2)) % len(patterns)]
