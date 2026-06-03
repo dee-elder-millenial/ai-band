@@ -376,6 +376,13 @@ class GenerateMidiTests(unittest.TestCase):
         guitar_durations = {note.duration for note in guitar.notes}
         guitar_rakes = [note for note in guitar.notes if note.duration <= 30 and note.velocity < 60]
         guitar_pitches = {note.note for note in guitar.notes}
+        guitar_low_notes = [note for note in guitar.notes if note.note <= 47]
+        guitar_cluster_counts = {}
+        for note in guitar.notes:
+            cluster = note.start // 90
+            guitar_cluster_counts[cluster] = guitar_cluster_counts.get(cluster, 0) + 1
+        guitar_partial_strums = [count for count in guitar_cluster_counts.values() if count in {4, 5}]
+        guitar_full_strums = [count for count in guitar_cluster_counts.values() if count == 6]
         keyboard_pitches = {note.note for note in keyboard.notes}
         keyboard_expression_events = [event for event in keyboard.events if event.status == 0xB0 | 2 and event.data[0] == 11]
         keyboard_bend_values = [
@@ -473,8 +480,11 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertGreaterEqual(len(bass.events), 150)
         self.assertGreaterEqual(len(bass_bend_targets), 4)
         self.assertGreater(average_velocity(bass, final_chorus_lift), average_velocity(bass, final_chorus_start))
-        self.assertGreater(len(guitar.notes), 2500)
+        self.assertGreater(len(guitar.notes), 2200)
         self.assertLessEqual(min(note.note for note in guitar.notes), 45)
+        self.assertGreaterEqual(len(guitar_low_notes), 450)
+        self.assertGreaterEqual(len(guitar_partial_strums), 150)
+        self.assertGreaterEqual(len(guitar_full_strums), 60)
         self.assertGreaterEqual(len(guitar_rakes), 60)
         self.assertLessEqual(max(note.velocity for note in guitar_rakes), 58)
         self.assertGreaterEqual(len(guitar_pitches), 20)

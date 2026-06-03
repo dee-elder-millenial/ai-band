@@ -52,6 +52,8 @@ def generate(song: SongState) -> MidiTrack:
                 velocity_shift = _heartland_velocity_shift(bar, beat) if song.preset == "heartland-rock" else 0
                 string_gap = _heartland_strum_gap(song, bar, beat, strum_gap) if song.preset == "heartland-rock" else strum_gap
                 strum_voicing = _heartland_color_voicing(voicing, tones, local_bar, beat) if song.preset == "heartland-rock" else voicing
+                if song.preset == "heartland-rock":
+                    strum_voicing = _heartland_string_group(strum_voicing, direction, local_bar, beat)
                 if song.preset == "heartland-rock" and _should_add_heartland_rake(section.energy, local_bar, beat, direction):
                     _add_heartland_rake(track, song, bar, beat, strum_voicing, section.energy, anchor_offset)
                 _add_strum(
@@ -213,6 +215,21 @@ def _heartland_color_voicing(
         return (voicing[0], voicing[1], root, third, sixth, root + 12)
     if shape == 6 and beat >= 2.5:
         return (voicing[0], voicing[1], second, third, fifth, root + 12)
+    return voicing
+
+
+def _heartland_string_group(voicing: tuple[int, ...], direction: str, local_bar: int, beat: float) -> tuple[int, ...]:
+    if len(voicing) < 6:
+        return voicing
+    shape = (local_bar + int(beat * 4)) % 6
+    if direction == "up":
+        if shape in {0, 3}:
+            return voicing[2:]
+        return voicing[1:]
+    if beat in {0, 2.0}:
+        return voicing
+    if shape in {2, 5}:
+        return voicing[:5]
     return voicing
 
 
