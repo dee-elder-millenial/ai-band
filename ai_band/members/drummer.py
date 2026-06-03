@@ -23,7 +23,12 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
     for section, bar, _chord in iter_section_bars(song):
         energetic = section.energy >= 0.75
         drum_lift = 10 if bigger and section.energy >= 0.75 else 0
-        if song.preset == "southern-blues":
+        if song.preset == "heartland-rock":
+            kick_beats = (0, 2.5) if not energetic else (0, 1.5, 2, 3, 3.5)
+            kick_base = 96
+            snare_base = 98
+            hat_base = 60
+        elif song.preset == "southern-blues":
             kick_beats = (0, 2.5) if not energetic else (0, 2, 3, 3.5)
             kick_base = 92
             snare_base = 94
@@ -44,15 +49,15 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
             beat = eighth * 0.5
             if song.preset in {"bluesy-alt-country", "southern-blues"} and eighth in {1, 5} and section.energy < 0.75:
                 continue
-            note = OPEN_HAT if energetic and eighth == 7 else CLOSED_HAT
+            note = RIDE if song.preset == "heartland-rock" and energetic and eighth % 2 == 0 else OPEN_HAT if energetic and eighth == 7 else CLOSED_HAT
             track.notes.append(
                 MidiNote(song.beat_tick(bar, beat), hat_duration, note, velocity(hat_base, section.energy, drum_lift), DRUM_CHANNEL)
             )
 
-        if song.preset == "southern-blues" and energetic:
+        if song.preset in {"heartland-rock", "southern-blues"} and energetic:
             for beat in (0, 1, 2, 3):
                 track.notes.append(
-                    MidiNote(song.beat_tick(bar, beat), hat_duration, RIDE, velocity(48, section.energy), DRUM_CHANNEL)
+                    MidiNote(song.beat_tick(bar, beat), hat_duration, RIDE, velocity(54 if song.preset == "heartland-rock" else 48, section.energy), DRUM_CHANNEL)
                 )
 
         for beat in kick_beats:

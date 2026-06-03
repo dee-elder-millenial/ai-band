@@ -52,7 +52,51 @@ def create_default_song(
     scale: str = "minor",
     preset: str = "default",
 ) -> SongState:
-    if preset == "southern-blues":
+    if preset == "heartland-rock":
+        verse = (
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 10, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 7, "major"),
+        )
+        chorus = (
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 10, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 10, "major"),
+            _chord_from_degree(key, 7, "major"),
+            _chord_from_degree(key, 7, "major"),
+        )
+        bridge = (
+            _chord_from_degree(key, 9, "minor"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 7, "major"),
+            _chord_from_degree(key, 9, "minor"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 10, "major"),
+            _chord_from_degree(key, 7, "major"),
+        )
+        sections = (
+            Section("Intro", 0, 4, 0.72, verse[:4]),
+            Section("Verse 1", 4, 12, 0.68, verse),
+            Section("Pre-Chorus 1", 16, 4, 0.78, bridge[:4]),
+            Section("Chorus 1", 20, 8, 0.92, chorus),
+            Section("Verse 2", 28, 12, 0.74, verse),
+            Section("Pre-Chorus 2", 40, 4, 0.82, bridge[:4]),
+            Section("Chorus 2", 44, 8, 0.95, chorus),
+            Section("Bridge", 52, 8, 0.70, bridge),
+            Section("Guitar Solo", 60, 12, 0.97, chorus),
+            Section("Final Chorus", 72, 12, 0.98, chorus),
+            Section("Outro", 84, 4, 0.82, verse[:4]),
+        )
+    elif preset == "southern-blues":
         intro = (
             _chord_from_degree(key, 0, "minor"),
             _chord_from_degree(key, 3, "major"),

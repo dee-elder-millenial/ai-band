@@ -9,7 +9,7 @@ KEYS_CHANNEL = 2
 
 
 def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
-    track = MidiTrack("AI Keyboard Player", channel=KEYS_CHANNEL, program=4)
+    track = MidiTrack("AI Keyboard Player", channel=KEYS_CHANNEL, program=66 if song.preset == "heartland-rock" else 4)
 
     for section, bar, chord in iter_section_bars(song):
         local_bar = bar - section.start_bar
@@ -27,7 +27,15 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
         voicing = (tones[1], tones[2])
         beats = (2.0,)
         duration = note_duration(song, 1.6)
-        if song.preset == "southern-blues":
+        if song.preset == "heartland-rock":
+            voicing = (tones[0] + 12,)
+            beats = (3.0,)
+            duration = note_duration(song, 0.75)
+            if section.name.startswith("Chorus") or section.name in {"Final Chorus", "Guitar Solo"}:
+                voicing = (tones[0] + 12, tones[2] + 12)
+                beats = (1.5, 3.0)
+                duration = note_duration(song, 0.55)
+        elif song.preset == "southern-blues":
             voicing = (tones[0], tones[2])
             beats = (2.75,)
             duration = note_duration(song, 0.9)
@@ -40,7 +48,14 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
             voicing = (tones[1], tones[2] + 12)
             beats = (1.5, 3.0)
             duration = note_duration(song, 0.45)
-            if song.preset == "southern-blues":
+            if song.preset == "heartland-rock":
+                voicing = (tones[0] + 12,)
+                beats = (3.0,)
+                duration = note_duration(song, 0.5)
+                if section.name.startswith("Chorus") or section.name in {"Final Chorus", "Guitar Solo"}:
+                    voicing = (tones[0] + 12, tones[2] + 12)
+                    beats = (1.5, 3.0)
+            elif song.preset == "southern-blues":
                 voicing = (tones[1], tones[2])
                 beats = (3.0,)
                 duration = note_duration(song, 0.55)

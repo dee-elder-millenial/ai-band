@@ -22,6 +22,26 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
             pattern = (
                 (0, root, held),
             )
+        elif song.preset == "heartland-rock" and section.energy >= 0.85:
+            octave = root + 12
+            pattern = (
+                (0, root, short),
+                (0.5, root, short),
+                (1.0, fifth, short),
+                (1.5, root, short),
+                (2.0, octave, short),
+                (2.5, root, short),
+                (3.0, fifth, short),
+                (3.5, flat_seventh, short),
+            )
+        elif song.preset == "heartland-rock":
+            pattern = (
+                (0, root, long),
+                (1.5, root, short),
+                (2.0, fifth, short),
+                (2.5, root, short),
+                (3.5, fifth, short),
+            )
         elif song.preset == "southern-blues" and section.energy >= 0.75:
             pattern = (
                 (0, root, long),
@@ -63,8 +83,8 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
             )
 
         for beat, note, duration in pattern:
-            base_velocity = 54 if song.preset == "southern-blues" else 60
-            accent = 4 if song.preset == "southern-blues" and beat == 0 else 0
+            base_velocity = 62 if song.preset == "heartland-rock" else 54 if song.preset == "southern-blues" else 60
+            accent = 6 if song.preset == "heartland-rock" and beat in {0, 2.0} else 4 if song.preset == "southern-blues" and beat == 0 else 0
             track.notes.append(
                 MidiNote(song.beat_tick(bar, beat), duration, note, velocity(base_velocity, section.energy, accent), BASS_CHANNEL)
             )

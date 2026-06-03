@@ -18,6 +18,18 @@ def generate(song: SongState) -> MidiTrack:
         if section.energy < 0.5:
             continue
 
+        if song.preset == "heartland-rock":
+            if section.energy >= 0.85:
+                for beat in (1, 2, 3, 3.5):
+                    track.notes.append(
+                        MidiNote(song.beat_tick(bar, beat), duration, TAMBOURINE, velocity(44, section.energy), PERC_CHANNEL)
+                    )
+            elif section.name.startswith("Pre-Chorus"):
+                track.notes.append(
+                    MidiNote(song.beat_tick(bar, 3.5), duration, TAMBOURINE, velocity(38, section.energy), PERC_CHANNEL)
+                )
+            continue
+
         if song.preset == "southern-blues":
             if section.energy >= 0.75:
                 for beat in (1, 3):

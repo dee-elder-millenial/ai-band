@@ -51,6 +51,28 @@ class GenerateMidiTests(unittest.TestCase):
         )
         self.assertIn("C", [chord.symbol for chord in song.sections[1].chords])
 
+    def test_heartland_rock_preset_uses_driving_full_song_form(self) -> None:
+        song = create_default_song(key="E", scale="major", preset="heartland-rock", tempo_bpm=118)
+
+        self.assertEqual(song.total_bars, 88)
+        self.assertEqual(song.preset, "heartland-rock")
+        self.assertEqual(
+            [section.name for section in song.sections],
+            [
+                "Intro",
+                "Verse 1",
+                "Pre-Chorus 1",
+                "Chorus 1",
+                "Verse 2",
+                "Pre-Chorus 2",
+                "Chorus 2",
+                "Bridge",
+                "Guitar Solo",
+                "Final Chorus",
+                "Outro",
+            ],
+        )
+
     def test_tracks_include_phase1_band_members(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks()
 
@@ -218,6 +240,25 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertLessEqual(len(keyboard.notes), 180)
         self.assertTrue(any(note.note == 51 for note in drums.notes))
         self.assertLessEqual(len(lead.notes), 80)
+
+    def test_heartland_rock_generates_big_guitar_bass_and_sax_support(self) -> None:
+        _ticks, _tempo, tracks = build_tracks(
+            preset="heartland-rock",
+            key="E",
+            scale="major",
+            tempo_bpm=118,
+        )
+        drums = next(track for track in tracks if track.name == "AI Drummer")
+        bass = next(track for track in tracks if track.name == "AI Bass Player")
+        guitar = next(track for track in tracks if track.name == "AI Guitar Player")
+        keyboard = next(track for track in tracks if track.name == "AI Keyboard Player")
+        lead = next(track for track in tracks if track.name == "AI Lead Player")
+
+        self.assertGreater(len(drums.notes), 1000)
+        self.assertGreater(len(bass.notes), 400)
+        self.assertGreater(len(guitar.notes), 1500)
+        self.assertEqual(keyboard.program, 66)
+        self.assertGreaterEqual(len(lead.events), 24)
 
 
 if __name__ == "__main__":

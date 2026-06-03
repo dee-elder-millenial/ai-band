@@ -22,7 +22,12 @@ def generate(song: SongState) -> MidiTrack:
         duration = half if section.energy < 0.75 else eighth
         base_velocity = 54
 
-        if song.preset == "southern-blues":
+        if song.preset == "heartland-rock":
+            voicing = (tones[0], tones[1], tones[2], tones[0] + 12)
+            beats = (0, 1.5, 2.5, 3.5) if section.energy < 0.85 else (0, 0.5, 1.5, 2.0, 2.5, 3.5)
+            duration = note_duration(song, 0.44 if section.energy < 0.85 else 0.30)
+            base_velocity = 50
+        elif song.preset == "southern-blues":
             voicing = (tones[0], tones[1], tones[2], tones[0] + 12)
             beats = (0, 1.5, 2.5, 3.5) if section.energy < 0.75 else (0, 1.0, 2.0, 2.5, 3.5)
             duration = note_duration(song, 0.62 if section.energy < 0.75 else 0.34)
@@ -31,7 +36,7 @@ def generate(song: SongState) -> MidiTrack:
                 beats = (0, 2.5)
 
         for beat in beats:
-            if song.preset == "southern-blues":
+            if song.preset in {"heartland-rock", "southern-blues"}:
                 direction = "down" if beat in {0, 2.0, 2.5} else "up"
                 _add_strum(track, song, bar, beat, voicing, duration, base_velocity, section.energy, direction, strum_gap)
             else:
@@ -40,7 +45,7 @@ def generate(song: SongState) -> MidiTrack:
                         MidiNote(song.beat_tick(bar, beat), duration, note, velocity(base_velocity, section.energy), GUITAR_CHANNEL)
                     )
 
-        if song.preset == "southern-blues" and section.energy >= 0.75 and local_bar % 4 == 3:
+        if song.preset in {"heartland-rock", "southern-blues"} and section.energy >= 0.75 and local_bar % 4 == 3:
             _add_strum(
                 track,
                 song,
@@ -48,7 +53,7 @@ def generate(song: SongState) -> MidiTrack:
                 3.75,
                 (tones[1], tones[2], tones[0] + 12),
                 note_duration(song, 0.18),
-                38,
+                46 if song.preset == "heartland-rock" else 38,
                 section.energy,
                 "up",
                 strum_gap,

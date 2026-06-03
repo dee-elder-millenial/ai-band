@@ -57,6 +57,29 @@ M.PREFERRED_INSTRUMENTS = {
     fallback_needle = "ReaSynth",
   },
 }
+M.TRACK_EFFECTS = {
+  ["AI Drummer"] = {
+    {name = "ReaComp (Cockos)", needle = "ReaComp"},
+  },
+  ["AI Bass Player"] = {
+    {name = "ReaComp (Cockos)", needle = "ReaComp"},
+  },
+  ["AI Guitar Player"] = {
+    {name = "ReaComp (Cockos)", needle = "ReaComp"},
+    {name = "ReaVerbate (Cockos)", needle = "ReaVerbate"},
+  },
+  ["AI Keyboard Player"] = {
+    {name = "ReaComp (Cockos)", needle = "ReaComp"},
+    {name = "ReaVerbate (Cockos)", needle = "ReaVerbate"},
+  },
+  ["AI Lead Player"] = {
+    {name = "ReaComp (Cockos)", needle = "ReaComp"},
+    {name = "ReaVerbate (Cockos)", needle = "ReaVerbate"},
+  },
+  ["AI Percussion Extras"] = {
+    {name = "ReaVerbate (Cockos)", needle = "ReaVerbate"},
+  },
+}
 
 function M.track_name(track)
   local ok, name = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
@@ -163,6 +186,29 @@ function M.configure_rough_tones()
         end
         configured = configured + 1
         if was_added then added = added + 1 end
+      end
+    end
+  end
+
+  return configured, added
+end
+
+function M.configure_rough_effects()
+  local configured = 0
+  local added = 0
+
+  for index = 0, reaper.CountTracks(0) - 1 do
+    local track = reaper.GetTrack(0, index)
+    local name = M.track_name(track)
+    local effects = M.TRACK_EFFECTS[name]
+
+    if effects then
+      for _, effect in ipairs(effects) do
+        local fx_index, was_added = M.add_or_find_fx(track, effect.name, effect.needle)
+        if fx_index >= 0 then
+          configured = configured + 1
+          if was_added then added = added + 1 end
+        end
       end
     end
   end

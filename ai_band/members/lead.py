@@ -10,6 +10,8 @@ LEAD_CHANNEL = 3
 
 def generate(song: SongState, sparse: bool = False) -> MidiTrack:
     track = MidiTrack("AI Lead Player", channel=LEAD_CHANNEL, program=81)
+    if song.preset == "heartland-rock":
+        return _generate_heartland_rock(song, sparse=sparse)
     if song.preset == "southern-blues":
         return _generate_southern_blues(song, sparse=sparse)
     if song.preset == "bluesy-alt-country":
@@ -159,6 +161,58 @@ def _generate_southern_blues(song: SongState, sparse: bool = False) -> MidiTrack
                     duration,
                     note,
                     velocity(base_velocity, section.energy, accent=(index % 2) * 5),
+                    LEAD_CHANNEL,
+                )
+            )
+            if bend:
+                _add_bend(track, start, duration, LEAD_CHANNEL)
+
+    return track
+
+
+def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack:
+    track = MidiTrack("AI Lead Player", channel=LEAD_CHANNEL, program=81)
+    scale = scale_notes(song.key, "major", 5)
+    low_scale = scale_notes(song.key, "major", 4)
+    hook_shapes = (
+        ((2.00, 4, 0.36, 58, True), (2.55, 5, 0.34, 54, False), (3.10, 4, 0.44, 58, False)),
+        ((1.55, 2, 0.38, 56, False), (2.20, 4, 0.42, 60, True), (3.00, 0, 0.52, 57, False)),
+        ((2.05, 5, 0.40, 62, True), (2.70, 4, 0.34, 54, False), (3.30, 2, 0.40, 56, False)),
+    )
+    solo_shapes = (
+        ((0.18, 0, 0.34, 58, True), (0.72, 2, 0.30, 54, False), (1.18, 4, 0.34, 60, True), (2.05, 5, 0.46, 63, True), (3.00, 4, 0.34, 57, False)),
+        ((0.35, 5, 0.36, 62, True), (0.92, 4, 0.28, 55, False), (1.45, 2, 0.32, 56, False), (2.20, 0, 0.48, 59, True)),
+        ((0.15, 2, 0.34, 57, False), (0.72, 4, 0.32, 60, True), (1.35, 5, 0.34, 62, False), (2.40, 7, 0.50, 64, True)),
+    )
+
+    for section, bar, _chord in iter_section_bars(song):
+        local_bar = bar - section.start_bar
+        section_is_solo = section.name == "Guitar Solo"
+        section_is_hook = section.name in {"Intro", "Outro"} or section.name.startswith("Chorus") or section.name == "Final Chorus"
+        if not section_is_solo and not section_is_hook:
+            continue
+        if section.name == "Intro" and local_bar not in {1, 3}:
+            continue
+        if section.name == "Outro" and local_bar not in {0, 2, 3}:
+            continue
+        if section_is_hook and local_bar % 2 == 0 and section.name not in {"Intro", "Outro"}:
+            continue
+        if sparse and local_bar % 4 == 1:
+            continue
+
+        lick = solo_shapes[local_bar % len(solo_shapes)] if section_is_solo else hook_shapes[local_bar % len(hook_shapes)]
+        note_pool = low_scale if section.name == "Outro" else scale
+        for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
+            note = note_pool[degree % len(note_pool)]
+            drift = int(song.ticks_per_beat * (0.014 * ((index % 2) * 2 - 1)))
+            start = max(song.beat_tick(bar, beat) + drift, song.bar_tick(bar))
+            duration = note_duration(song, beats)
+            track.notes.append(
+                MidiNote(
+                    start,
+                    duration,
+                    note,
+                    velocity(base_velocity, section.energy, accent=(index % 2) * 4),
                     LEAD_CHANNEL,
                 )
             )
