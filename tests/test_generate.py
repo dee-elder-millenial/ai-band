@@ -383,6 +383,7 @@ class GenerateMidiTests(unittest.TestCase):
         keyboard = next(track for track in tracks if track.name == "AI Keyboard Player")
         lead = next(track for track in tracks if track.name == "AI Lead Player")
         percussion = next(track for track in tracks if track.name == "AI Percussion Extras")
+        bar_ticks = 480 * 4
         guitar_durations = {note.duration for note in guitar.notes}
         guitar_rakes = [note for note in guitar.notes if note.duration <= 30 and note.velocity < 60]
         guitar_pitches = {note.note for note in guitar.notes}
@@ -416,6 +417,11 @@ class GenerateMidiTests(unittest.TestCase):
         lead_vibrato_targets = {value for value in lead_bend_targets if abs(value - 8192) <= 180}
         lead_main_notes = [note for note in lead.notes if note.duration > 44]
         lead_pitch_classes = {note.note % 12 for note in lead.notes if note.duration > 44}
+        lead_phrase_intervals = [
+            abs(lead_main_notes[index + 1].note - lead_main_notes[index].note)
+            for index in range(len(lead_main_notes) - 1)
+            if lead_main_notes[index + 1].start - lead_main_notes[index].start < bar_ticks
+        ]
         bass_pickups = [note for note in bass.notes if 340 <= note.start % 480 <= 380]
         drum_ghost_snares = [note for note in drums.notes if note.note == 38 and note.duration > 32 and note.velocity < 70]
         drum_snare_flams = [
@@ -424,7 +430,6 @@ class GenerateMidiTests(unittest.TestCase):
         drum_ghost_durations = {note.duration for note in drum_ghost_snares}
         drum_flam_durations = {note.duration for note in drum_snare_flams}
         drum_tom_notes = {note.note for note in drums.notes}
-        bar_ticks = 480 * 4
         drum_starts = [note.start for note in drums.notes]
         bass_starts = [note.start for note in bass.notes if note.duration > 32 or note.velocity >= 60]
         guitar_starts = [note.start for note in guitar.notes]
@@ -533,6 +538,8 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertLessEqual(max(abs(value - 8192) for value in lead_bend_targets), 120)
         self.assertLessEqual(max(note.note for note in lead.notes), 78)
         self.assertLessEqual(len(lead_pitch_classes), 7)
+        self.assertTrue(lead_phrase_intervals)
+        self.assertLessEqual(max(lead_phrase_intervals), 7)
         self.assertGreaterEqual(max(note.velocity for note in lead_main_notes) - min(note.velocity for note in lead_main_notes), 24)
         self.assertGreaterEqual(sum(lead_chord_tone_hits) / len(lead_chord_tone_hits), 0.80)
         self.assertGreaterEqual(len(lead_vibrato_targets), 4)

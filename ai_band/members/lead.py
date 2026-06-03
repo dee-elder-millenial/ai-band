@@ -215,10 +215,10 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
         bar_lift = phrase_lift(local_bar, section.bars, 3)
         groove_offset = section_groove_offset(song, local_bar, section.bars, 0.45)
         lick = solo_shapes[local_bar % len(solo_shapes)] if section_is_solo else hook_shapes[local_bar % len(hook_shapes)]
-        note_pool = _heartland_lead_note_pool(song.key, chord.root, chord.quality, section_is_solo)
+        phrase_notes = _heartland_phrase_notes(song.key, chord.root, chord.quality, local_bar, len(lick), section_is_solo)
         for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
             beat = _phrase_beat(beat, local_bar, index)
-            note = note_pool[degree % len(note_pool)]
+            note = phrase_notes[index]
             start = max(_heartland_lead_start(song, bar, beat, index) + groove_offset, song.bar_tick(bar))
             duration = played_duration(
                 song,
@@ -275,6 +275,76 @@ def _heartland_lead_note_pool(key: str, chord_root: int, chord_quality: str, sec
     if section_is_solo:
         return chord_notes + anchors[:2]
     return chord_notes + anchors[:1]
+
+
+def _heartland_phrase_notes(
+    key: str,
+    chord_root: int,
+    chord_quality: str,
+    local_bar: int,
+    length: int,
+    section_is_solo: bool,
+) -> tuple[int, ...]:
+    chord_notes = tuple(sorted(chord_tones(chord_root, chord_quality, 3)))
+    chord_pcs = tuple(note % 12 for note in chord_notes)
+    root_pc = chord_root % 12
+    third_pc = chord_pcs[1]
+    fifth_pc = chord_pcs[2]
+    key_pc = NOTE_NAMES[key]
+    key_fifth_pc = (key_pc + 7) % 12
+    phrase_third_pc = root_pc if (third_pc - key_pc) % 12 == 11 else third_pc
+
+    if section_is_solo:
+        shapes = (
+            (root_pc, phrase_third_pc, fifth_pc, root_pc),
+            (fifth_pc, phrase_third_pc, root_pc, fifth_pc),
+            (phrase_third_pc, fifth_pc, _neighbor_pc(fifth_pc, local_bar, key_pc, chord_pcs), root_pc),
+            (root_pc, _neighbor_pc(root_pc, local_bar, key_pc, chord_pcs), phrase_third_pc, fifth_pc),
+        )
+        center = 62 + (local_bar % 2) * 2
+    else:
+        shapes = (
+            (root_pc, fifth_pc, root_pc),
+            (phrase_third_pc, fifth_pc, root_pc),
+            (fifth_pc, _neighbor_pc(fifth_pc, local_bar, key_pc, chord_pcs), root_pc),
+            (key_fifth_pc, phrase_third_pc, root_pc),
+        )
+        center = 57
+
+    pcs = shapes[local_bar % len(shapes)]
+    notes: list[int] = []
+    previous = center
+    for index in range(length):
+        pc = pcs[index % len(pcs)]
+        if index == length - 1:
+            pc = root_pc if local_bar % 3 != 1 else fifth_pc
+        note = _nearest_guitar_pitch(pc, previous, section_is_solo)
+        notes.append(note)
+        previous = note
+    return tuple(notes)
+
+
+def _neighbor_pc(pc: int, local_bar: int, key_pc: int, chord_pcs: tuple[int, ...]) -> int:
+    preferred = (pc + (2 if local_bar % 2 == 0 else -2)) % 12
+    allowed = set(chord_pcs)
+    allowed.update({key_pc, (key_pc + 2) % 12, (key_pc + 4) % 12, (key_pc + 7) % 12, (key_pc + 9) % 12})
+    if preferred in allowed:
+        return preferred
+    options = sorted(allowed - {pc})
+    return min(options, key=lambda candidate: (_pitch_class_distance(candidate, preferred), candidate))
+
+
+def _pitch_class_distance(left: int, right: int) -> int:
+    distance = abs(left - right) % 12
+    return min(distance, 12 - distance)
+
+
+def _nearest_guitar_pitch(pc: int, previous: int, section_is_solo: bool) -> int:
+    low, high = (52, 71) if section_is_solo else (50, 66)
+    candidates = [octave * 12 + pc for octave in range(3, 7) if low <= octave * 12 + pc <= high]
+    if not candidates:
+        candidates = [octave * 12 + pc for octave in range(3, 7)]
+    return min(candidates, key=lambda note: (abs(note - previous), note))
 
 
 def _phrase_beat(beat: float, local_bar: int, index: int) -> float:
