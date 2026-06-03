@@ -129,6 +129,21 @@ class GenerateMidiTests(unittest.TestCase):
                 self.assertGreaterEqual(len({note.duration for note in lead.notes}), minimum_durations)
                 self.assertTrue(any(note.start % 120 != 0 for note in lead.notes))
 
+    def test_pitch_bend_tracks_start_and_end_centered(self) -> None:
+        _ticks, _tempo, tracks = build_tracks(preset="heartland-rock", key="E", scale="major", tempo_bpm=118)
+
+        for track in tracks:
+            if track.channel is None:
+                continue
+            pitch_bends = [event for event in track.events if event.status == (0xE0 | track.channel)]
+            if not pitch_bends:
+                continue
+            with self.subTest(track=track.name):
+                bend_values = [(event.tick, event.data[0] | (event.data[1] << 7)) for event in pitch_bends]
+                self.assertIn((0, 8192), bend_values)
+                last_tick = max(tick for tick, _value in bend_values)
+                self.assertIn((last_tick, 8192), bend_values)
+
     def test_default_generation_leaves_arrangement_space(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks()
         bar_ticks = 480 * 4

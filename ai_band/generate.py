@@ -6,7 +6,7 @@ from pathlib import Path
 from ai_band.bandleader import create_default_song
 from ai_band.controls import GenerationControls, controls_from_cue
 from ai_band.live_cue import read_live_cue
-from ai_band.midi import MidiMeta, MidiTrack, write_midi
+from ai_band.midi import MidiEvent, MidiMeta, MidiTrack, write_midi
 from ai_band.members import bassist, drummer, guitarist, keyboardist, lead, percussion
 
 
@@ -86,7 +86,26 @@ def build_tracks(
             percussion.generate(song),
         ]
     )
+    add_pitch_bend_resets(tracks)
     return song.ticks_per_beat, song.tempo_bpm, tracks
+
+
+def add_pitch_bend_resets(tracks: list[MidiTrack]) -> None:
+    for track in tracks:
+        if track.channel is None:
+            continue
+        pitch_bends = [event for event in track.events if event.status == (0xE0 | track.channel)]
+        if not pitch_bends:
+            continue
+        center = _pitch_bend_center(track.channel)
+        track.events.append(MidiEvent(tick=0, status=0xE0 | track.channel, data=center))
+        last_tick = max(event.tick for event in pitch_bends)
+        track.events.append(MidiEvent(tick=last_tick + 1, status=0xE0 | track.channel, data=center))
+
+
+def _pitch_bend_center(channel: int) -> tuple[int, int]:
+    value = 8192
+    return (value & 0x7F, (value >> 7) & 0x7F)
 
 
 def main() -> None:
