@@ -140,6 +140,19 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertNotIn("AI Guitar Player", [track.name for track in tracks])
         self.assertGreater(len(next(track for track in tracks if track.name == "AI Drummer").notes), 0)
 
+    def test_bluesy_alt_country_lead_uses_sparse_bent_licks(self) -> None:
+        _ticks, _tempo, tracks = build_tracks(
+            mode="ehaye",
+            preset="bluesy-alt-country",
+            key="D",
+            scale="major",
+            tempo_bpm=96,
+        )
+        lead = next(track for track in tracks if track.name == "AI Lead Player")
+
+        self.assertLessEqual(len(lead.notes), 24)
+        self.assertGreaterEqual(len(lead.events), 6)
+
 
 if __name__ == "__main__":
     unittest.main()

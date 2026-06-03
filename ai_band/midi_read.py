@@ -12,6 +12,7 @@ class ReadTrack:
     note_count: int = 0
     channels: set[int] = field(default_factory=set)
     programs: list[int] = field(default_factory=list)
+    pitch_bend_count: int = 0
     last_tick: int = 0
 
 
@@ -104,6 +105,9 @@ def _read_track(chunk: bytes) -> ReadTrack:
             if event_type == 0x90 and value > 0:
                 track.note_count += 1
                 track.channels.add(channel)
+            if event_type == 0xE0:
+                track.pitch_bend_count += 1
+                track.channels.add(channel)
             _ = note_or_control
         elif event_type in {0xC0, 0xD0}:
             value = chunk[cursor]
@@ -134,4 +138,3 @@ def _read_vlq(data: bytes, cursor: int) -> tuple[int, int]:
         value = (value << 7) | (byte & 0x7F)
         if byte & 0x80 == 0:
             return value, cursor
-

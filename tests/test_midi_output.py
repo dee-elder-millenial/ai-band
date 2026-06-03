@@ -88,6 +88,23 @@ class MidiOutputTests(unittest.TestCase):
 
         self.assertIn("Live cue applied", " ".join(summary.tracks[1].text))
 
+    def test_bluesy_alt_country_midi_contains_lead_pitch_bends(self) -> None:
+        ticks_per_beat, tempo_bpm, tracks = build_tracks(
+            mode="ehaye",
+            preset="bluesy-alt-country",
+            key="D",
+            scale="major",
+            tempo_bpm=96,
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "county.mid"
+            write_midi(output, tracks, ticks_per_beat=ticks_per_beat, tempo_bpm=tempo_bpm)
+            summary = read_midi_summary(output)
+
+        lead_track = next(track for track in summary.tracks if track.name == "AI Lead Player")
+        self.assertGreater(lead_track.pitch_bend_count, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

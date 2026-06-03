@@ -21,6 +21,13 @@ class MidiMeta:
     text: str
 
 
+@dataclass(frozen=True)
+class MidiEvent:
+    tick: int
+    status: int
+    data: tuple[int, ...]
+
+
 @dataclass
 class MidiTrack:
     name: str
@@ -28,12 +35,15 @@ class MidiTrack:
     program: int | None = None
     notes: list[MidiNote] | None = None
     metas: list[MidiMeta] | None = None
+    events: list[MidiEvent] | None = None
 
     def __post_init__(self) -> None:
         if self.notes is None:
             self.notes = []
         if self.metas is None:
             self.metas = []
+        if self.events is None:
+            self.events = []
 
 
 def write_midi(path: str | Path, tracks: Iterable[MidiTrack], ticks_per_beat: int, tempo_bpm: int) -> None:
@@ -71,6 +81,9 @@ def _render_track(track: MidiTrack) -> bytes:
     for note in track.notes or []:
         events.append((note.start, bytes([0x90 | note.channel, note.note, note.velocity])))
         events.append((note.start + note.duration, bytes([0x80 | note.channel, note.note, 0])))
+
+    for event in track.events or []:
+        events.append((event.tick, bytes([event.status, *event.data])))
 
     events.sort(key=lambda item: (item[0], _event_order(item[1])))
     return _events_to_track(events)
