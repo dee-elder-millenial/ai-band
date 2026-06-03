@@ -183,7 +183,7 @@ def _add_heartland_flam(
     flam_start = max(snare_start - flam_gap, song.bar_tick(bar))
     if flam_start >= snare_start:
         return
-    duration = max(18, int(song.ticks_per_beat * 0.055))
+    duration = max(18, int(song.ticks_per_beat * (0.050 + 0.006 * ((bar + int(beat)) % 3))))
     note_velocity = min(clamp_midi(velocity(35, energy, velocity_shift(bar, beat, 2) + bar_lift)), 66)
     track.notes.append(MidiNote(flam_start, duration, SNARE, note_velocity, DRUM_CHANNEL))
 
@@ -219,8 +219,13 @@ def _add_heartland_ghosts(
     )
     if energy < 0.70 and local_bar % 2 == 1:
         return
-    duration = note_duration(song, 0.11)
     for beat, accent in shapes[local_bar % len(shapes)]:
         start = _heartland_drum_start(song, bar, beat, "ghost")
+        duration = _heartland_ghost_duration(song, local_bar, beat)
         note_velocity = min(clamp_midi(velocity(24, energy, accent) + velocity_shift(bar, beat, 2) + bar_lift), 58)
         track.notes.append(MidiNote(start, duration, SNARE, note_velocity, DRUM_CHANNEL))
+
+
+def _heartland_ghost_duration(song: SongState, local_bar: int, beat: float) -> int:
+    shape = (0.085, 0.100, 0.115, 0.095)
+    return note_duration(song, shape[(local_bar + int(beat * 4)) % len(shape)])

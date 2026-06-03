@@ -410,6 +410,8 @@ class GenerateMidiTests(unittest.TestCase):
         drum_snare_flams = [
             note for note in drums.notes if note.note == 38 and note.duration <= 32 and 45 <= note.velocity <= 66
         ]
+        drum_ghost_durations = {note.duration for note in drum_ghost_snares}
+        drum_flam_durations = {note.duration for note in drum_snare_flams}
         drum_tom_notes = {note.note for note in drums.notes}
         bar_ticks = 480 * 4
         drum_starts = [note.start for note in drums.notes]
@@ -471,8 +473,10 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertLessEqual(max(note.velocity for note in drums.notes), 122)
         self.assertGreaterEqual(len(drum_ghost_snares), 120)
         self.assertLessEqual(max(note.velocity for note in drum_ghost_snares), 58)
+        self.assertGreaterEqual(len(drum_ghost_durations), 4)
         self.assertGreaterEqual(len(drum_snare_flams), 70)
         self.assertLessEqual(max(note.velocity for note in drum_snare_flams), 66)
+        self.assertGreaterEqual(len(drum_flam_durations), 3)
         self.assertIn(43, drum_tom_notes)
         self.assertIn(50, drum_tom_notes)
         self.assertGreater(len(bass.notes), 400)
