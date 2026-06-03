@@ -78,3 +78,23 @@ The cue file should include:
 
 This is not full real-time listening yet, but it gives us the control surface for an AI band that follows direction while the project is open.
 
+## Current Cue Response
+
+The current build can read the latest cue:
+
+```powershell
+python -m ai_band.live_cue
+```
+
+It can also apply the cue while generating:
+
+```powershell
+python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --output examples/ehaye-cue-response.mid
+```
+
+Initial cue behavior:
+
+- `simplify bass` makes the bass part sparser.
+- `keys leave more space` thins keyboard hits further.
+- `drums bigger` raises chorus drum intensity.
+- `lead answer the vocal` makes lead phrases sparser.

@@ -36,6 +36,12 @@ Generate The Ehaye Band backing-band sketch, with Deanna on lead vocal and human
 python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --output examples/ehaye-backing-band.mid
 ```
 
+Apply the latest REAPER live cue while generating:
+
+```powershell
+python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --output examples/ehaye-cue-response.mid
+```
+
 Create the Phase 1 alpha build package:
 
 ```powershell

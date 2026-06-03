@@ -7,7 +7,7 @@ from ai_band.song_state import SongState
 BASS_CHANNEL = 0
 
 
-def generate(song: SongState) -> MidiTrack:
+def generate(song: SongState, simplify: bool = False) -> MidiTrack:
     track = MidiTrack("AI Bass Player", channel=BASS_CHANNEL, program=33)
     short = note_duration(song, 0.45)
     long = note_duration(song, 0.9)
@@ -17,7 +17,11 @@ def generate(song: SongState) -> MidiTrack:
         root = 36 + chord.root
         fifth = root + 7
         local_bar = bar - section.start_bar
-        if section.energy >= 0.75:
+        if simplify:
+            pattern = (
+                (0, root, held),
+            )
+        elif section.energy >= 0.75:
             pattern = (
                 (0, root, long),
                 (1.5, fifth, short),

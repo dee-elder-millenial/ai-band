@@ -8,7 +8,7 @@ from ai_band.theory import scale_notes
 LEAD_CHANNEL = 3
 
 
-def generate(song: SongState) -> MidiTrack:
+def generate(song: SongState, sparse: bool = False) -> MidiTrack:
     track = MidiTrack("AI Lead Player", channel=LEAD_CHANNEL, program=81)
     scale = scale_notes(song.key, song.scale, 5)
     hook = (0, 2, 4, 2, 5, 4, 2, 0)
@@ -29,11 +29,15 @@ def generate(song: SongState) -> MidiTrack:
             continue
         if section.name == "Outro" and local_bar % 2 == 1:
             continue
+        if sparse and section.name == "Chorus" and local_bar % 2 == 1:
+            continue
 
         start_beat = 2 if section.name == "Intro" else 0
         phrase = hook[:4] if section.name == "Outro" else hook
         if section.name == "Chorus" and local_bar % 2 == 1:
             phrase = (0, 2, 4, 5, 4)
+        if sparse:
+            phrase = phrase[:4]
 
         for index, scale_degree in enumerate(phrase):
             beat = start_beat + index * 0.5

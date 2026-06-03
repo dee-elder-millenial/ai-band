@@ -4,6 +4,8 @@ import argparse
 from pathlib import Path
 
 from ai_band.bandleader import create_default_song
+from ai_band.controls import GenerationControls, controls_from_cue
+from ai_band.live_cue import read_live_cue
 from ai_band.midi import MidiMeta, MidiTrack, write_midi
 from ai_band.members import bassist, drummer, guitarist, keyboardist, lead, percussion
 
@@ -16,8 +18,10 @@ def build_tracks(
     scale: str = "minor",
     mode: str = "full-band",
     include_ai_rhythm_guitar: bool | None = None,
+    controls: GenerationControls | None = None,
 ) -> tuple[int, int, list[MidiTrack]]:
     song = create_default_song(title=title, style=style, tempo_bpm=tempo_bpm, key=key, scale=scale)
+    controls = controls or GenerationControls()
     if include_ai_rhythm_guitar is None:
         include_ai_rhythm_guitar = mode != "ehaye"
 
@@ -31,6 +35,8 @@ def build_tracks(
                 f"{section.name}: energy={section.energy:.2f}, chords={' '.join(chord.symbol for chord in section.chords)}",
             )
         )
+    if controls.cue_summary:
+        markers.metas.append(MidiMeta(0, "text", f"Live cue applied: {controls.cue_summary}"))
     if mode == "ehaye":
         markers.metas.append(
             MidiMeta(
@@ -42,15 +48,15 @@ def build_tracks(
 
     tracks = [
         markers,
-        drummer.generate(song),
-        bassist.generate(song),
+        drummer.generate(song, bigger=controls.drums_bigger),
+        bassist.generate(song, simplify=controls.bass_simplify),
     ]
     if include_ai_rhythm_guitar:
         tracks.append(guitarist.generate(song))
     tracks.extend(
         [
-            keyboardist.generate(song),
-            lead.generate(song),
+            keyboardist.generate(song, leave_space=controls.keys_leave_space),
+            lead.generate(song, sparse=controls.lead_sparse),
             percussion.generate(song),
         ]
     )
@@ -81,12 +87,14 @@ def main() -> None:
         action="store_true",
         help="Generate the AI rhythm guitar track even in modes where it is normally disabled.",
     )
+    parser.add_argument("--cue", help="Read a live cue JSON file and apply it to generation controls")
     args = parser.parse_args()
     include_ai_rhythm_guitar = None
     if args.no_ai_rhythm_guitar:
         include_ai_rhythm_guitar = False
     if args.ai_rhythm_guitar:
         include_ai_rhythm_guitar = True
+    controls = controls_from_cue(read_live_cue(args.cue)) if args.cue else GenerationControls()
 
     ticks_per_beat, tempo_bpm, tracks = build_tracks(
         title=args.title,
@@ -96,6 +104,7 @@ def main() -> None:
         scale=args.scale,
         mode=args.mode,
         include_ai_rhythm_guitar=include_ai_rhythm_guitar,
+        controls=controls,
     )
     output = Path(args.output)
     write_midi(output, tracks, ticks_per_beat=ticks_per_beat, tempo_bpm=tempo_bpm)

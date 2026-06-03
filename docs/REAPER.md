@@ -148,4 +148,8 @@ The current build can read that cue with:
 python -m ai_band.live_cue
 ```
 
-Regenerating music from the cue is the next implementation step.
+The current build can apply that cue while generating a response MIDI:
+
+```powershell
+python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --output examples/ehaye-cue-response.mid
+```

@@ -5,7 +5,9 @@ import unittest
 from pathlib import Path
 
 from ai_band.bandleader import create_default_song
+from ai_band.controls import controls_from_cue
 from ai_band.generate import build_tracks
+from ai_band.live_cue import LiveCue
 from ai_band.midi import write_midi
 
 
@@ -94,6 +96,29 @@ class GenerateMidiTests(unittest.TestCase):
 
         self.assertLess(len(lead.notes), 64)
         self.assertTrue(any(start % song_ticks != 0 for start in starts))
+
+    def test_simplify_bass_cue_reduces_bass_notes(self) -> None:
+        cue = LiveCue("live-cue", "simplify bass", "bandleader", 0.5, 12.0, "")
+        controls = controls_from_cue(cue)
+        _ticks, _tempo, normal_tracks = build_tracks(mode="ehaye")
+        _ticks, _tempo, cued_tracks = build_tracks(mode="ehaye", controls=controls)
+
+        normal_bass = next(track for track in normal_tracks if track.name == "AI Bass Player")
+        cued_bass = next(track for track in cued_tracks if track.name == "AI Bass Player")
+        bandleader = next(track for track in cued_tracks if track.name == "AI Bandleader")
+
+        self.assertLess(len(cued_bass.notes), len(normal_bass.notes))
+        self.assertTrue(any("Live cue applied" in meta.text for meta in bandleader.metas))
+
+    def test_cue_interpreter_maps_common_commands(self) -> None:
+        controls = controls_from_cue(LiveCue("live-cue", "drums bigger in chorus", "bandleader", 0.8, 0, ""))
+        self.assertTrue(controls.drums_bigger)
+
+        controls = controls_from_cue(LiveCue("live-cue", "keys leave more space", "keys", 0.8, 0, ""))
+        self.assertTrue(controls.keys_leave_space)
+
+        controls = controls_from_cue(LiveCue("live-cue", "lead answer the vocal", "lead", 0.8, 0, ""))
+        self.assertTrue(controls.lead_sparse)
 
 
 if __name__ == "__main__":

@@ -8,11 +8,13 @@ from ai_band.theory import chord_tones
 KEYS_CHANNEL = 2
 
 
-def generate(song: SongState) -> MidiTrack:
+def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
     track = MidiTrack("AI Keyboard Player", channel=KEYS_CHANNEL, program=4)
 
     for section, bar, chord in iter_section_bars(song):
         local_bar = bar - section.start_bar
+        if leave_space and local_bar % 2 == 1:
+            continue
         if section.name in {"Intro", "Verse", "Outro"} and local_bar % 2 == 1:
             continue
 
@@ -25,6 +27,9 @@ def generate(song: SongState) -> MidiTrack:
             voicing = (tones[1], tones[2] + 12)
             beats = (1.5, 3.0)
             duration = note_duration(song, 0.45)
+        if leave_space:
+            beats = (beats[0],)
+            duration = min(duration, note_duration(song, 0.8))
 
         for beat in beats:
             for note in voicing:

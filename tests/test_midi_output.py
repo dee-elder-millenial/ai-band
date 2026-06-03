@@ -4,7 +4,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from ai_band.controls import controls_from_cue
 from ai_band.generate import build_tracks
+from ai_band.live_cue import LiveCue
 from ai_band.midi import write_midi
 from ai_band.midi_read import read_midi_summary
 
@@ -74,6 +76,17 @@ class MidiOutputTests(unittest.TestCase):
             ],
         )
         self.assertIn("The Ehaye Band mode", " ".join(summary.tracks[1].text))
+
+    def test_generated_midi_includes_live_cue_marker_text(self) -> None:
+        controls = controls_from_cue(LiveCue("live-cue", "simplify bass", "bandleader", 0.5, 12, ""))
+        ticks_per_beat, tempo_bpm, tracks = build_tracks(mode="ehaye", controls=controls)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "cue.mid"
+            write_midi(output, tracks, ticks_per_beat=ticks_per_beat, tempo_bpm=tempo_bpm)
+            summary = read_midi_summary(output)
+
+        self.assertIn("Live cue applied", " ".join(summary.tracks[1].text))
 
 
 if __name__ == "__main__":
