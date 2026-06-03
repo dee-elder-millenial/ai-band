@@ -63,6 +63,7 @@ ai-band/
   Scripts/
     ai_band_import_generated_midi.lua
     ai_band_add_sound_check_synths.lua
+    ai_band_lower_track_levels.lua
   Effects/
     AI Band Humanizer.jsfx
   ai_band/

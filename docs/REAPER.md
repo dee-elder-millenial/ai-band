@@ -50,6 +50,14 @@ Install the sound-check helper script:
 
 The script adds REAPER's built-in `ReaSynth` to each playable AI Band track and skips the bandleader marker track. This is only for testing that MIDI notes are reaching instruments; it is not the final sound of the product.
 
+If the sound-check tracks clip or hit the master too hard, run the updated `ai_band_add_sound_check_synths.lua` again. It lowers track faders and cools existing ReaSynth instances. You can also load and run:
+
+```text
+Scripts/ai_band_lower_track_levels.lua
+```
+
+That script only lowers and pans the imported AI Band tracks. It does not add or remove instruments.
+
 ## Install JSFX Helpers
 
 JSFX effects belong in REAPER's resource-path `Effects` folder.

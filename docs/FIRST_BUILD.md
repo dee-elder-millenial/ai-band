@@ -31,6 +31,7 @@ The zip contains:
 - `BUILD_MANIFEST.json`
 - REAPER import helper script
 - REAPER sound-check synth helper script
+- REAPER track-level safety helper script
 - JSFX MIDI humanizer helper
 - REAPER setup notes
 - smoke tests
