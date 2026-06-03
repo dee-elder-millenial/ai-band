@@ -50,14 +50,33 @@ def create_default_song(
     tempo_bpm: int = 108,
     key: str = "A",
     scale: str = "minor",
+    preset: str = "default",
 ) -> SongState:
-    progression = default_progression(key, scale)
-    sections = (
-        Section("Intro", 0, 4, 0.35, progression),
-        Section("Verse", 4, 4, 0.45, progression),
-        Section("Chorus", 8, 4, 0.9, progression),
-        Section("Outro", 12, 4, 0.55, progression),
-    )
+    if preset == "bluesy-alt-country":
+        progression = (
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 10, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 7, "major"),
+        )
+        sections = (
+            Section("Intro", 0, 4, 0.4, progression[:4]),
+            Section("Verse", 4, 8, 0.5, progression),
+            Section("Chorus", 12, 8, 0.82, progression),
+            Section("Outro", 20, 4, 0.55, progression[:4]),
+        )
+    else:
+        progression = default_progression(key, scale)
+        sections = (
+            Section("Intro", 0, 4, 0.35, progression),
+            Section("Verse", 4, 4, 0.45, progression),
+            Section("Chorus", 8, 4, 0.9, progression),
+            Section("Outro", 12, 4, 0.55, progression),
+        )
     return SongState(
         title=title,
         style=style,
@@ -67,4 +86,5 @@ def create_default_song(
         beats_per_bar=4,
         ticks_per_beat=480,
         sections=sections,
+        preset=preset,
     )

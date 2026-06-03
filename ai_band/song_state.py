@@ -29,6 +29,7 @@ class SongState:
     beats_per_bar: int
     ticks_per_beat: int
     sections: tuple[Section, ...]
+    preset: str = "default"
 
     @property
     def total_bars(self) -> int:
@@ -39,4 +40,3 @@ class SongState:
 
     def beat_tick(self, bar: int, beat: float) -> int:
         return self.bar_tick(bar) + int(beat * self.ticks_per_beat)
-

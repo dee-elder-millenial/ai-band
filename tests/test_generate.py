@@ -32,6 +32,14 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertEqual([chord.symbol for chord in major_song.sections[0].chords], ["C", "Am", "F", "G"])
         self.assertEqual([chord.symbol for chord in minor_song.sections[0].chords], ["Am", "F", "C", "G"])
 
+    def test_bluesy_alt_country_preset_uses_longer_form_and_flat_seven(self) -> None:
+        song = create_default_song(key="D", scale="major", preset="bluesy-alt-country")
+
+        self.assertEqual(song.total_bars, 24)
+        self.assertEqual(song.preset, "bluesy-alt-country")
+        self.assertEqual([section.name for section in song.sections], ["Intro", "Verse", "Chorus", "Outro"])
+        self.assertIn("C", [chord.symbol for chord in song.sections[1].chords])
+
     def test_tracks_include_phase1_band_members(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks()
 
@@ -119,6 +127,18 @@ class GenerateMidiTests(unittest.TestCase):
 
         controls = controls_from_cue(LiveCue("live-cue", "lead answer the vocal", "lead", 0.8, 0, ""))
         self.assertTrue(controls.lead_sparse)
+
+    def test_bluesy_alt_country_generates_backing_tracks(self) -> None:
+        _ticks, _tempo, tracks = build_tracks(
+            mode="ehaye",
+            preset="bluesy-alt-country",
+            key="D",
+            scale="major",
+            tempo_bpm=96,
+        )
+
+        self.assertNotIn("AI Guitar Player", [track.name for track in tracks])
+        self.assertGreater(len(next(track for track in tracks if track.name == "AI Drummer").notes), 0)
 
 
 if __name__ == "__main__":

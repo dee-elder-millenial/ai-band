@@ -73,6 +73,7 @@ def main() -> None:
             "lower_track_levels_script": "Scripts/ai_band_lower_track_levels.lua",
             "rough_tones_script": "Scripts/ai_band_setup_rough_tones.lua",
             "ehaye_audition_script": "Scripts/ai_band_ehaye_audition_setup.lua",
+            "county_line_audition_script": "Scripts/ai_band_county_line_audition_setup.lua",
             "tone_helpers": "Scripts/ai_band_tone_helpers.lua",
             "live_cue_script": "Scripts/ai_band_write_live_cue.lua",
             "jsfx": "Effects/AI Band Humanizer.jsfx",

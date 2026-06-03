@@ -22,11 +22,16 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
     for section, bar, _chord in iter_section_bars(song):
         energetic = section.energy >= 0.75
         drum_lift = 10 if bigger and section.energy >= 0.75 else 0
-        kick_beats = (0, 2.5) if not energetic else (0, 1.5, 2.5, 3.5)
+        if song.preset == "bluesy-alt-country":
+            kick_beats = (0, 2.5) if not energetic else (0, 2, 3.5)
+        else:
+            kick_beats = (0, 2.5) if not energetic else (0, 1.5, 2.5, 3.5)
         snare_beats = (1, 3)
 
         for eighth in range(8):
             beat = eighth * 0.5
+            if song.preset == "bluesy-alt-country" and eighth in {1, 5} and section.energy < 0.75:
+                continue
             note = OPEN_HAT if energetic and eighth == 7 else CLOSED_HAT
             track.notes.append(
                 MidiNote(song.beat_tick(bar, beat), hat_duration, note, velocity(58, section.energy, drum_lift), DRUM_CHANNEL)

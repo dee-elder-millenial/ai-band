@@ -22,11 +22,19 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
         voicing = (tones[1], tones[2])
         beats = (2.0,)
         duration = note_duration(song, 1.6)
+        if song.preset == "bluesy-alt-country":
+            voicing = (tones[0], tones[1])
+            beats = (2.5,)
+            duration = note_duration(song, 1.0)
 
         if section.energy >= 0.75:
             voicing = (tones[1], tones[2] + 12)
             beats = (1.5, 3.0)
             duration = note_duration(song, 0.45)
+            if song.preset == "bluesy-alt-country":
+                voicing = (tones[0], tones[2])
+                beats = (1.0, 3.0)
+                duration = note_duration(song, 0.55)
         if leave_space:
             beats = (beats[0],)
             duration = min(duration, note_duration(song, 0.8))

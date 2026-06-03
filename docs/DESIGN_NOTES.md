@@ -58,6 +58,7 @@ Early REAPER audition feedback:
 - with better instruments, the bass was a little heavy and slightly off, so backing mode should keep bass simpler and more kick-locked
 - lead guitar sounded robotic, so generated lead needs phrase gaps, varied timing, and less repetition
 - current preferred audition instruments are MT-PowerDrumKit, Ample Bass P Lite II, Splice INSTRUMENT, and Ample Guitar M II Lite
+- added a bluesy alt-country preset for rootsy backing sketches without copying a specific band or song
 
 ## Live Follow Direction
 

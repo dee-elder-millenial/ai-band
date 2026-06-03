@@ -16,11 +16,12 @@ def build_tracks(
     tempo_bpm: int = 108,
     key: str = "A",
     scale: str = "minor",
+    preset: str = "default",
     mode: str = "full-band",
     include_ai_rhythm_guitar: bool | None = None,
     controls: GenerationControls | None = None,
 ) -> tuple[int, int, list[MidiTrack]]:
-    song = create_default_song(title=title, style=style, tempo_bpm=tempo_bpm, key=key, scale=scale)
+    song = create_default_song(title=title, style=style, tempo_bpm=tempo_bpm, key=key, scale=scale, preset=preset)
     controls = controls or GenerationControls()
     if include_ai_rhythm_guitar is None:
         include_ai_rhythm_guitar = mode != "ehaye"
@@ -32,7 +33,7 @@ def build_tracks(
             MidiMeta(
                 song.bar_tick(section.start_bar),
                 "text",
-                f"{section.name}: energy={section.energy:.2f}, chords={' '.join(chord.symbol for chord in section.chords)}",
+                f"{section.name}: preset={song.preset}, energy={section.energy:.2f}, chords={' '.join(chord.symbol for chord in section.chords)}",
             )
         )
     if controls.cue_summary:
@@ -71,6 +72,7 @@ def main() -> None:
     parser.add_argument("--tempo", type=int, default=108, help="Tempo in beats per minute")
     parser.add_argument("--key", default="A", choices=("C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"))
     parser.add_argument("--scale", default="minor", choices=("major", "minor"))
+    parser.add_argument("--preset", default="default", choices=("default", "bluesy-alt-country"))
     parser.add_argument(
         "--mode",
         default="full-band",
@@ -102,6 +104,7 @@ def main() -> None:
         tempo_bpm=args.tempo,
         key=args.key,
         scale=args.scale,
+        preset=args.preset,
         mode=args.mode,
         include_ai_rhythm_guitar=include_ai_rhythm_guitar,
         controls=controls,

@@ -16,10 +16,22 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
     for section, bar, chord in iter_section_bars(song):
         root = 36 + chord.root
         fifth = root + 7
+        flat_seventh = root + 10
         local_bar = bar - section.start_bar
         if simplify:
             pattern = (
                 (0, root, held),
+            )
+        elif song.preset == "bluesy-alt-country" and section.energy >= 0.75:
+            pattern = (
+                (0, root, long),
+                (2.0, fifth, short),
+                (3.0, flat_seventh, short),
+            )
+        elif song.preset == "bluesy-alt-country":
+            pattern = (
+                (0, root, held),
+                (2.5, fifth, short),
             )
         elif section.energy >= 0.75:
             pattern = (

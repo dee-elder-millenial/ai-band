@@ -12,6 +12,8 @@ def generate(song: SongState, sparse: bool = False) -> MidiTrack:
     track = MidiTrack("AI Lead Player", channel=LEAD_CHANNEL, program=81)
     scale = scale_notes(song.key, song.scale, 5)
     hook = (0, 2, 4, 2, 5, 4, 2, 0)
+    if song.preset == "bluesy-alt-country":
+        hook = (0, 2, 3, 2, 4, 3, 2, 0)
     durations = (
         note_duration(song, 0.42),
         note_duration(song, 0.35),
@@ -21,6 +23,8 @@ def generate(song: SongState, sparse: bool = False) -> MidiTrack:
 
     for section, bar, _chord in iter_section_bars(song):
         should_play = section.name in {"Intro", "Chorus", "Outro"}
+        if song.preset == "bluesy-alt-country":
+            should_play = section.name in {"Intro", "Chorus"}
         if not should_play:
             continue
 
