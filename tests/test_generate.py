@@ -89,6 +89,27 @@ class GenerateMidiTests(unittest.TestCase):
             ],
         )
 
+    def test_default_generation_applies_shared_human_feel(self) -> None:
+        _ticks_per_beat, _tempo_bpm, tracks = build_tracks()
+        members = {
+            track.name: track
+            for track in tracks
+            if track.name
+            in {
+                "AI Drummer",
+                "AI Bass Player",
+                "AI Guitar Player",
+                "AI Keyboard Player",
+                "AI Percussion Extras",
+            }
+        }
+
+        self.assertEqual(len(members), 5)
+        for name, track in members.items():
+            with self.subTest(member=name):
+                self.assertTrue(any(note.start % 120 != 0 for note in track.notes))
+                self.assertGreaterEqual(len({note.velocity for note in track.notes}), 8)
+
     def test_ehaye_mode_defaults_to_backing_band_without_ai_rhythm_guitar(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks(mode="ehaye")
 
@@ -127,7 +148,10 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertLessEqual(max(note.velocity for note in guitar.notes), 64)
         self.assertTrue(offgrid_starts)
         self.assertLessEqual(
-            max(min(abs(start % 480 - anchor) for anchor in (0, 240, 360)) for start in offgrid_starts),
+            max(
+                min(min(abs(start % 480 - anchor), 480 - abs(start % 480 - anchor)) for anchor in (0, 240, 360))
+                for start in offgrid_starts
+            ),
             18,
         )
 

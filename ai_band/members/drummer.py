@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, pocket_start, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, velocity_shift
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -55,40 +55,48 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
             if song.preset in {"bluesy-alt-country", "southern-blues"} and eighth in {1, 5} and section.energy < 0.75:
                 continue
             note = RIDE if song.preset == "heartland-rock" and energetic and eighth % 2 == 0 else OPEN_HAT if energetic and eighth == 7 else CLOSED_HAT
-            start = _heartland_drum_start(song, bar, beat, "hat") if song.preset == "heartland-rock" else song.beat_tick(bar, beat)
+            start = _heartland_drum_start(song, bar, beat, "hat") if song.preset == "heartland-rock" else played_start(song, bar, beat, 0.70)
             note_velocity = velocity(hat_base, section.energy, drum_lift)
             if song.preset == "heartland-rock":
                 note_velocity = min(clamp_midi(note_velocity + velocity_shift(bar, beat, 4) + bar_lift + (5 if eighth in {2, 6} else 0)), 122)
+            else:
+                note_velocity = played_velocity(note_velocity, song, bar, beat, 2)
             track.notes.append(
                 MidiNote(start, hat_duration, note, note_velocity, DRUM_CHANNEL)
             )
 
         if song.preset in {"heartland-rock", "southern-blues"} and energetic:
             for beat in (0, 1, 2, 3):
-                start = _heartland_drum_start(song, bar, beat, "ride") if song.preset == "heartland-rock" else song.beat_tick(bar, beat)
+                start = _heartland_drum_start(song, bar, beat, "ride") if song.preset == "heartland-rock" else played_start(song, bar, beat, 0.65)
                 note_velocity = velocity(54 if song.preset == "heartland-rock" else 48, section.energy)
                 if song.preset == "heartland-rock":
                     note_velocity = min(clamp_midi(note_velocity + velocity_shift(bar, beat, 2) + bar_lift), 122)
+                else:
+                    note_velocity = played_velocity(note_velocity, song, bar, beat, 1)
                 track.notes.append(
                     MidiNote(start, hat_duration, RIDE, note_velocity, DRUM_CHANNEL)
                 )
 
         for beat in kick_beats:
-            start = _heartland_drum_start(song, bar, beat, "kick") if song.preset == "heartland-rock" else song.beat_tick(bar, beat)
+            start = _heartland_drum_start(song, bar, beat, "kick") if song.preset == "heartland-rock" else played_start(song, bar, beat, 0.55)
             note_velocity = velocity(kick_base, section.energy, 8 + drum_lift)
             if song.preset == "heartland-rock":
                 note_velocity = min(clamp_midi(note_velocity + velocity_shift(bar, beat, 3) + bar_lift), 122)
+            else:
+                note_velocity = played_velocity(note_velocity, song, bar, beat, 1)
             track.notes.append(
                 MidiNote(start, step, KICK, note_velocity, DRUM_CHANNEL)
             )
 
         for beat in snare_beats:
-            start = _heartland_drum_start(song, bar, beat, "snare") if song.preset == "heartland-rock" else song.beat_tick(bar, beat)
+            start = _heartland_drum_start(song, bar, beat, "snare") if song.preset == "heartland-rock" else played_start(song, bar, beat, -0.35)
             note_velocity = velocity(snare_base, section.energy, 8 + drum_lift)
             if song.preset == "heartland-rock":
                 note_velocity = min(clamp_midi(note_velocity + velocity_shift(bar, beat, 4) + bar_lift + 2), 122)
                 if _should_add_heartland_flam(section.energy, local_bar, beat):
                     _add_heartland_flam(track, song, start, section.energy, bar, beat, bar_lift)
+            else:
+                note_velocity = played_velocity(note_velocity, song, bar, beat, 1)
             track.notes.append(
                 MidiNote(start, step, SNARE, note_velocity, DRUM_CHANNEL)
             )
@@ -97,10 +105,12 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
             _add_heartland_ghosts(track, song, bar, local_bar, section.energy, bar_lift)
 
         if bar == section.start_bar:
-            crash_start = _heartland_drum_start(song, bar, 0, "crash") if song.preset == "heartland-rock" else song.beat_tick(bar, 0)
+            crash_start = _heartland_drum_start(song, bar, 0, "crash") if song.preset == "heartland-rock" else played_start(song, bar, 0, 0.55)
             crash_velocity = velocity(94, section.energy)
             if song.preset == "heartland-rock":
                 crash_velocity = min(clamp_midi(crash_velocity + velocity_shift(bar, 0, 3) + bar_lift), 120)
+            else:
+                crash_velocity = played_velocity(crash_velocity, song, bar, 0, 1)
             track.notes.append(
                 MidiNote(crash_start, note_duration(song, 1), CRASH, crash_velocity, DRUM_CHANNEL)
             )

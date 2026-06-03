@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, pocket_start, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import chord_tones
@@ -81,6 +81,10 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
                     start = pocket_start(song, bar, beat, 0.50)
                     note_duration_ticks = max(note_duration(song, 0.30), duration + _heartland_breath(song, bar, beat))
                     note_velocity = clamp_midi(note_velocity + velocity_shift(bar, beat, 2) + bar_lift)
+                else:
+                    start = played_start(song, bar, beat, 0.45)
+                    note_duration_ticks = played_duration(song, duration, bar, beat, 0.50, note_duration(song, 0.25))
+                    note_velocity = played_velocity(note_velocity, song, bar, beat, 2)
                 track.notes.append(
                     MidiNote(start, note_duration_ticks, note, note_velocity, KEYS_CHANNEL)
                 )

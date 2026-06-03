@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift
+from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import chord_tones
@@ -41,7 +41,11 @@ def generate(song: SongState) -> MidiTrack:
         for beat in beats:
             if song.preset in {"heartland-rock", "southern-blues"}:
                 direction = "down" if beat in {0, 2.0, 2.5} else "up"
-                anchor_offset = _heartland_anchor_offset(song, bar, beat) if song.preset == "heartland-rock" else 0
+                anchor_offset = (
+                    _heartland_anchor_offset(song, bar, beat)
+                    if song.preset == "heartland-rock"
+                    else played_start(song, bar, beat, 0.55) - song.beat_tick(bar, beat)
+                )
                 velocity_shift = _heartland_velocity_shift(bar, beat) if song.preset == "heartland-rock" else 0
                 string_gap = _heartland_strum_gap(song, bar, beat, strum_gap) if song.preset == "heartland-rock" else strum_gap
                 strum_voicing = _heartland_color_voicing(voicing, tones, local_bar, beat) if song.preset == "heartland-rock" else voicing
@@ -65,7 +69,13 @@ def generate(song: SongState) -> MidiTrack:
             else:
                 for note in voicing:
                     track.notes.append(
-                        MidiNote(song.beat_tick(bar, beat), duration, note, velocity(base_velocity, section.energy), GUITAR_CHANNEL)
+                        MidiNote(
+                            played_start(song, bar, beat, 0.55),
+                            played_duration(song, duration, bar, beat, 0.50, note_duration(song, 0.25)),
+                            note,
+                            played_velocity(velocity(base_velocity, section.energy), song, bar, beat, 2),
+                            GUITAR_CHANNEL,
+                        )
                     )
 
         if song.preset in {"heartland-rock", "southern-blues"} and section.energy >= 0.75 and local_bar % 4 == 3:
@@ -80,7 +90,11 @@ def generate(song: SongState) -> MidiTrack:
                 section.energy,
                 "up",
                 _heartland_strum_gap(song, bar, 3.75, strum_gap) if song.preset == "heartland-rock" else strum_gap,
-                _heartland_anchor_offset(song, bar, 3.75) if song.preset == "heartland-rock" else 0,
+                (
+                    _heartland_anchor_offset(song, bar, 3.75)
+                    if song.preset == "heartland-rock"
+                    else played_start(song, bar, 3.75, 0.55) - song.beat_tick(bar, 3.75)
+                ),
                 _heartland_string_durations(song, bar, 3.75) if song.preset == "heartland-rock" else None,
                 _heartland_string_velocities(bar, 3.75) if song.preset == "heartland-rock" else None,
             )

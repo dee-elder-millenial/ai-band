@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, pocket_start, velocity_shift
+from ai_band.humanize import clamp_midi, phrase_lift, played_start, played_velocity, pocket_start, velocity_shift
 from ai_band.midi import MidiNote, MidiTrack
 from ai_band.song_state import SongState
 
@@ -43,27 +43,57 @@ def generate(song: SongState) -> MidiTrack:
             if section.energy >= 0.75:
                 for beat in (1, 3):
                     track.notes.append(
-                        MidiNote(song.beat_tick(bar, beat), duration, CLAP, velocity(42, section.energy), PERC_CHANNEL)
+                        MidiNote(
+                            played_start(song, bar, beat, 0.75),
+                            duration,
+                            CLAP,
+                            played_velocity(velocity(42, section.energy), song, bar, beat, 2),
+                            PERC_CHANNEL,
+                        )
                     )
                 if (bar - section.start_bar) % 2 == 0:
                     track.notes.append(
-                        MidiNote(song.beat_tick(bar, 3.5), duration, TAMBOURINE, velocity(46, section.energy), PERC_CHANNEL)
+                        MidiNote(
+                            played_start(song, bar, 3.5, 0.85),
+                            duration,
+                            TAMBOURINE,
+                            played_velocity(velocity(46, section.energy), song, bar, 3.5, 2),
+                            PERC_CHANNEL,
+                        )
                     )
             continue
 
         for sixteenth in range(16):
             beat = sixteenth * 0.25
             track.notes.append(
-                MidiNote(song.beat_tick(bar, beat), duration, SHAKER, velocity(28, section.energy), PERC_CHANNEL)
+                MidiNote(
+                    played_start(song, bar, beat, 0.35),
+                    duration,
+                    SHAKER,
+                    played_velocity(velocity(28, section.energy), song, bar, beat, 1),
+                    PERC_CHANNEL,
+                )
             )
 
         if section.energy >= 0.75:
             for beat in (1, 3):
                 track.notes.append(
-                    MidiNote(song.beat_tick(bar, beat), duration, CLAP, velocity(48, section.energy), PERC_CHANNEL)
+                    MidiNote(
+                        played_start(song, bar, beat, 0.75),
+                        duration,
+                        CLAP,
+                        played_velocity(velocity(48, section.energy), song, bar, beat, 2),
+                        PERC_CHANNEL,
+                    )
                 )
             track.notes.append(
-                MidiNote(song.beat_tick(bar, 3.5), duration, TAMBOURINE, velocity(54, section.energy), PERC_CHANNEL)
+                MidiNote(
+                    played_start(song, bar, 3.5, 0.85),
+                    duration,
+                    TAMBOURINE,
+                    played_velocity(velocity(54, section.energy), song, bar, 3.5, 2),
+                    PERC_CHANNEL,
+                )
             )
 
     return track
