@@ -156,6 +156,17 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertGreaterEqual(len(bass_pickups), 8)
         self.assertGreaterEqual(len(drum_pickups), 60)
 
+    def test_generated_lead_and_keys_include_expression_curves(self) -> None:
+        _ticks_per_beat, _tempo_bpm, tracks = build_tracks()
+        lead = next(track for track in tracks if track.name == "AI Lead Player")
+        keyboard = next(track for track in tracks if track.name == "AI Keyboard Player")
+        lead_expression_events = [event for event in lead.events if event.status == 0xB0 | 3 and event.data[0] == 11]
+        keyboard_expression_events = [event for event in keyboard.events if event.status == 0xB0 | 2 and event.data[0] == 11]
+
+        self.assertGreaterEqual(len(lead_expression_events), 100)
+        self.assertGreaterEqual(len(keyboard_expression_events), 60)
+        self.assertGreaterEqual(len({event.data[1] for event in lead_expression_events}), 8)
+
     def test_ehaye_mode_defaults_to_backing_band_without_ai_rhythm_guitar(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks(mode="ehaye")
 

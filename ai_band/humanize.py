@@ -82,6 +82,20 @@ def transition_pickup(energy: float, local_bar: int, section_bars: int) -> bool:
     return energy >= 0.76 and local_bar % 4 == 3
 
 
+def expression_curve(start: int, duration: int, energy: float, bar: int, beat: float) -> tuple[tuple[int, int], ...]:
+    if duration < 96:
+        return ()
+    shape = (0, 4, -2, 6, 1, -3)
+    contour = shape[(bar + int(round(beat * 2))) % len(shape)]
+    center = clamp_midi(72 + int(energy * 20) + contour)
+    lift = 8 + int(energy * 8)
+    return (
+        (start, clamp_midi(center - 8)),
+        (start + int(duration * 0.35), clamp_midi(center + lift)),
+        (start + int(duration * 0.82), clamp_midi(center - 4)),
+    )
+
+
 def phrase_lift(local_bar: int, section_bars: int, amount: int = 3) -> int:
     four_bar_shape = (-1, 0, 1, 2)
     lift = four_bar_shape[local_bar % len(four_bar_shape)]

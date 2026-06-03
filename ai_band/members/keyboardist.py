@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, support_rest, velocity_shift
+from ai_band.humanize import clamp_midi, expression_curve, phrase_lift, played_duration, played_start, played_velocity, pocket_start, support_rest, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import chord_tones
@@ -92,6 +92,8 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
                 )
                 if song.preset == "heartland-rock":
                     _add_heartland_sax_expression(track, start, note_duration_ticks, bar, beat)
+                else:
+                    _add_expression(track, start, note_duration_ticks, section.energy, bar, beat)
 
     return track
 
@@ -129,6 +131,13 @@ def _add_heartland_sax_expression(track: MidiTrack, start: int, duration: int, b
             _pitch_bend(start + int(duration * 0.35), 8192),
             _control_change(start + int(duration * 0.82), 11, fall),
         )
+    )
+
+
+def _add_expression(track: MidiTrack, start: int, duration: int, energy: float, bar: int, beat: float) -> None:
+    track.events.extend(
+        _control_change(tick, 11, value)
+        for tick, value in expression_curve(start, duration, energy, bar, beat)
     )
 
 

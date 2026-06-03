@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ai_band.arrangement import iter_section_bars, note_duration, velocity
-from ai_band.humanize import clamp_midi, phrase_lift, played_duration, played_start, played_velocity, pocket_start, velocity_shift
+from ai_band.humanize import clamp_midi, expression_curve, phrase_lift, played_duration, played_start, played_velocity, pocket_start, velocity_shift
 from ai_band.midi import MidiEvent, MidiNote, MidiTrack
 from ai_band.song_state import SongState
 from ai_band.theory import scale_notes
@@ -68,6 +68,7 @@ def generate(song: SongState, sparse: bool = False) -> MidiTrack:
                     LEAD_CHANNEL,
                 )
             )
+            _add_expression(track, note_start, duration, section.energy, bar, beat)
 
     return track
 
@@ -108,6 +109,7 @@ def _generate_bluesy_alt_country(song: SongState, sparse: bool = False) -> MidiT
                     LEAD_CHANNEL,
                 )
             )
+            _add_expression(track, start, duration, section.energy, bar, beat)
             if bend:
                 _add_bend(track, start, duration, LEAD_CHANNEL)
 
@@ -168,6 +170,7 @@ def _generate_southern_blues(song: SongState, sparse: bool = False) -> MidiTrack
                     LEAD_CHANNEL,
                 )
             )
+            _add_expression(track, start, duration, section.energy, bar, beat)
             if bend:
                 _add_bend(track, start, duration, LEAD_CHANNEL)
 
@@ -237,6 +240,7 @@ def _generate_heartland_rock(song: SongState, sparse: bool = False) -> MidiTrack
                     LEAD_CHANNEL,
                 )
             )
+            _add_expression(track, start, duration, section.energy, bar, beat)
             if bend:
                 _add_bend(track, start, duration, LEAD_CHANNEL, _heartland_bend_profile(bar, index))
             elif duration >= note_duration(song, 0.38):
@@ -332,6 +336,17 @@ def _add_bend(
         _pitch_bend(start + int(duration * timing), channel, 8192 + amount)
         for timing, amount in profile
     )
+
+
+def _add_expression(track: MidiTrack, start: int, duration: int, energy: float, bar: int, beat: float) -> None:
+    track.events.extend(
+        _control_change(tick, LEAD_CHANNEL, 11, value)
+        for tick, value in expression_curve(start, duration, energy, bar, beat)
+    )
+
+
+def _control_change(tick: int, channel: int, controller: int, value: int) -> MidiEvent:
+    return MidiEvent(tick=tick, status=0xB0 | channel, data=(controller, max(0, min(127, value))))
 
 
 def _pitch_bend(tick: int, channel: int, value: int) -> MidiEvent:
