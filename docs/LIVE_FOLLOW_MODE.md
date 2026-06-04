@@ -108,11 +108,22 @@ Then test the AI interpreter directly:
 python -m ai_band.ai_feedback --cue state/live_cue.json --force-ai
 ```
 
-Generate a cue response MIDI using real AI:
+Generate a cue response MIDI using real AI with the lower-level generator:
 
 ```powershell
 python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --ai-feedback --output examples/ehaye-ai-response.mid
 ```
+
+Run the full feedback loop in one command:
+
+```powershell
+python -m ai_band.respond --cue state/live_cue.json --force-ai --output examples/ai-feedback-response.mid
+```
+
+This writes:
+
+- `state/last_ai_feedback.json`: the AI decision, selected controls, rationale, and budget estimate.
+- `examples/ai-feedback-response.mid`: the MIDI response to import into REAPER.
 
 Check AI Band's local estimated API spend:
 
@@ -147,3 +158,17 @@ When `--ai-feedback` is enabled, these same controls can be triggered by more na
 - `make the drummer push the chorus harder`
 - `bass is too busy under the verse`
 - `lead guitar should answer me, not talk over me`
+
+## Current Test Procedure
+
+1. In REAPER, run `ai_band_write_live_cue.lua` and enter a cue.
+2. In the PowerShell tab where `OPENAI_API_KEY` is set, run:
+
+```powershell
+python -m ai_band.respond --cue state/live_cue.json --force-ai --output examples/ai-feedback-response.mid
+```
+
+3. Confirm the command says `AI feedback source: openai`.
+4. Import `examples/ai-feedback-response.mid` into REAPER.
+5. Run `ai_band_apply_reaper_audition_settings.lua`.
+6. Run `ai_band_apply_audition_mix.lua`.

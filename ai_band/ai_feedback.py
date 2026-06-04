@@ -164,8 +164,8 @@ def _controls_from_model_payload(cue: LiveCue, payload: dict[str, Any]) -> Gener
     )
 
 
-def result_to_json(result: AiFeedbackResult) -> str:
-    data = {
+def result_to_dict(result: AiFeedbackResult) -> dict[str, object]:
+    return {
         "source": result.source,
         "model": result.model,
         "rationale": result.rationale,
@@ -173,6 +173,10 @@ def result_to_json(result: AiFeedbackResult) -> str:
         "budget": result.budget_message,
         "controls": asdict(result.controls),
     }
+
+
+def result_to_json(result: AiFeedbackResult) -> str:
+    data = result_to_dict(result)
     return json.dumps(data, indent=2) + "\n"
 
 

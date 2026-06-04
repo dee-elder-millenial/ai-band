@@ -14,6 +14,7 @@ from ai_band.ai_feedback import (
     _call_openai,
     _extract_response_text,
     controls_from_cue_with_ai,
+    result_to_dict,
     result_to_json,
 )
 from ai_band.live_cue import LiveCue
@@ -112,6 +113,15 @@ class AiFeedbackTests(unittest.TestCase):
             result = controls_from_cue_with_ai(cue, api_key=None)
 
         self.assertNotIn("secret-value", result_to_json(result))
+
+    def test_result_to_dict_exposes_controls_for_response_loop(self) -> None:
+        cue = LiveCue("live-cue", "simplify bass", "bass", 0.5, 0, "")
+
+        result = controls_from_cue_with_ai(cue)
+        data = result_to_dict(result)
+
+        self.assertEqual(data["source"], "fallback")
+        self.assertTrue(data["controls"]["bass_simplify"])  # type: ignore[index]
 
     def test_control_schema_requires_all_model_fields(self) -> None:
         self.assertEqual(

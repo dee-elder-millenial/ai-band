@@ -149,6 +149,7 @@ Goal: let the AI band respond to Deanna's direction and, later, to live/project 
 - [x] Add a Python command reader that turns cue instructions into generator settings.
 - [x] Add an optional real-AI cue interpreter behind `OPENAI_API_KEY`.
 - [x] Add local estimated API spend tracking for the AI cue loop.
+- [x] Add a one-command cue response loop that writes decision JSON and MIDI.
 - [ ] Regenerate selected members without rebuilding the whole sketch.
 - [ ] Preserve previous generated parts until replacements are confirmed.
 
