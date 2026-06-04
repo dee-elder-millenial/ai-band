@@ -20,6 +20,8 @@ Rhythm guitar is the current priority.
 
 Ample Guitar M Lite's Strummer is doing useful performance work. The generator should not pre-arpeggiate or fake-strum heartland rhythm guitar MIDI for that workflow. Instead, heartland rhythm guitar now sends clean same-tick chord blocks so the plugin can perform the actual strumming.
 
+Future arrangement workflow should support adding performers and musical parts one at a time. The target behavior is: keep the current song structure, add a new role or track such as second guitar, organ pad, sax support, tambourine, or harmony guide, and preserve existing parts while auditioning the newcomer.
+
 ## Latest Working Artifacts
 
 - `examples/factory-flag-thunder.mid`

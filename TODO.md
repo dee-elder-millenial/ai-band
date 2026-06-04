@@ -102,6 +102,16 @@ Goal: build the first working versions of each AI band member as separate, testa
 - [ ] Add a "listen more" control for leaving more space.
 - [ ] Make personalities affect rhythm, note choice, repetition, and dynamics.
 
+### Incremental Performers And Parts
+
+- [ ] Let a user add or remove individual performers without regenerating the whole band.
+- [ ] Let a user add specific musical parts, such as second guitar, harmony vocal guide, organ pad, tambourine, hand claps, or sax support.
+- [ ] Let added parts choose an existing role type: drums, bass, chords, melody, texture, percussion, or guide.
+- [ ] Let added performers inherit song state, section boundaries, groove, and mixer defaults from the current project.
+- [ ] Let the bandleader decide whether a new part should double, answer, support, or stay out of the way.
+- [ ] Keep each added part editable as its own REAPER/MIDI track.
+- [ ] Preserve existing tracks when auditioning a newly added performer or part.
+
 ### Phase 1 Acceptance Criteria
 
 - [ ] A user can generate a complete short song sketch with drums, bass, guitar, keys, and lead.
@@ -151,6 +161,7 @@ Goal: let the AI band respond to Deanna's direction and, later, to live/project 
 - [x] Add local estimated API spend tracking for the AI cue loop.
 - [x] Add a one-command cue response loop that writes decision JSON and MIDI.
 - [ ] Regenerate selected members without rebuilding the whole sketch.
+- [ ] Add a command path for inserting a new performer or part into the current sketch.
 - [ ] Preserve previous generated parts until replacements are confirmed.
 
 ### Live Listening
