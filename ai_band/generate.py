@@ -10,6 +10,7 @@ from ai_band.live_cue import read_live_cue
 from ai_band.midi import MidiEvent, MidiMeta, MidiTrack, write_midi
 from ai_band.members import bassist, drummer, guitarist, keyboardist, lead, percussion
 from ai_band.performance import PerformanceSettings, default_performance_settings, render_performance
+from ai_band.sound_guy import SoundGuyDecision, advise_sound_guy
 
 
 def tempo_events_for_preset(preset: str, tempo_bpm: int, ticks_per_beat: int, total_bars: int) -> list[tuple[int, int]]:
@@ -43,7 +44,13 @@ def build_tracks(
     controls: GenerationControls | None = None,
     performance: PerformanceSettings | None = None,
     rhythm_guitar_profile: str = "auto",
+    sound_guy: SoundGuyDecision | None = None,
 ) -> tuple[int, int, list[MidiTrack]]:
+    if sound_guy is not None:
+        if rhythm_guitar_profile == "auto":
+            rhythm_guitar_profile = sound_guy.rhythm_guitar_profile
+        if performance is None:
+            performance = sound_guy.performance
     ticks_per_beat, tempo_bpm, tracks = compose_tracks(
         title=title,
         style=style,
@@ -55,6 +62,7 @@ def build_tracks(
         include_ai_rhythm_guitar=include_ai_rhythm_guitar,
         controls=controls,
         rhythm_guitar_profile=rhythm_guitar_profile,
+        sound_guy=sound_guy,
     )
     rendered_tracks = render_performance(tracks, ticks_per_beat=ticks_per_beat, settings=performance)
     add_pitch_bend_resets(rendered_tracks)
@@ -72,6 +80,7 @@ def compose_tracks(
     include_ai_rhythm_guitar: bool | None = None,
     controls: GenerationControls | None = None,
     rhythm_guitar_profile: str = "auto",
+    sound_guy: SoundGuyDecision | None = None,
 ) -> tuple[int, int, list[MidiTrack]]:
     song = create_default_song(title=title, style=style, tempo_bpm=tempo_bpm, key=key, scale=scale, preset=preset)
     controls = controls or GenerationControls()
@@ -111,12 +120,25 @@ def compose_tracks(
                 "REAPER audition hint: run ai_band_apply_audition_mix.lua; try lead-back if lead crowds, warmer-room if dry, drums-forward if groove disappears.",
             )
         )
+    if sound_guy is not None:
+        markers.metas.append(MidiMeta(0, "text", f"AI Sound Guy: mix={sound_guy.mix_profile}, rhythm_guitar={sound_guy.rhythm_guitar_profile}"))
 
     tracks = [
         markers,
-        drummer.generate(song, bigger=controls.drums_bigger),
-        bassist.generate(song, simplify=controls.bass_simplify),
     ]
+    if sound_guy is not None:
+        sound_track = MidiTrack("AI Sound Guy")
+        sound_track.metas.append(MidiMeta(0, "text", f"mix_profile={sound_guy.mix_profile}"))
+        sound_track.metas.append(MidiMeta(0, "text", f"rhythm_guitar_profile={sound_guy.rhythm_guitar_profile}"))
+        for note in sound_guy.notes:
+            sound_track.metas.append(MidiMeta(0, "text", note))
+        tracks.append(sound_track)
+    tracks.extend(
+        [
+            drummer.generate(song, bigger=controls.drums_bigger),
+            bassist.generate(song, simplify=controls.bass_simplify),
+        ]
+    )
     if include_ai_rhythm_guitar:
         tracks.append(guitarist.generate(song, profile=rhythm_guitar_profile))
     tracks.extend(
@@ -185,6 +207,8 @@ def main() -> None:
         choices=("auto", "ample-strummer", "simple-blocks", "internal-strum"),
         help="Rhythm guitar MIDI profile for diagnosing or matching guitar plugins",
     )
+    parser.add_argument("--sound-guy", action="store_true", help="Let AI Sound Guy choose render/mix defaults from preset and listening notes")
+    parser.add_argument("--sound-note", default="", help="Listening note for AI Sound Guy, such as 'bass is killing it, rhythm guitar sounds strange'")
     args = parser.parse_args()
     include_ai_rhythm_guitar = None
     if args.no_ai_rhythm_guitar:
@@ -203,6 +227,28 @@ def main() -> None:
         else:
             controls = controls_from_cue(cue)
 
+    performance = default_performance_settings(
+        groove_amount=args.groove,
+        swing_amount=args.swing,
+        velocity_humanize_amount=args.velocity_humanize,
+    )
+    rhythm_guitar_profile = args.rhythm_guitar_profile
+    sound_guy = None
+    if args.sound_guy:
+        sound_guy = advise_sound_guy(
+            preset=args.preset,
+            style=args.style,
+            listening_note=args.sound_note,
+            requested_rhythm_guitar_profile=args.rhythm_guitar_profile,
+        )
+        if args.rhythm_guitar_profile == "auto":
+            rhythm_guitar_profile = sound_guy.rhythm_guitar_profile
+        performance = sound_guy.performance
+        print(f"AI Sound Guy mix: {sound_guy.mix_profile}")
+        print(f"AI Sound Guy rhythm guitar: {rhythm_guitar_profile}")
+        for note in sound_guy.notes:
+            print(f"AI Sound Guy note: {note}")
+
     ticks_per_beat, tempo_bpm, tracks = build_tracks(
         title=args.title,
         style=args.style,
@@ -213,12 +259,9 @@ def main() -> None:
         mode=args.mode,
         include_ai_rhythm_guitar=include_ai_rhythm_guitar,
         controls=controls,
-        rhythm_guitar_profile=args.rhythm_guitar_profile,
-        performance=default_performance_settings(
-            groove_amount=args.groove,
-            swing_amount=args.swing,
-            velocity_humanize_amount=args.velocity_humanize,
-        ),
+        rhythm_guitar_profile=rhythm_guitar_profile,
+        performance=performance,
+        sound_guy=sound_guy,
     )
     tempo_events = tempo_events_for_preset(args.preset, tempo_bpm, ticks_per_beat, create_default_song(preset=args.preset).total_bars)
     output = Path(args.output)

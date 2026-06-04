@@ -28,6 +28,16 @@ Goal: build the first working versions of each AI band member as separate, testa
 - [ ] Reuse motifs across sections so the song feels intentional.
 - [ ] Store the shared song state that every member reads from.
 
+### AI Sound Guy
+
+- [x] Add a first deterministic Sound Guy pass that chooses render/mix settings from preset and listening notes.
+- [x] Let Sound Guy choose a rhythm-guitar diagnostic profile when the plugin sounds strange.
+- [x] Add a non-playing `AI Sound Guy` MIDI metadata track when enabled.
+- [ ] Let Sound Guy write REAPER mix-profile recommendations directly into audition scripts.
+- [ ] Add EQ/compression preset decisions per track.
+- [ ] Add exported-mix or REAPER snapshot analysis so Sound Guy can react to actual audio balance.
+- [ ] Preserve musician decisions that are working, such as a strong bass pocket, unless the user asks to change them.
+
 ### Human Frontperson / The Ehaye Band Mode
 
 - [ ] Treat Deanna as the lead singer and rhythm guitarist by default.

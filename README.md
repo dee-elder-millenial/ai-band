@@ -103,6 +103,12 @@ python -m ai_band.generate --preset heartland-rock --title "Rhythm Guitar Simple
 python -m ai_band.generate --preset heartland-rock --title "Rhythm Guitar Internal Strum" --style "heartland hard rock" --tempo 118 --key E --scale major --rhythm-guitar-profile internal-strum --output examples/rhythm-guitar-internal-strum.mid
 ```
 
+Let AI Sound Guy pick first-pass render and mix choices from listening notes:
+
+```powershell
+python -m ai_band.generate --preset heartland-rock --title "Sound Guy Pass" --style "heartland hard rock" --tempo 118 --key E --scale major --sound-guy --sound-note "bass is killing it, rhythm guitar sounds strange" --output examples/sound-guy-pass.mid
+```
+
 Create the Phase 1 alpha build package:
 
 ```powershell
@@ -156,6 +162,7 @@ ai-band/
     performance.py
     respond.py
     song_state.py
+    sound_guy.py
     members/
       drummer.py
       bassist.py

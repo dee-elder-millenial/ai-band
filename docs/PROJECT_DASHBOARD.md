@@ -13,6 +13,7 @@ The Python engine is now split into composition and performance rendering:
 - `ai_band.generate.compose_tracks()` creates the existing song/member MIDI structure.
 - `ai_band.performance.render_performance()` adds the audition performance layer: sample-instrument hints, mixer CCs, reverb/delay sends, instrument roles, and optional groove/swing/velocity humanization.
 - `ai_band.generate.build_tracks()` remains the normal public path and returns rendered tracks.
+- `ai_band.sound_guy.advise_sound_guy()` is the first non-playing AI Sound Guy pass. It chooses render/mix defaults from preset and listening notes, then writes an optional metadata track into the MIDI.
 
 ## Latest Decision
 
@@ -21,6 +22,12 @@ Rhythm guitar is the current priority.
 Ample Guitar M Lite's Strummer is doing useful performance work. The generator should not pre-arpeggiate or fake-strum heartland rhythm guitar MIDI for that workflow. Instead, heartland rhythm guitar now sends clean same-tick chord blocks so the plugin can perform the actual strumming.
 
 Future arrangement workflow should support adding performers and musical parts one at a time. The target behavior is: keep the current song structure, add a new role or track such as second guitar, organ pad, sax support, tambourine, or harmony guide, and preserve existing parts while auditioning the newcomer.
+
+AI Sound Guy is now started as a non-playing band member. Current job: protect what is working, pick first-pass mix/render settings, and route rhythm-guitar troubleshooting toward the right profile. Example:
+
+```powershell
+python -m ai_band.generate --preset heartland-rock --title "Sound Guy Pass" --style "heartland hard rock" --tempo 118 --key E --scale major --sound-guy --sound-note "bass is killing it, rhythm guitar sounds strange" --output examples/sound-guy-pass.mid
+```
 
 ## Latest Working Artifacts
 
