@@ -4,6 +4,27 @@ The generator writes MIDI. REAPER needs instruments on those MIDI tracks before 
 
 Sound quality work should happen in REAPER first. Standalone desktop, mobile, and plugin ideas stay downstream until the backing band feels convincing through real audition instruments.
 
+## Composition vs Rendering
+
+The Python side now has a small performance/render layer instead of sending composition output straight to the MIDI writer:
+
+- `ai_band.generate.compose_tracks()` builds the song structure and member parts.
+- `ai_band.performance.render_performance()` applies instrument presets, sample-instrument hints, mixer CCs, reverb/delay send CCs, and optional feel controls.
+- `ai_band.generate.build_tracks()` is still the main path used by scripts and tests; it composes, renders, and returns MIDI tracks.
+
+The default render pass is conservative so existing sketches keep their known timing. Stronger feel changes are opt-in:
+
+```powershell
+python -m ai_band.generate --preset heartland-rock --title "Render Feel Test" --tempo 118 --key E --scale major --groove 0.35 --swing 0.10 --velocity-humanize 0.50 --output examples/render-feel-test.mid
+```
+
+The current render presets prefer sample-based instruments where possible:
+
+- drums: MT-PowerDrumKit or another multi-sampled drum instrument
+- bass: Ample Bass P Lite II or another sampled electric bass
+- chords: Ample Guitar M Lite Strummer for rhythm guitar chord blocks, plus sampled pad/sax texture for keys
+- melody: Ample Guitar M Lite or another sampled lead instrument with bends enabled
+
 The emergency sound-check script uses ReaSynth everywhere. That is useful for proving MIDI routing, but it sounds toy-like. The rough tone layer is the next step.
 
 ## Rough Tone Setup

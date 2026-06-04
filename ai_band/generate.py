@@ -9,6 +9,7 @@ from ai_band.ai_feedback import controls_from_cue_with_ai
 from ai_band.live_cue import read_live_cue
 from ai_band.midi import MidiEvent, MidiMeta, MidiTrack, write_midi
 from ai_band.members import bassist, drummer, guitarist, keyboardist, lead, percussion
+from ai_band.performance import PerformanceSettings, default_performance_settings, render_performance
 
 
 def tempo_events_for_preset(preset: str, tempo_bpm: int, ticks_per_beat: int, total_bars: int) -> list[tuple[int, int]]:
@@ -31,6 +32,34 @@ def tempo_events_for_preset(preset: str, tempo_bpm: int, ticks_per_beat: int, to
 
 
 def build_tracks(
+    title: str = "First AI Band Sketch",
+    style: str = "moody alt-rock",
+    tempo_bpm: int = 108,
+    key: str = "A",
+    scale: str = "minor",
+    preset: str = "default",
+    mode: str = "full-band",
+    include_ai_rhythm_guitar: bool | None = None,
+    controls: GenerationControls | None = None,
+    performance: PerformanceSettings | None = None,
+) -> tuple[int, int, list[MidiTrack]]:
+    ticks_per_beat, tempo_bpm, tracks = compose_tracks(
+        title=title,
+        style=style,
+        tempo_bpm=tempo_bpm,
+        key=key,
+        scale=scale,
+        preset=preset,
+        mode=mode,
+        include_ai_rhythm_guitar=include_ai_rhythm_guitar,
+        controls=controls,
+    )
+    rendered_tracks = render_performance(tracks, ticks_per_beat=ticks_per_beat, settings=performance)
+    add_pitch_bend_resets(rendered_tracks)
+    return ticks_per_beat, tempo_bpm, rendered_tracks
+
+
+def compose_tracks(
     title: str = "First AI Band Sketch",
     style: str = "moody alt-rock",
     tempo_bpm: int = 108,
@@ -94,7 +123,6 @@ def build_tracks(
             percussion.generate(song),
         ]
     )
-    add_pitch_bend_resets(tracks)
     return song.ticks_per_beat, song.tempo_bpm, tracks
 
 
@@ -145,6 +173,9 @@ def main() -> None:
     parser.add_argument("--ai-feedback", action="store_true", help="Use real AI to interpret --cue when OPENAI_API_KEY is set")
     parser.add_argument("--ai-model", default=None, help="OpenAI model for --ai-feedback")
     parser.add_argument("--force-ai-feedback", action="store_true", help="Fail if --ai-feedback cannot call the model")
+    parser.add_argument("--groove", type=float, default=0.0, help="Performance timing humanization amount from 0.0 to 1.0")
+    parser.add_argument("--swing", type=float, default=0.0, help="Delay off-beat eighth notes from 0.0 to 1.0")
+    parser.add_argument("--velocity-humanize", type=float, default=0.0, help="Performance velocity variation amount from 0.0 to 1.0")
     args = parser.parse_args()
     include_ai_rhythm_guitar = None
     if args.no_ai_rhythm_guitar:
@@ -173,6 +204,11 @@ def main() -> None:
         mode=args.mode,
         include_ai_rhythm_guitar=include_ai_rhythm_guitar,
         controls=controls,
+        performance=default_performance_settings(
+            groove_amount=args.groove,
+            swing_amount=args.swing,
+            velocity_humanize_amount=args.velocity_humanize,
+        ),
     )
     tempo_events = tempo_events_for_preset(args.preset, tempo_bpm, ticks_per_beat, create_default_song(preset=args.preset).total_bars)
     output = Path(args.output)

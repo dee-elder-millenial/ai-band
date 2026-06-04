@@ -1,12 +1,18 @@
 # AI Band Project Dashboard
 
-Last updated: 2026-06-03
+Last updated: 2026-06-04
 
 ## Current Status
 
 AI Band is a REAPER-first MIDI backing-band prototype. The project can generate editable multi-track MIDI sketches, apply REAPER audition instrument/mix defaults, accept live cue instructions, and optionally use OpenAI to interpret those cues into generation controls.
 
 The current sound-quality focus is reducing robotic MIDI behavior by making the generator cooperate with the installed instruments instead of fighting them.
+
+The Python engine is now split into composition and performance rendering:
+
+- `ai_band.generate.compose_tracks()` creates the existing song/member MIDI structure.
+- `ai_band.performance.render_performance()` adds the audition performance layer: sample-instrument hints, mixer CCs, reverb/delay sends, instrument roles, and optional groove/swing/velocity humanization.
+- `ai_band.generate.build_tracks()` remains the normal public path and returns rendered tracks.
 
 ## Latest Decision
 
@@ -65,9 +71,10 @@ Current observed local estimate: about `$0.0004 / $5.00`, 1 tracked call.
 ## Next Session
 
 1. Ear-test the strummer-friendly rhythm guitar in REAPER.
-2. If it works, add an explicit instrument-profile concept:
+2. Try opt-in render feel on a copy, for example `--groove 0.35 --swing 0.10 --velocity-humanize 0.50`, and listen for whether it helps or smears the pocket.
+3. If the Strummer profile works, expand instrument presets into an explicit user-selectable profile:
    - Ample Strummer: chord blocks.
    - Ample Finger/Main: picked/arpeggiated MIDI.
    - Generic fallback: internal strum simulation.
-3. After rhythm guitar is stable, return to lead guitar realism.
-4. Keep every good listening lesson as a generator/process change, not a one-off MIDI edit.
+4. After rhythm guitar is stable, return to lead guitar realism.
+5. Keep every good listening lesson as a generator/process change, not a one-off MIDI edit.

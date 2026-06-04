@@ -90,6 +90,12 @@ Generate a harder-rocking heartland-rock audition song:
 python -m ai_band.generate --preset heartland-rock --title "Main Street Thunder" --style "heartland hard rock" --tempo 118 --key E --scale major --output examples/main-street-thunder.mid
 ```
 
+Generate a copy with stronger performance rendering feel:
+
+```powershell
+python -m ai_band.generate --preset heartland-rock --title "Render Feel Test" --style "heartland hard rock" --tempo 118 --key E --scale major --groove 0.35 --swing 0.10 --velocity-humanize 0.50 --output examples/render-feel-test.mid
+```
+
 Create the Phase 1 alpha build package:
 
 ```powershell
@@ -139,6 +145,7 @@ ai-band/
     generate.py
     live_cue.py
     midi.py
+    performance.py
     respond.py
     song_state.py
     members/
