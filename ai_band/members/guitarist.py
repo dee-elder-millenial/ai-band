@@ -9,7 +9,7 @@ from ai_band.theory import chord_tones
 GUITAR_CHANNEL = 1
 
 
-def generate(song: SongState) -> MidiTrack:
+def generate(song: SongState, profile: str = "auto") -> MidiTrack:
     track = MidiTrack("AI Guitar Player", channel=GUITAR_CHANNEL, program=29)
     eighth = note_duration(song, 0.45)
     half = note_duration(song, 1.75)
@@ -28,9 +28,22 @@ def generate(song: SongState) -> MidiTrack:
 
         if song.preset == "heartland-rock":
             voicing = (low_tones[0], low_tones[2], tones[0], tones[1], tones[2], tones[0] + 12)
-            strummer_voicing = _heartland_strummer_voicing(voicing, tones, local_bar, section.energy)
-            _add_heartland_strummer_chord(track, song, bar, local_bar, strummer_voicing, section.energy, groove_offset, bar_lift)
-            continue
+            if profile in {"auto", "ample-strummer"}:
+                strummer_voicing = _heartland_strummer_voicing(voicing, tones, local_bar, section.energy)
+                _add_heartland_strummer_chord(track, song, bar, local_bar, strummer_voicing, section.energy, groove_offset, bar_lift)
+                continue
+            if profile == "simple-blocks":
+                _add_heartland_strummer_chord(
+                    track,
+                    song,
+                    bar,
+                    local_bar,
+                    _heartland_simple_block_voicing(tones, local_bar, section.energy),
+                    section.energy,
+                    groove_offset,
+                    bar_lift,
+                )
+                continue
         elif song.preset == "southern-blues":
             voicing = (tones[0], tones[1], tones[2], tones[0] + 12)
             beats = (0, 1.5, 2.5, 3.5) if section.energy < 0.75 else (0, 1.0, 2.0, 2.5, 3.5)
@@ -237,6 +250,19 @@ def _heartland_strummer_voicing(
     if local_bar % 4 == 2:
         return colored[:5]
     return colored
+
+
+def _heartland_simple_block_voicing(
+    tones: tuple[int, int, int],
+    local_bar: int,
+    energy: float,
+) -> tuple[int, ...]:
+    root, third, fifth = tones
+    if energy < 0.78:
+        return (root, third, fifth)
+    if local_bar % 4 == 2:
+        return (root, third, fifth, root + 12)
+    return (root - 12, root, third, fifth, root + 12)
 
 
 def _heartland_color_voicing(

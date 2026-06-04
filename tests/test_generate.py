@@ -551,6 +551,44 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertGreaterEqual(len(lead_vibrato_targets), 4)
         self.assertGreaterEqual(len(lead_grace_notes), 14)
 
+    def test_heartland_rhythm_guitar_can_use_simple_chord_blocks(self) -> None:
+        _ticks, _tempo, tracks = build_tracks(
+            preset="heartland-rock",
+            key="E",
+            scale="major",
+            tempo_bpm=118,
+            rhythm_guitar_profile="simple-blocks",
+        )
+        guitar = next(track for track in tracks if track.name == "AI Guitar Player")
+        chord_blocks: dict[int, list[int]] = {}
+        for note in guitar.notes:
+            chord_blocks.setdefault(note.start, []).append(note.note)
+
+        block_sizes = {len(notes) for notes in chord_blocks.values()}
+        self.assertGreaterEqual(len(chord_blocks), 80)
+        self.assertTrue(block_sizes.issubset({3, 4, 5}))
+        self.assertLessEqual(min(note.note for note in guitar.notes), 52)
+        self.assertGreaterEqual(max(note.note for note in guitar.notes), 64)
+        self.assertEqual(max(max(notes) - min(notes) for notes in chord_blocks.values()), 24)
+
+    def test_heartland_rhythm_guitar_can_fall_back_to_internal_strums(self) -> None:
+        _ticks, _tempo, tracks = build_tracks(
+            preset="heartland-rock",
+            key="E",
+            scale="major",
+            tempo_bpm=118,
+            rhythm_guitar_profile="internal-strum",
+        )
+        guitar = next(track for track in tracks if track.name == "AI Guitar Player")
+        chord_blocks: dict[int, int] = {}
+        for note in guitar.notes:
+            chord_blocks[note.start] = chord_blocks.get(note.start, 0) + 1
+
+        self.assertGreaterEqual(len(guitar.notes), 1000)
+        self.assertTrue(any(start % 480 not in {0, 240, 360} for start in chord_blocks))
+        self.assertLessEqual(max(chord_blocks.values()), 2)
+        self.assertGreaterEqual(sum(1 for count in chord_blocks.values() if count == 1), 900)
+
 
 if __name__ == "__main__":
     unittest.main()

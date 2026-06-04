@@ -96,6 +96,13 @@ Generate a copy with stronger performance rendering feel:
 python -m ai_band.generate --preset heartland-rock --title "Render Feel Test" --style "heartland hard rock" --tempo 118 --key E --scale major --groove 0.35 --swing 0.10 --velocity-humanize 0.50 --output examples/render-feel-test.mid
 ```
 
+Generate rhythm-guitar diagnostic variants:
+
+```powershell
+python -m ai_band.generate --preset heartland-rock --title "Rhythm Guitar Simple Blocks" --style "heartland hard rock" --tempo 118 --key E --scale major --rhythm-guitar-profile simple-blocks --output examples/rhythm-guitar-simple-blocks.mid
+python -m ai_band.generate --preset heartland-rock --title "Rhythm Guitar Internal Strum" --style "heartland hard rock" --tempo 118 --key E --scale major --rhythm-guitar-profile internal-strum --output examples/rhythm-guitar-internal-strum.mid
+```
+
 Create the Phase 1 alpha build package:
 
 ```powershell

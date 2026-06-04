@@ -42,6 +42,7 @@ def build_tracks(
     include_ai_rhythm_guitar: bool | None = None,
     controls: GenerationControls | None = None,
     performance: PerformanceSettings | None = None,
+    rhythm_guitar_profile: str = "auto",
 ) -> tuple[int, int, list[MidiTrack]]:
     ticks_per_beat, tempo_bpm, tracks = compose_tracks(
         title=title,
@@ -53,6 +54,7 @@ def build_tracks(
         mode=mode,
         include_ai_rhythm_guitar=include_ai_rhythm_guitar,
         controls=controls,
+        rhythm_guitar_profile=rhythm_guitar_profile,
     )
     rendered_tracks = render_performance(tracks, ticks_per_beat=ticks_per_beat, settings=performance)
     add_pitch_bend_resets(rendered_tracks)
@@ -69,6 +71,7 @@ def compose_tracks(
     mode: str = "full-band",
     include_ai_rhythm_guitar: bool | None = None,
     controls: GenerationControls | None = None,
+    rhythm_guitar_profile: str = "auto",
 ) -> tuple[int, int, list[MidiTrack]]:
     song = create_default_song(title=title, style=style, tempo_bpm=tempo_bpm, key=key, scale=scale, preset=preset)
     controls = controls or GenerationControls()
@@ -115,7 +118,7 @@ def compose_tracks(
         bassist.generate(song, simplify=controls.bass_simplify),
     ]
     if include_ai_rhythm_guitar:
-        tracks.append(guitarist.generate(song))
+        tracks.append(guitarist.generate(song, profile=rhythm_guitar_profile))
     tracks.extend(
         [
             keyboardist.generate(song, leave_space=controls.keys_leave_space),
@@ -176,6 +179,12 @@ def main() -> None:
     parser.add_argument("--groove", type=float, default=0.0, help="Performance timing humanization amount from 0.0 to 1.0")
     parser.add_argument("--swing", type=float, default=0.0, help="Delay off-beat eighth notes from 0.0 to 1.0")
     parser.add_argument("--velocity-humanize", type=float, default=0.0, help="Performance velocity variation amount from 0.0 to 1.0")
+    parser.add_argument(
+        "--rhythm-guitar-profile",
+        default="auto",
+        choices=("auto", "ample-strummer", "simple-blocks", "internal-strum"),
+        help="Rhythm guitar MIDI profile for diagnosing or matching guitar plugins",
+    )
     args = parser.parse_args()
     include_ai_rhythm_guitar = None
     if args.no_ai_rhythm_guitar:
@@ -204,6 +213,7 @@ def main() -> None:
         mode=args.mode,
         include_ai_rhythm_guitar=include_ai_rhythm_guitar,
         controls=controls,
+        rhythm_guitar_profile=args.rhythm_guitar_profile,
         performance=default_performance_settings(
             groove_amount=args.groove,
             swing_amount=args.swing,

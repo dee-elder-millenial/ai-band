@@ -39,11 +39,27 @@ Generated MIDI files are intentionally ignored by Git, but they live in the clou
 
 ## Current REAPER Test
 
-1. Import `examples/factory-flag-thunder.mid`.
-2. Put `Ample Guitar M Lite` on `AI Guitar Player`.
-3. Enable the plugin's Strummer mode.
-4. Solo the rhythm guitar track first.
-5. Confirm the rhythm track no longer sounds like a double-arpeggiated mess.
+Rhythm guitar needs A/B diagnosis because the bass has improved, but the guitar still sounds strange through the current plugin setup.
+
+Import and compare these three files with the same Ample Guitar setup:
+
+- `examples/rhythm-guitar-current-strummer.mid`
+  - Current default Ample Strummer chord-block profile.
+  - 443 rhythm guitar notes.
+- `examples/rhythm-guitar-simple-blocks.mid`
+  - Simpler chord-recognition blocks with less color/register complexity.
+  - 355 rhythm guitar notes.
+- `examples/rhythm-guitar-internal-strum.mid`
+  - MIDI-level fallback strumming instead of relying on the plugin Strummer.
+  - 1625 rhythm guitar notes.
+
+Test procedure:
+
+1. Put `Ample Guitar M Lite` on `AI Guitar Player`.
+2. Solo the rhythm guitar track first.
+3. For the two block profiles, try the plugin Strummer mode.
+4. For `internal-strum`, try the non-Strummer/Finger mode first.
+5. If one file clearly wins, make that profile the heartland default.
 6. Then run:
    - `ai_band_apply_reaper_audition_settings.lua`
    - `ai_band_apply_audition_mix.lua`
