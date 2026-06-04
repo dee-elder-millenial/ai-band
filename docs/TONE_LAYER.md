@@ -86,6 +86,7 @@ Future tone work should move toward:
 - sparse warm keyboard texture
 - lead sound that supports the vocal instead of dominating it
 - automatic gain staging and master safety
+- instrument-aware MIDI profiles, especially Ample Guitar Strummer chord-block input versus fallback MIDI strumming
 
 ## Current Listening Priorities
 
@@ -95,6 +96,7 @@ Use REAPER as the granular editing lab:
 - bring drums forward without clipping or harshness
 - choose a keyboard pad that leaves room for vocal and rhythm guitar
 - make lead phrases feel less robotic with timing, bends, rests, and shorter motifs
+- test rhythm guitar in Ample Guitar Strummer with same-tick chord blocks before adding more generated strumming detail
 - keep each change traceable back to either a generator rule or an instrument-profile setting
 
 ## Starter Effects

@@ -175,6 +175,8 @@ The generated MIDI is editable in REAPER and does not require paid third-party p
 
 See [docs/FIRST_BUILD.md](docs/FIRST_BUILD.md) for the current alpha build contents and limitations.
 
+See [docs/PROJECT_DASHBOARD.md](docs/PROJECT_DASHBOARD.md) and [docs/HANDOFF.md](docs/HANDOFF.md) for the latest working status, REAPER test path, and next-session notes.
+
 See [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) for the human-fronted band direction, including The Ehaye Band mode.
 
 For a less toy-like REAPER audition setup, see [docs/TONE_LAYER.md](docs/TONE_LAYER.md).

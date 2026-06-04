@@ -33,6 +33,12 @@ class BuildPackageTests(unittest.TestCase):
         self.assertIn("ReaLimit", script)
         self.assertIn('SetMediaTrackInfo_Value(master, "D_VOL", 0.82)', script)
 
+    def test_status_and_handoff_docs_exist(self) -> None:
+        for relative_path in ("docs/PROJECT_DASHBOARD.md", "docs/HANDOFF.md"):
+            with self.subTest(path=relative_path):
+                text = (build.REPO_ROOT / relative_path).read_text(encoding="utf-8")
+                self.assertIn("AI Band", text)
+
 
 if __name__ == "__main__":
     unittest.main()
