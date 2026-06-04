@@ -54,6 +54,12 @@ Generate from a REAPER live cue using the AI feedback interpreter:
 python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --ai-feedback --output examples/ehaye-ai-response.mid
 ```
 
+Check AI Band's local estimated API spend:
+
+```powershell
+python -m ai_band.api_budget
+```
+
 Generate a bluesy alt-country backing sketch:
 
 ```powershell
@@ -120,6 +126,7 @@ ai-band/
     AI Band Humanizer.jsfx
     AI Band GM Drum Synth.jsfx
   ai_band/
+    api_budget.py
     build.py
     bandleader.py
     ai_feedback.py

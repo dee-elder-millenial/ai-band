@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from ai_band.api_budget import budget_status, format_budget_status, record_response_usage
 from ai_band.controls import GenerationControls, controls_from_cue
 from ai_band.live_cue import LiveCue, read_live_cue
 
@@ -36,6 +37,13 @@ class AiFeedbackResult:
     model: str | None = None
     rationale: str = ""
     error: str | None = None
+    budget_message: str | None = None
+
+
+@dataclass(frozen=True)
+class OpenAiCallResult:
+    payload: dict[str, Any]
+    usage: dict[str, Any]
 
 
 def controls_from_cue_with_ai(
@@ -58,21 +66,27 @@ def controls_from_cue_with_ai(
         return AiFeedbackResult(fallback, source="fallback", model=selected_model)
 
     try:
-        payload = _call_openai(cue, selected_model, selected_key, timeout_seconds)
+        current_budget = budget_status()
+        if current_budget.exhausted:
+            raise RuntimeError(format_budget_status(current_budget))
+        call_result = _call_openai(cue, selected_model, selected_key, timeout_seconds)
+        payload = call_result.payload
+        updated_budget = record_response_usage(model=selected_model, usage=call_result.usage, cue_instruction=cue.instruction)
         controls = _controls_from_model_payload(cue, payload)
         return AiFeedbackResult(
             controls=controls,
             source="openai",
             model=selected_model,
             rationale=str(payload.get("rationale", "")),
+            budget_message=format_budget_status(updated_budget),
         )
-    except (OSError, ValueError, KeyError, urllib.error.URLError) as exc:
+    except (OSError, RuntimeError, ValueError, KeyError, urllib.error.URLError) as exc:
         if force_ai:
             raise RuntimeError(f"AI feedback failed: {exc}") from exc
         return AiFeedbackResult(fallback, source="fallback", model=selected_model, error=str(exc))
 
 
-def _call_openai(cue: LiveCue, model: str, api_key: str, timeout_seconds: float) -> dict[str, Any]:
+def _call_openai(cue: LiveCue, model: str, api_key: str, timeout_seconds: float) -> OpenAiCallResult:
     body = {
         "model": model,
         "store": False,
@@ -105,7 +119,10 @@ def _call_openai(cue: LiveCue, model: str, api_key: str, timeout_seconds: float)
     with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
         response_body = json.loads(response.read().decode("utf-8"))
     text = _extract_response_text(response_body)
-    return json.loads(text)
+    usage = response_body.get("usage", {})
+    if not isinstance(usage, dict):
+        usage = {}
+    return OpenAiCallResult(payload=json.loads(text), usage=usage)
 
 
 def _cue_context(cue: LiveCue) -> dict[str, object]:
@@ -153,6 +170,7 @@ def result_to_json(result: AiFeedbackResult) -> str:
         "model": result.model,
         "rationale": result.rationale,
         "error": result.error,
+        "budget": result.budget_message,
         "controls": asdict(result.controls),
     }
     return json.dumps(data, indent=2) + "\n"
@@ -171,6 +189,8 @@ def main() -> None:
     if args.output_json:
         Path(args.output_json).write_text(text, encoding="utf-8")
     print(text, end="")
+    if result.budget_message:
+        print(result.budget_message)
 
 
 if __name__ == "__main__":

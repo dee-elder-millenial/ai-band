@@ -158,6 +158,8 @@ def main() -> None:
             result = controls_from_cue_with_ai(cue, model=args.ai_model, force_ai=args.force_ai_feedback)
             controls = result.controls
             print(f"AI feedback source: {result.source}" + (f" ({result.error})" if result.error else ""))
+            if result.budget_message:
+                print(result.budget_message)
         else:
             controls = controls_from_cue(cue)
 

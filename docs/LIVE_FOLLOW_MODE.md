@@ -114,6 +114,20 @@ Generate a cue response MIDI using real AI:
 python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --ai-feedback --output examples/ehaye-ai-response.mid
 ```
 
+Check AI Band's local estimated API spend:
+
+```powershell
+python -m ai_band.api_budget
+```
+
+The local ledger is `state/api_usage.json`. It is intentionally ignored by Git and estimates only calls made through AI Band. The OpenAI billing dashboard remains the source of truth.
+
+The default local budget is `$5.00`. Override it for a shell session:
+
+```powershell
+$env:AI_BAND_API_BUDGET_USD = "5.00"
+```
+
 The default model is `gpt-5.4-mini`, chosen as a lower-cost interpreter. Override it when needed:
 
 ```powershell

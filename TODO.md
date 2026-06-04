@@ -148,6 +148,7 @@ Goal: let the AI band respond to Deanna's direction and, later, to live/project 
 - [x] Support commands such as "simplify bass", "drums bigger in chorus", "keys leave more space", and "lead answer the vocal".
 - [x] Add a Python command reader that turns cue instructions into generator settings.
 - [x] Add an optional real-AI cue interpreter behind `OPENAI_API_KEY`.
+- [x] Add local estimated API spend tracking for the AI cue loop.
 - [ ] Regenerate selected members without rebuilding the whole sketch.
 - [ ] Preserve previous generated parts until replacements are confirmed.
 

@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import json
 import os
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
+from ai_band.api_budget import budget_status, estimate_response_cost_usd, read_usage, record_response_usage
 from ai_band.ai_feedback import (
     CONTROL_SCHEMA,
+    OpenAiCallResult,
     _call_openai,
     _extract_response_text,
     controls_from_cue_with_ai,
@@ -37,16 +41,21 @@ class AiFeedbackTests(unittest.TestCase):
             "rationale": "Open space for the vocal.",
         }
 
-        with patch("ai_band.ai_feedback._call_openai", return_value=model_payload), patch.dict(
-            os.environ, {"OPENAI_API_KEY": "test-key"}, clear=True
-        ):
-            result = controls_from_cue_with_ai(cue, model="test-model")
+        with tempfile.TemporaryDirectory() as tmp:
+            usage_path = str(Path(tmp) / "usage.json")
+            with patch("ai_band.ai_feedback._call_openai", return_value=OpenAiCallResult(model_payload, _sample_usage())), patch.dict(
+                os.environ,
+                {"OPENAI_API_KEY": "test-key", "AI_BAND_API_USAGE_PATH": usage_path},
+                clear=True,
+            ):
+                result = controls_from_cue_with_ai(cue, model="gpt-5.4-mini")
 
         self.assertEqual(result.source, "openai")
-        self.assertEqual(result.model, "test-model")
+        self.assertEqual(result.model, "gpt-5.4-mini")
         self.assertTrue(result.controls.keys_leave_space)
         self.assertTrue(result.controls.lead_sparse)
         self.assertIn("AI bandleader", result.controls.cue_summary or "")
+        self.assertIn("$", result.budget_message or "")
 
     def test_api_failure_falls_back_unless_forced(self) -> None:
         cue = LiveCue("live-cue", "drums louder", "drums", 0.8, 0, "")
@@ -95,7 +104,11 @@ class AiFeedbackTests(unittest.TestCase):
     def test_result_json_does_not_include_api_key(self) -> None:
         cue = LiveCue("live-cue", "drums louder", "drums", 0.8, 0, "")
 
-        with patch.dict(os.environ, {"OPENAI_API_KEY": "secret-value"}, clear=True):
+        with patch("ai_band.ai_feedback._call_openai", side_effect=ValueError("no network")), patch.dict(
+            os.environ,
+            {"OPENAI_API_KEY": "secret-value"},
+            clear=True,
+        ):
             result = controls_from_cue_with_ai(cue, api_key=None)
 
         self.assertNotIn("secret-value", result_to_json(result))
@@ -139,8 +152,9 @@ class AiFeedbackTests(unittest.TestCase):
             return FakeResponse()
 
         with patch("urllib.request.urlopen", side_effect=fake_urlopen):
-            payload = _call_openai(cue, "test-model", "test-key", 3.0)
+            result = _call_openai(cue, "test-model", "test-key", 3.0)
 
+        payload = result.payload
         self.assertTrue(payload["lead_sparse"])
         self.assertEqual(captured["timeout"], 3.0)
         body = captured["body"]
@@ -148,6 +162,39 @@ class AiFeedbackTests(unittest.TestCase):
         self.assertIs(body["store"], False)
         self.assertEqual(body["max_output_tokens"], 300)
         self.assertEqual(body["text"]["format"]["type"], "json_schema")  # type: ignore[index]
+
+    def test_budget_estimate_and_ledger_record_usage(self) -> None:
+        usage = _sample_usage()
+        cost = estimate_response_cost_usd("gpt-5.4-mini", usage)
+
+        self.assertGreater(cost, 0)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "usage.json"
+            status = record_response_usage(model="gpt-5.4-mini", usage=usage, path=path, cue_instruction="test cue")
+            ledger = read_usage(path)
+
+        self.assertEqual(status.call_count, 1)
+        self.assertEqual(len(ledger["calls"]), 1)
+        self.assertGreater(ledger["total_estimated_usd"], 0)
+
+    def test_budget_status_warns_when_exhausted(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "usage.json"
+            path.write_text(json.dumps({"version": 1, "total_estimated_usd": 5.01, "calls": []}), encoding="utf-8")
+
+            status = budget_status(path=path, budget_usd=5.0)
+
+        self.assertTrue(status.exhausted)
+        self.assertIn("exhausted", status.warning or "")
+
+
+def _sample_usage() -> dict[str, object]:
+    return {
+        "input_tokens": 1000,
+        "output_tokens": 100,
+        "total_tokens": 1100,
+        "input_tokens_details": {"cached_tokens": 100},
+    }
 
 
 if __name__ == "__main__":
