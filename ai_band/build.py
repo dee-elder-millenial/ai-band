@@ -98,6 +98,7 @@ def build_manifest(ticks_per_beat: int, tempo_bpm: int) -> dict[str, object]:
             "hard_flag_blues_audition_script": "Scripts/ai_band_hard_flag_blues_audition_setup.lua",
             "hard_flag_blues_with_guitar_audition_script": "Scripts/ai_band_hard_flag_blues_with_guitar_audition_setup.lua",
             "main_street_thunder_audition_script": "Scripts/ai_band_main_street_thunder_audition_setup.lua",
+            "rhythm_guitar_diagnostic_script": "Scripts/ai_band_rhythm_guitar_diagnostic_audition.lua",
             "tone_helpers": "Scripts/ai_band_tone_helpers.lua",
             "live_cue_script": "Scripts/ai_band_write_live_cue.lua",
             "jsfx": "Effects/AI Band Humanizer.jsfx",

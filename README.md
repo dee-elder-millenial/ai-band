@@ -139,6 +139,7 @@ ai-band/
     ai_band_hard_flag_blues_audition_setup.lua
     ai_band_hard_flag_blues_with_guitar_audition_setup.lua
     ai_band_main_street_thunder_audition_setup.lua
+    ai_band_rhythm_guitar_diagnostic_audition.lua
     ai_band_tone_helpers.lua
     ai_band_write_live_cue.lua
   Effects/

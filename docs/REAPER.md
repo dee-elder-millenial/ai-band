@@ -42,6 +42,20 @@ Scripts/ai_band_main_street_thunder_audition_setup.lua
 
 `examples/main-street-thunder.mid` includes a subtle 117-119 BPM tempo-feel map. The audition script does not force a single project BPM before import, so REAPER can preserve that MIDI tempo map when its import settings allow it.
 
+For rhythm-guitar troubleshooting, load and run:
+
+```text
+Scripts/ai_band_rhythm_guitar_diagnostic_audition.lua
+```
+
+It prompts for:
+
+- `1`: current richer chord blocks for Ample Strummer mode
+- `2`: simpler chord blocks for Ample Strummer mode
+- `3`: internal MIDI strumming for Finger/non-Strummer mode
+
+Solo `AI Guitar Player` first, then add bass and drums after one profile sounds normal.
+
 Option 2: install the helper script:
 
 1. In REAPER, choose `Options > Show REAPER resource path in explorer/finder`.
