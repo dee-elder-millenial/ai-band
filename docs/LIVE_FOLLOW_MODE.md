@@ -86,10 +86,38 @@ The current build can read the latest cue:
 python -m ai_band.live_cue
 ```
 
-It can also apply the cue while generating:
+It can also apply the cue while generating with the deterministic keyword interpreter:
 
 ```powershell
 python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --output examples/ehaye-cue-response.mid
+```
+
+## Real AI Feedback Loop
+
+The first real AI integration is an optional bandleader interpreter. It reads the REAPER cue, asks an OpenAI model to map the instruction into generation controls, and falls back to the deterministic interpreter when no API key is available.
+
+Set the API key in the same PowerShell window where you will run AI Band:
+
+```powershell
+$env:OPENAI_API_KEY = Get-Clipboard
+```
+
+Then test the AI interpreter directly:
+
+```powershell
+python -m ai_band.ai_feedback --cue state/live_cue.json --force-ai
+```
+
+Generate a cue response MIDI using real AI:
+
+```powershell
+python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --ai-feedback --output examples/ehaye-ai-response.mid
+```
+
+The default model is `gpt-5.4-mini`, chosen as a lower-cost interpreter. Override it when needed:
+
+```powershell
+$env:AI_BAND_OPENAI_MODEL = "gpt-5.5"
 ```
 
 Initial cue behavior:
@@ -98,3 +126,10 @@ Initial cue behavior:
 - `keys leave more space` thins keyboard hits further.
 - `drums bigger` raises chorus drum intensity.
 - `lead answer the vocal` makes lead phrases sparser.
+
+When `--ai-feedback` is enabled, these same controls can be triggered by more natural instructions such as:
+
+- `the keys and lead are stepping on my vocal`
+- `make the drummer push the chorus harder`
+- `bass is too busy under the verse`
+- `lead guitar should answer me, not talk over me`

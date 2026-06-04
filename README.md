@@ -42,6 +42,18 @@ Apply the latest REAPER live cue while generating:
 python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --output examples/ehaye-cue-response.mid
 ```
 
+Interpret a REAPER live cue with real AI when `OPENAI_API_KEY` is set:
+
+```powershell
+python -m ai_band.ai_feedback --cue state/live_cue.json --force-ai
+```
+
+Generate from a REAPER live cue using the AI feedback interpreter:
+
+```powershell
+python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --ai-feedback --output examples/ehaye-ai-response.mid
+```
+
 Generate a bluesy alt-country backing sketch:
 
 ```powershell
@@ -110,6 +122,7 @@ ai-band/
   ai_band/
     build.py
     bandleader.py
+    ai_feedback.py
     generate.py
     live_cue.py
     midi.py

@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ai_band.bandleader import create_default_song
 from ai_band.controls import GenerationControls, controls_from_cue
+from ai_band.ai_feedback import controls_from_cue_with_ai
 from ai_band.live_cue import read_live_cue
 from ai_band.midi import MidiEvent, MidiMeta, MidiTrack, write_midi
 from ai_band.members import bassist, drummer, guitarist, keyboardist, lead, percussion
@@ -141,13 +142,24 @@ def main() -> None:
         help="Generate the AI rhythm guitar track even in modes where it is normally disabled.",
     )
     parser.add_argument("--cue", help="Read a live cue JSON file and apply it to generation controls")
+    parser.add_argument("--ai-feedback", action="store_true", help="Use real AI to interpret --cue when OPENAI_API_KEY is set")
+    parser.add_argument("--ai-model", default=None, help="OpenAI model for --ai-feedback")
+    parser.add_argument("--force-ai-feedback", action="store_true", help="Fail if --ai-feedback cannot call the model")
     args = parser.parse_args()
     include_ai_rhythm_guitar = None
     if args.no_ai_rhythm_guitar:
         include_ai_rhythm_guitar = False
     if args.ai_rhythm_guitar:
         include_ai_rhythm_guitar = True
-    controls = controls_from_cue(read_live_cue(args.cue)) if args.cue else GenerationControls()
+    controls = GenerationControls()
+    if args.cue:
+        cue = read_live_cue(args.cue)
+        if args.ai_feedback:
+            result = controls_from_cue_with_ai(cue, model=args.ai_model, force_ai=args.force_ai_feedback)
+            controls = result.controls
+            print(f"AI feedback source: {result.source}" + (f" ({result.error})" if result.error else ""))
+        else:
+            controls = controls_from_cue(cue)
 
     ticks_per_beat, tempo_bpm, tracks = build_tracks(
         title=args.title,

@@ -306,6 +306,12 @@ class GenerateMidiTests(unittest.TestCase):
         controls = controls_from_cue(LiveCue("live-cue", "lead answer the vocal", "lead", 0.8, 0, ""))
         self.assertTrue(controls.lead_sparse)
 
+        controls = controls_from_cue(
+            LiveCue("live-cue", "keys and lead are stepping on my vocal, leave more room", "bandleader", 0.8, 0, "")
+        )
+        self.assertTrue(controls.keys_leave_space)
+        self.assertTrue(controls.lead_sparse)
+
     def test_bluesy_alt_country_generates_backing_tracks(self) -> None:
         _ticks, _tempo, tracks = build_tracks(
             mode="ehaye",

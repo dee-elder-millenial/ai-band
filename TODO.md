@@ -142,11 +142,12 @@ Goal: let the AI band respond to Deanna's direction and, later, to live/project 
 
 ### Instruction Following
 
-- [ ] Add a REAPER script for writing AI Band cue instructions.
-- [ ] Store instructions in `state/live_cue.json`.
-- [ ] Let commands target the bandleader or a specific member.
-- [ ] Support commands such as "simplify bass", "drums bigger in chorus", "keys leave more space", and "lead answer the vocal".
-- [ ] Add a Python command reader that turns cue instructions into generator settings.
+- [x] Add a REAPER script for writing AI Band cue instructions.
+- [x] Store instructions in `state/live_cue.json`.
+- [x] Let commands target the bandleader or a specific member.
+- [x] Support commands such as "simplify bass", "drums bigger in chorus", "keys leave more space", and "lead answer the vocal".
+- [x] Add a Python command reader that turns cue instructions into generator settings.
+- [x] Add an optional real-AI cue interpreter behind `OPENAI_API_KEY`.
 - [ ] Regenerate selected members without rebuilding the whole sketch.
 - [ ] Preserve previous generated parts until replacements are confirmed.
 

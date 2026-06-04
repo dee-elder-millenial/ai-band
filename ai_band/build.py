@@ -79,6 +79,8 @@ def build_manifest(ticks_per_beat: int, tempo_bpm: int) -> dict[str, object]:
             "generate": "python -m ai_band.generate --output examples/first-sketch.mid",
             "generate_ehaye": "python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --output examples/ehaye-backing-band.mid",
             "generate_from_cue": "python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --output examples/ehaye-cue-response.mid",
+            "interpret_cue_with_ai": "python -m ai_band.ai_feedback --cue state/live_cue.json --force-ai",
+            "generate_from_ai_feedback": "python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --ai-feedback --output examples/ehaye-ai-response.mid",
             "build": "python -m ai_band.build",
             "tests": "python -m unittest discover -s tests",
         },
