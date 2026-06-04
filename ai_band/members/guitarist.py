@@ -28,9 +28,9 @@ def generate(song: SongState) -> MidiTrack:
 
         if song.preset == "heartland-rock":
             voicing = (low_tones[0], low_tones[2], tones[0], tones[1], tones[2], tones[0] + 12)
-            beats = (0, 1.5, 2.5, 3.5) if section.energy < 0.85 else (0, 0.5, 1.5, 2.0, 2.5, 3.5)
-            duration = note_duration(song, 0.44 if section.energy < 0.85 else 0.30)
-            base_velocity = 50
+            strummer_voicing = _heartland_strummer_voicing(voicing, tones, local_bar, section.energy)
+            _add_heartland_strummer_chord(track, song, bar, local_bar, strummer_voicing, section.energy, groove_offset, bar_lift)
+            continue
         elif song.preset == "southern-blues":
             voicing = (tones[0], tones[1], tones[2], tones[0] + 12)
             beats = (0, 1.5, 2.5, 3.5) if section.energy < 0.75 else (0, 1.0, 2.0, 2.5, 3.5)
@@ -196,6 +196,47 @@ def _add_heartland_rake(
     for index, note in enumerate(rake_notes):
         note_velocity = min(clamp_midi(velocity(26, energy, index + _heartland_velocity_shift(bar, beat))), 58)
         track.notes.append(MidiNote(rake_start + index * gap, duration, note, note_velocity, GUITAR_CHANNEL))
+
+
+def _add_heartland_strummer_chord(
+    track: MidiTrack,
+    song: SongState,
+    bar: int,
+    local_bar: int,
+    voicing: tuple[int, ...],
+    energy: float,
+    groove_offset: int,
+    bar_lift: int,
+) -> None:
+    start = max(song.bar_tick(bar) + groove_offset + _heartland_anchor_offset(song, bar, 0), song.bar_tick(bar))
+    next_bar = song.bar_tick(bar + 1)
+    duration = max(note_duration(song, 2.75), next_bar - start - note_duration(song, 0.08))
+    base_velocity = 48 + int(energy * 18) + bar_lift + _heartland_velocity_shift(bar, 0)
+    velocity_offsets = (0, -2, 1, -1, 2, -2)
+    for index, note in enumerate(voicing):
+        track.notes.append(
+            MidiNote(
+                start,
+                duration,
+                note,
+                clamp_midi(base_velocity + velocity_offsets[index % len(velocity_offsets)]),
+                GUITAR_CHANNEL,
+            )
+        )
+
+
+def _heartland_strummer_voicing(
+    voicing: tuple[int, ...],
+    tones: tuple[int, int, int],
+    local_bar: int,
+    energy: float,
+) -> tuple[int, ...]:
+    colored = _heartland_color_voicing(voicing, tones, local_bar, 2.0)
+    if energy < 0.78:
+        return colored[1:5]
+    if local_bar % 4 == 2:
+        return colored[:5]
+    return colored
 
 
 def _heartland_color_voicing(

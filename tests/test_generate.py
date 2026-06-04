@@ -390,16 +390,15 @@ class GenerateMidiTests(unittest.TestCase):
         lead = next(track for track in tracks if track.name == "AI Lead Player")
         percussion = next(track for track in tracks if track.name == "AI Percussion Extras")
         bar_ticks = 480 * 4
-        guitar_durations = {note.duration for note in guitar.notes}
-        guitar_rakes = [note for note in guitar.notes if note.duration <= 30 and note.velocity < 60]
         guitar_pitches = {note.note for note in guitar.notes}
         guitar_low_notes = [note for note in guitar.notes if note.note <= 47]
-        guitar_cluster_counts = {}
+        guitar_chord_blocks = {}
         for note in guitar.notes:
-            cluster = note.start // 90
-            guitar_cluster_counts[cluster] = guitar_cluster_counts.get(cluster, 0) + 1
-        guitar_partial_strums = [count for count in guitar_cluster_counts.values() if count in {4, 5}]
-        guitar_full_strums = [count for count in guitar_cluster_counts.values() if count == 6]
+            guitar_chord_blocks.setdefault(note.start, []).append(note)
+        guitar_block_sizes = [len(notes) for notes in guitar_chord_blocks.values()]
+        guitar_block_spans = [max(note.start for note in notes) - min(note.start for note in notes) for notes in guitar_chord_blocks.values()]
+        guitar_partial_blocks = [count for count in guitar_block_sizes if count in {4, 5}]
+        guitar_full_blocks = [count for count in guitar_block_sizes if count == 6]
         keyboard_pitches = {note.note for note in keyboard.notes}
         keyboard_expression_events = [event for event in keyboard.events if event.status == 0xB0 | 2 and event.data[0] == 11]
         keyboard_bend_values = [
@@ -510,22 +509,23 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertGreaterEqual(len(bass.events), 150)
         self.assertGreaterEqual(len(bass_bend_targets), 4)
         self.assertGreater(average_velocity(bass, final_chorus_lift), average_velocity(bass, final_chorus_start))
-        self.assertGreater(len(guitar.notes), 2200)
+        self.assertGreaterEqual(len(guitar.notes), 400)
+        self.assertLessEqual(len(guitar.notes), 600)
         self.assertLessEqual(min(note.note for note in guitar.notes), 45)
-        self.assertGreaterEqual(len(guitar_low_notes), 450)
-        self.assertGreaterEqual(len(guitar_partial_strums), 150)
-        self.assertGreaterEqual(len(guitar_full_strums), 60)
-        self.assertGreaterEqual(len(guitar_rakes), 60)
-        self.assertLessEqual(max(note.velocity for note in guitar_rakes), 58)
+        self.assertGreaterEqual(len(guitar_low_notes), 80)
+        self.assertGreaterEqual(len(guitar_chord_blocks), 80)
+        self.assertEqual(max(guitar_block_spans), 0)
+        self.assertGreaterEqual(len(guitar_partial_blocks), 40)
+        self.assertGreaterEqual(len(guitar_full_blocks), 30)
         self.assertGreaterEqual(len(guitar_pitches), 20)
         self.assertGreater(average_velocity(guitar, final_chorus_lift), average_velocity(guitar, final_chorus_start))
         self.assertTrue(drum_anchor_offsets)
         self.assertLessEqual(max(drum_anchor_offsets), 18)
         self.assertTrue(bass_anchor_offsets)
         self.assertLessEqual(max(bass_anchor_offsets), 14)
-        self.assertTrue(guitar_anchor_offsets)
-        self.assertLessEqual(max(guitar_anchor_offsets), 42)
-        self.assertGreaterEqual(len(guitar_durations), 10)
+        self.assertFalse(guitar_anchor_offsets)
+        self.assertTrue(all(start % bar_ticks == 0 for start in guitar_chord_blocks))
+        self.assertLessEqual(len({note.duration for note in guitar.notes}), 3)
         self.assertEqual(keyboard.program, 66)
         self.assertGreaterEqual(len(keyboard_pitches), 12)
         self.assertGreaterEqual(len(keyboard_expression_events), 300)
