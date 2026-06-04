@@ -15,13 +15,11 @@ def generate(song: SongState, sparse: bool = False) -> MidiTrack:
         return _generate_heartland_rock(song, sparse=sparse)
     if song.preset == "southern-blues":
         return _generate_southern_blues(song, sparse=sparse)
-    if song.preset == "bluesy-alt-country":
+    if song.preset in {"bluesy-alt-country", "texas-alt-country"}:
         return _generate_bluesy_alt_country(song, sparse=sparse)
 
     scale = scale_notes(song.key, song.scale, 5)
     hook = (0, 2, 4, 2, 5, 4, 2, 0)
-    if song.preset == "bluesy-alt-country":
-        hook = (0, 2, 3, 2, 4, 3, 2, 0)
     durations = (
         note_duration(song, 0.42),
         note_duration(song, 0.35),
@@ -31,7 +29,7 @@ def generate(song: SongState, sparse: bool = False) -> MidiTrack:
 
     for section, bar, _chord in iter_section_bars(song):
         should_play = section.name in {"Intro", "Chorus", "Outro"}
-        if song.preset == "bluesy-alt-country":
+        if song.preset in {"bluesy-alt-country", "texas-alt-country"}:
             should_play = section.name in {"Intro", "Chorus"}
         if not should_play:
             continue
@@ -84,12 +82,12 @@ def _generate_bluesy_alt_country(song: SongState, sparse: bool = False) -> MidiT
     )
 
     for section, bar, _chord in iter_section_bars(song):
-        if section.name not in {"Intro", "Chorus"}:
+        if section.name != "Intro" and not section.name.startswith("Chorus") and section.name != "Final Chorus":
             continue
         local_bar = bar - section.start_bar
         if section.name == "Intro" and local_bar not in {1, 3}:
             continue
-        if section.name == "Chorus" and local_bar % 2 == 1:
+        if (section.name.startswith("Chorus") or section.name == "Final Chorus") and local_bar % 2 == 1:
             continue
         if sparse and local_bar % 4 == 2:
             continue

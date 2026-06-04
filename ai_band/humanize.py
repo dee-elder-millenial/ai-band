@@ -14,6 +14,8 @@ def feel_amount(song: SongState) -> float:
         return 0.9
     if song.preset == "bluesy-alt-country":
         return 0.8
+    if song.preset == "texas-alt-country":
+        return 0.72
     return 0.65
 
 

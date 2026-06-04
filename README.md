@@ -72,6 +72,12 @@ Generate a bluesy alt-country backing sketch:
 python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --preset bluesy-alt-country --title "County Line Ghosts" --style "bluesy alt-country" --tempo 96 --key D --scale major --output examples/county-line-ghosts.mid
 ```
 
+Generate a slow Texas alt-country full-song sketch:
+
+```powershell
+python -m ai_band.generate --preset texas-alt-country --title "Llano County Rain" --style "slow honest Texas alt-country" --tempo 76 --key G --scale major --sound-guy --sound-note "slow honest Texas country, bass is killing it, keep the guitar simple, leave room for lead vocal" --output examples/llano-county-rain.mid
+```
+
 Generate a longer southern-blues backing song:
 
 ```powershell

@@ -42,6 +42,10 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
             voicing = (tones[0], tones[2])
             beats = (2.75,)
             duration = note_duration(song, 0.9)
+        elif song.preset == "texas-alt-country":
+            voicing = (tones[0], tones[1])
+            beats = (2.75,)
+            duration = note_duration(song, 1.2)
         elif song.preset == "bluesy-alt-country":
             voicing = (tones[0], tones[1])
             beats = (2.5,)
@@ -64,6 +68,10 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
                 duration = note_duration(song, 0.55)
                 if section.name in {"Solo", "Final Chorus"}:
                     beats = (1.0, 3.0)
+            elif song.preset == "texas-alt-country":
+                voicing = (tones[0], tones[2])
+                beats = (3.0,)
+                duration = note_duration(song, 0.70)
             elif song.preset == "bluesy-alt-country":
                 voicing = (tones[0], tones[2])
                 beats = (1.0, 3.0)

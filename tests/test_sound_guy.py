@@ -41,6 +41,22 @@ class SoundGuyTests(unittest.TestCase):
 
         self.assertEqual(decision.rhythm_guitar_profile, "internal-strum")
 
+    def test_sound_guy_sets_texas_alt_country_vocal_space_profile(self) -> None:
+        decision = advise_sound_guy(
+            preset="texas-alt-country",
+            style="slow honest Texas country",
+            listening_note="leave room for the singer and protect the bass",
+        )
+
+        keys = decision.performance.track_presets["AI Keyboard Player"].mixer
+        lead = decision.performance.track_presets["AI Lead Player"].mixer
+
+        self.assertEqual(decision.mix_profile, "vocal-space")
+        self.assertGreater(decision.performance.groove_amount, 0)
+        self.assertLessEqual(keys.volume, 60)
+        self.assertLessEqual(lead.volume, 66)
+        self.assertTrue(any("Texas alt-country profile" in note for note in decision.notes))
+
     def test_build_tracks_can_include_non_playing_sound_guy_track(self) -> None:
         decision = advise_sound_guy(
             preset="heartland-rock",

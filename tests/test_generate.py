@@ -42,6 +42,17 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertEqual([section.name for section in song.sections], ["Intro", "Verse", "Chorus", "Outro"])
         self.assertIn("C", [chord.symbol for chord in song.sections[1].chords])
 
+    def test_texas_alt_country_preset_uses_slow_full_song_form(self) -> None:
+        song = create_default_song(key="G", scale="major", preset="texas-alt-country", tempo_bpm=76)
+
+        self.assertEqual(song.total_bars, 68)
+        self.assertEqual(song.preset, "texas-alt-country")
+        self.assertEqual(
+            [section.name for section in song.sections],
+            ["Intro", "Verse 1", "Chorus 1", "Verse 2", "Chorus 2", "Bridge", "Final Chorus", "Outro"],
+        )
+        self.assertIn("F", [chord.symbol for chord in song.sections[5].chords])
+
     def test_southern_blues_preset_uses_full_song_form(self) -> None:
         song = create_default_song(key="E", scale="minor", preset="southern-blues", tempo_bpm=86)
 
@@ -369,6 +380,30 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertLessEqual(len(keyboard.notes), 180)
         self.assertTrue(any(note.note == 51 for note in drums.notes))
         self.assertLessEqual(len(lead.notes), 80)
+
+    def test_texas_alt_country_keeps_vocal_space_and_warm_pocket(self) -> None:
+        _ticks, _tempo, tracks = build_tracks(
+            preset="texas-alt-country",
+            key="G",
+            scale="major",
+            tempo_bpm=76,
+        )
+        drums = next(track for track in tracks if track.name == "AI Drummer")
+        bass = next(track for track in tracks if track.name == "AI Bass Player")
+        guitar = next(track for track in tracks if track.name == "AI Guitar Player")
+        keyboard = next(track for track in tracks if track.name == "AI Keyboard Player")
+        lead = next(track for track in tracks if track.name == "AI Lead Player")
+        percussion = next(track for track in tracks if track.name == "AI Percussion Extras")
+        bandleader = next(track for track in tracks if track.name == "AI Bandleader")
+
+        self.assertTrue(any("Texas alt-country preset" in meta.text for meta in bandleader.metas))
+        self.assertGreater(len(drums.notes), 300)
+        self.assertGreater(len(bass.notes), 100)
+        self.assertLessEqual(max(note.velocity for note in bass.notes), 78)
+        self.assertGreater(len(guitar.notes), 150)
+        self.assertLessEqual(len(keyboard.notes), 120)
+        self.assertLessEqual(len(lead.notes), 80)
+        self.assertLessEqual(len(percussion.notes), 30)
 
     def test_heartland_rock_generates_big_guitar_bass_and_sax_support(self) -> None:
         song = create_default_song(

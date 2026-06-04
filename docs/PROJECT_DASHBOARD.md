@@ -41,8 +41,18 @@ python -m ai_band.generate --preset heartland-rock --title "Sound Guy Pass" --st
   - Guitar-only folk test in G major.
   - Main six-note chord blocks start exactly on the same MIDI tick.
   - Includes light bass-string pulses between chord blocks.
+- `examples/llano-county-rain.mid`
+  - New slow Texas alt-country full-song sketch in G at 76 BPM.
+  - Uses the `texas-alt-country` preset and AI Sound Guy notes to protect the bass pocket while leaving vocal space.
+  - First test target for slower country feel, sparse lead, quieter keys, and rhythm-guitar/plugin settings.
 
 Generated MIDI files are intentionally ignored by Git, but they live in the cloud-mirror folder for REAPER testing.
+
+Generate the current Texas test song:
+
+```powershell
+python -m ai_band.generate --preset texas-alt-country --title "Llano County Rain" --style "slow honest Texas alt-country" --tempo 76 --key G --scale major --sound-guy --sound-note "slow honest Texas country, bass is killing it, keep the guitar simple, leave room for lead vocal" --output examples/llano-county-rain.mid
+```
 
 ## Current REAPER Test
 

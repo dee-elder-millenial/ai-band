@@ -29,6 +29,15 @@ def advise_sound_guy(
         settings = _with_feel(settings, groove=0.22, swing=0.04, velocity=0.35)
         mix_profile = "drums-forward"
         notes.append("Heartland profile: keep the rhythm section forward and add modest render feel.")
+    elif preset == "texas-alt-country":
+        settings = _with_feel(settings, groove=0.16, swing=0.06, velocity=0.28)
+        settings = _set_mixer(settings, "AI Bass Player", volume=88, reverb_send=5)
+        settings = _set_mixer(settings, "AI Drummer", volume=94, reverb_send=18)
+        settings = _set_mixer(settings, "AI Guitar Player", volume=76, reverb_send=22, delay_send=6)
+        settings = _set_mixer(settings, "AI Keyboard Player", volume=60, reverb_send=34, delay_send=10)
+        settings = _set_mixer(settings, "AI Lead Player", volume=66, reverb_send=32, delay_send=16)
+        mix_profile = "vocal-space"
+        notes.append("Texas alt-country profile: slow pocket, vocal space, bass and drums as the floor.")
 
     if _mentions_any(text, ("bass is killing it", "bass killing it", "love the bass", "bass is working")):
         settings = _set_mixer(settings, "AI Bass Player", volume=91, reverb_send=6)

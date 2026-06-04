@@ -58,6 +58,17 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
                 (0, root, held),
                 (2.5, fifth, short),
             )
+        elif song.preset == "texas-alt-country" and section.energy >= 0.70:
+            pattern = (
+                (0, root, long),
+                (2.0, fifth, short),
+                (3.0, root, short),
+            )
+        elif song.preset == "texas-alt-country":
+            pattern = (
+                (0, root, held),
+                (2.5, fifth, short),
+            )
         elif song.preset == "bluesy-alt-country" and section.energy >= 0.75:
             pattern = (
                 (0, root, long),
@@ -89,7 +100,7 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
         for beat, note, duration in pattern:
             if song.preset != "heartland-rock" and beat not in {0, 2.0} and support_rest(song, "bass", section.energy, local_bar, section.bars, beat):
                 continue
-            base_velocity = 59 if song.preset == "heartland-rock" else 54 if song.preset == "southern-blues" else 60
+            base_velocity = 59 if song.preset == "heartland-rock" else 54 if song.preset == "southern-blues" else 56 if song.preset == "texas-alt-country" else 60
             accent = 6 if song.preset == "heartland-rock" and beat in {0, 2.0} else 4 if song.preset == "southern-blues" and beat == 0 else 0
             start = song.beat_tick(bar, beat)
             note_duration_ticks = duration
@@ -109,7 +120,7 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
                 start = played_start(song, bar, beat, 0.55)
                 note_duration_ticks = played_duration(song, duration, bar, beat, 0.45, note_duration(song, 0.20))
                 note_velocity = played_velocity(note_velocity + bar_lift, song, bar, beat, 1)
-                note_velocity = min(note_velocity, 80 if song.preset == "southern-blues" else 82)
+                note_velocity = min(note_velocity, 80 if song.preset == "southern-blues" else 78 if song.preset == "texas-alt-country" else 82)
             track.notes.append(
                 MidiNote(start, note_duration_ticks, note, note_velocity, BASS_CHANNEL)
             )

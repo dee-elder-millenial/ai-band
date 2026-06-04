@@ -93,7 +93,7 @@ def main() -> None:
     parser.add_argument("--tempo", type=int, default=108)
     parser.add_argument("--key", default="A", choices=("C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"))
     parser.add_argument("--scale", default="minor", choices=("major", "minor"))
-    parser.add_argument("--preset", default="default", choices=("default", "bluesy-alt-country", "southern-blues", "heartland-rock"))
+    parser.add_argument("--preset", default="default", choices=("default", "bluesy-alt-country", "texas-alt-country", "southern-blues", "heartland-rock"))
     parser.add_argument("--mode", default="ehaye", choices=("full-band", "ehaye"))
     parser.add_argument("--ai-rhythm-guitar", action="store_true", help="Include AI rhythm guitar in the response MIDI")
     args = parser.parse_args()

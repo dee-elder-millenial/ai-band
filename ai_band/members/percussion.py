@@ -16,7 +16,7 @@ def generate(song: SongState) -> MidiTrack:
     duration = note_duration(song, 0.12)
 
     for section, bar, _chord in iter_section_bars(song):
-        if section.energy < 0.5:
+        if section.energy < 0.5 and song.preset != "texas-alt-country":
             continue
         local_bar = bar - section.start_bar
         bar_lift = phrase_lift(local_bar, section.bars, 3) if song.preset == "heartland-rock" else section_lift(song, local_bar, section.bars, 2)
@@ -39,6 +39,19 @@ def generate(song: SongState) -> MidiTrack:
                 note_velocity = clamp_midi(velocity(38, section.energy) + velocity_shift(bar, 3.5, 4) + bar_lift)
                 track.notes.append(
                     MidiNote(start, duration, TAMBOURINE, note_velocity, PERC_CHANNEL)
+                )
+            continue
+
+        if song.preset == "texas-alt-country":
+            if section.energy >= 0.68 and local_bar % 2 == 0:
+                track.notes.append(
+                    MidiNote(
+                        played_start(song, bar, 3.5, 0.75),
+                        duration,
+                        TAMBOURINE,
+                        played_velocity(velocity(32, section.energy, bar_lift), song, bar, 3.5, 1),
+                        PERC_CHANNEL,
+                    )
                 )
             continue
 

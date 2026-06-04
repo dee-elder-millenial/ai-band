@@ -109,6 +109,8 @@ def compose_tracks(
         )
     if preset == "bluesy-alt-country":
         markers.metas.append(MidiMeta(0, "text", "Bluesy alt-country preset: sparse bent lead licks enabled."))
+    if preset == "texas-alt-country":
+        markers.metas.append(MidiMeta(0, "text", "Texas alt-country preset: slow full-song form, honest pocket, sparse vocal-support parts."))
     if preset == "southern-blues":
         markers.metas.append(MidiMeta(0, "text", "Southern blues preset: long protest-roadhouse form, sparse vocal-support lead."))
     if preset == "heartland-rock":
@@ -177,7 +179,7 @@ def main() -> None:
     parser.add_argument("--tempo", type=int, default=108, help="Tempo in beats per minute")
     parser.add_argument("--key", default="A", choices=("C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"))
     parser.add_argument("--scale", default="minor", choices=("major", "minor"))
-    parser.add_argument("--preset", default="default", choices=("default", "bluesy-alt-country", "southern-blues", "heartland-rock"))
+    parser.add_argument("--preset", default="default", choices=("default", "bluesy-alt-country", "texas-alt-country", "southern-blues", "heartland-rock"))
     parser.add_argument(
         "--mode",
         default="full-band",

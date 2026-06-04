@@ -84,6 +84,7 @@ def build_manifest(ticks_per_beat: int, tempo_bpm: int) -> dict[str, object]:
             "respond_to_cue_with_ai": "python -m ai_band.respond --cue state/live_cue.json --force-ai --output examples/ai-feedback-response.mid",
             "api_budget": "python -m ai_band.api_budget",
             "generate_with_sound_guy": "python -m ai_band.generate --preset heartland-rock --sound-guy --sound-note \"bass is killing it, rhythm guitar sounds strange\" --output examples/sound-guy-pass.mid",
+            "generate_texas_alt_country": "python -m ai_band.generate --preset texas-alt-country --title \"Llano County Rain\" --style \"slow honest Texas alt-country\" --tempo 76 --key G --scale major --sound-guy --sound-note \"slow honest Texas country, bass is killing it, keep the guitar simple, leave room for lead vocal\" --output examples/llano-county-rain.mid",
             "build": "python -m ai_band.build",
             "tests": "python -m unittest discover -s tests",
         },

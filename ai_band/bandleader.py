@@ -161,6 +161,47 @@ def create_default_song(
             Section("Chorus", 12, 8, 0.82, progression),
             Section("Outro", 20, 4, 0.55, progression[:4]),
         )
+    elif preset == "texas-alt-country":
+        verse = (
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 9, "minor"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 7, "major"),
+        )
+        chorus = (
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 7, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 9, "minor"),
+            _chord_from_degree(key, 7, "major"),
+        )
+        bridge = (
+            _chord_from_degree(key, 9, "minor"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 7, "major"),
+            _chord_from_degree(key, 10, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 7, "major"),
+        )
+        sections = (
+            Section("Intro", 0, 4, 0.36, verse[:4]),
+            Section("Verse 1", 4, 12, 0.44, verse),
+            Section("Chorus 1", 16, 8, 0.68, chorus),
+            Section("Verse 2", 24, 12, 0.48, verse),
+            Section("Chorus 2", 36, 8, 0.72, chorus),
+            Section("Bridge", 44, 8, 0.54, bridge),
+            Section("Final Chorus", 52, 12, 0.78, chorus),
+            Section("Outro", 64, 4, 0.42, verse[:4]),
+        )
     else:
         progression = default_progression(key, scale)
         sections = (

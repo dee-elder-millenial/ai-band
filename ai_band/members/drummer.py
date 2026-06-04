@@ -39,6 +39,11 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
             kick_base = 92
             snare_base = 94
             hat_base = 54
+        elif song.preset == "texas-alt-country":
+            kick_beats = (0, 2.5) if not energetic else (0, 2, 3.5)
+            kick_base = 84
+            snare_base = 80
+            hat_base = 50
         elif song.preset == "bluesy-alt-country":
             kick_beats = (0, 2.5) if not energetic else (0, 2, 3.5)
             kick_base = 88
@@ -54,6 +59,8 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
         for eighth in range(8):
             beat = eighth * 0.5
             if song.preset in {"bluesy-alt-country", "southern-blues"} and eighth in {1, 5} and section.energy < 0.75:
+                continue
+            if song.preset == "texas-alt-country" and eighth in {1, 3, 5, 7} and section.energy < 0.70:
                 continue
             if eighth not in {0, 2, 4, 6} and support_rest(song, "hat", section.energy, local_bar, section.bars, beat):
                 continue
