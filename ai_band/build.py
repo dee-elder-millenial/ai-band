@@ -103,6 +103,7 @@ def build_manifest(ticks_per_beat: int, tempo_bpm: int) -> dict[str, object]:
             "rhythm_guitar_diagnostic_script": "Scripts/ai_band_rhythm_guitar_diagnostic_audition.lua",
             "tone_helpers": "Scripts/ai_band_tone_helpers.lua",
             "live_cue_script": "Scripts/ai_band_write_live_cue.lua",
+            "live_response_refresh_script": "Scripts/ai_band_refresh_response_midi.lua",
             "jsfx": "Effects/AI Band Humanizer.jsfx",
             "drum_synth_jsfx": "Effects/AI Band GM Drum Synth.jsfx",
         },

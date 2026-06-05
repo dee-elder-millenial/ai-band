@@ -71,6 +71,8 @@ Run the current cue through the full feedback loop: AI decision JSON plus respon
 python -m ai_band.respond --cue state/live_cue.json --force-ai --output examples/ai-feedback-response.mid
 ```
 
+Then run `Scripts/ai_band_refresh_response_midi.lua` inside REAPER to replace the MIDI items on existing AI Band tracks while keeping loaded instruments and FX.
+
 Check AI Band's local estimated API spend:
 
 ```powershell
@@ -165,6 +167,7 @@ ai-band/
     ai_band_rhythm_guitar_diagnostic_audition.lua
     ai_band_tone_helpers.lua
     ai_band_write_live_cue.lua
+    ai_band_refresh_response_midi.lua
   Effects/
     AI Band Humanizer.jsfx
     AI Band GM Drum Synth.jsfx

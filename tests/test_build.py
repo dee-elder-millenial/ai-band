@@ -42,6 +42,14 @@ class BuildPackageTests(unittest.TestCase):
         self.assertIn("is_playing", script)
         self.assertIn("cue_id", script)
 
+    def test_live_response_refresh_script_preserves_instrument_tracks(self) -> None:
+        script = (build.REPO_ROOT / "Scripts" / "ai_band_refresh_response_midi.lua").read_text(encoding="utf-8")
+
+        self.assertIn("ai-feedback-response.mid", script)
+        self.assertIn("MoveMediaItemToTrack", script)
+        self.assertIn("DeleteTrackMediaItem", script)
+        self.assertIn("Existing instruments and FX were kept", script)
+
     def test_status_and_handoff_docs_exist(self) -> None:
         for relative_path in ("docs/PROJECT_DASHBOARD.md", "docs/HANDOFF.md"):
             with self.subTest(path=relative_path):

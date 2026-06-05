@@ -129,6 +129,14 @@ This writes:
 - `state/last_ai_feedback.json`: the AI decision, selected controls, musician reply, musical plan, rationale, and budget estimate.
 - `examples/ai-feedback-response.mid`: the MIDI response to import into REAPER.
 
+To refresh an already-instrumented REAPER project without manually importing the MIDI again, run:
+
+```text
+ai_band_refresh_response_midi.lua
+```
+
+That script imports `examples/ai-feedback-response.mid` into temporary tracks, moves the new MIDI items onto the matching existing AI Band tracks, and deletes the temporary tracks. It keeps the existing instruments, FX, volume, and pan on the target tracks.
+
 Check AI Band's local estimated API spend:
 
 ```powershell
@@ -184,7 +192,8 @@ python -m ai_band.respond --cue state/live_cue.json --force-ai --output examples
 
 3. Confirm the command says `AI feedback source: openai`.
 4. Import `examples/ai-feedback-response.mid` into REAPER.
-5. Run `ai_band_apply_reaper_audition_settings.lua`.
-6. Run `ai_band_apply_audition_mix.lua`.
+5. Or, if your AI Band instrument tracks already exist, run `ai_band_refresh_response_midi.lua` instead of manual import.
+6. Run `ai_band_apply_reaper_audition_settings.lua` if the project needs safety limiting or transport defaults.
+7. Run `ai_band_apply_audition_mix.lua` if the mix needs to be rebalanced.
 
-Important: the cue loop writes a new response MIDI file. It does not yet replace existing REAPER MIDI items in place. If you do not import the response MIDI or refresh the relevant track, you will only see the cue marker and JSON update, not hear the musical change.
+Important: the cue loop writes a new response MIDI file. REAPER does not hear that new file until you either import it or run `ai_band_refresh_response_midi.lua`. The refresh script is the first live-update bridge; a later background watcher can automate that action after the safer manual flow proves itself.

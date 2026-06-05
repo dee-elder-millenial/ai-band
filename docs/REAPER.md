@@ -190,3 +190,11 @@ The current build can apply that cue while generating a response MIDI:
 ```powershell
 python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_cue.json --output examples/ehaye-cue-response.mid
 ```
+
+For the AI feedback response loop, generate the response MIDI:
+
+```powershell
+python -m ai_band.respond --cue state/live_cue.json --force-ai --output examples/ai-feedback-response.mid
+```
+
+Then run `ai_band_refresh_response_midi.lua` inside REAPER. It imports the response MIDI into temporary tracks, moves the new MIDI items onto existing matching AI Band tracks, and deletes the temporary tracks so your loaded instruments and FX stay in place.
