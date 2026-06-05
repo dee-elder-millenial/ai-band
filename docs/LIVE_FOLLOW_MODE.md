@@ -150,8 +150,11 @@ $env:AI_BAND_OPENAI_MODEL = "gpt-5.5"
 Initial cue behavior:
 
 - `simplify bass` makes the bass part sparser.
+- `bass run in chorus` adds audible bass walk-up/run notes in chorus transition spots.
 - `keys leave more space` thins keyboard hits further.
 - `drums bigger` raises chorus drum intensity.
+- `drum fill at next transition` adds extra drum fills around phrase boundaries.
+- `drum solo` adds a short solo-style drum feature in bridge/solo sections.
 - `lead answer the vocal` makes lead phrases sparser.
 
 When `--ai-feedback` is enabled, these same controls can be triggered by more natural instructions such as:
@@ -177,3 +180,5 @@ python -m ai_band.respond --cue state/live_cue.json --force-ai --output examples
 4. Import `examples/ai-feedback-response.mid` into REAPER.
 5. Run `ai_band_apply_reaper_audition_settings.lua`.
 6. Run `ai_band_apply_audition_mix.lua`.
+
+Important: the cue loop writes a new response MIDI file. It does not yet replace existing REAPER MIDI items in place. If you do not import the response MIDI or refresh the relevant track, you will only see the cue marker and JSON update, not hear the musical change.

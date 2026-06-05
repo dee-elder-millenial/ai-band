@@ -18,7 +18,7 @@ TOM_MID = 47
 TOM_FLOOR = 43
 
 
-def generate(song: SongState, bigger: bool = False) -> MidiTrack:
+def generate(song: SongState, bigger: bool = False, fill_request: bool = False, solo_request: bool = False) -> MidiTrack:
     track = MidiTrack("AI Drummer", channel=DRUM_CHANNEL)
     step = note_duration(song, 0.5)
     hat_duration = note_duration(song, 0.18)
@@ -146,8 +146,44 @@ def generate(song: SongState, bigger: bool = False) -> MidiTrack:
                     track.notes.append(
                         MidiNote(fill_start + index * int(step / 2), int(step / 2), note, velocity(82, section.energy), DRUM_CHANNEL)
                     )
+        if fill_request and local_bar % 4 == 3:
+            _add_requested_fill(track, song, bar, local_bar, section.energy, step)
+
+        if solo_request and _should_add_requested_solo(section.name, local_bar):
+            _add_requested_solo_bar(track, song, bar, local_bar, section.energy)
 
     return track
+
+
+def _add_requested_fill(track: MidiTrack, song: SongState, bar: int, local_bar: int, energy: float, step: int) -> None:
+    fill_start = song.beat_tick(bar, 2.5)
+    shape = (
+        (0.00, SNARE, 0.16, -6),
+        (0.25, TOM_HIGH, 0.14, -5),
+        (0.50, TOM_MID, 0.16, -3),
+        (0.75, TOM_LOW, 0.18, -2),
+        (1.00, TOM_FLOOR, 0.20, 0),
+        (1.25, CRASH if local_bar % 8 == 7 else SNARE, 0.22, 2),
+    )
+    for offset, note, beats, accent in shape:
+        start = max(played_start(song, bar, 2.5 + offset, 0.55), song.bar_tick(bar))
+        duration = max(int(step * 0.22), note_duration(song, beats))
+        note_velocity = min(124, played_velocity(velocity(82, energy, accent), song, bar, 2.5 + offset, 2))
+        track.notes.append(MidiNote(start, duration, note, note_velocity, DRUM_CHANNEL))
+
+
+def _should_add_requested_solo(section_name: str, local_bar: int) -> bool:
+    return section_name in {"Bridge", "Solo", "Guitar Solo"} and local_bar < 4
+
+
+def _add_requested_solo_bar(track: MidiTrack, song: SongState, bar: int, local_bar: int, energy: float) -> None:
+    notes = (SNARE, TOM_HIGH, SNARE, TOM_MID, TOM_LOW, SNARE, TOM_FLOOR, CRASH if local_bar == 3 else TOM_MID)
+    duration = note_duration(song, 0.14)
+    for index, note in enumerate(notes):
+        beat = index * 0.5
+        start = max(played_start(song, bar, beat, 0.70), song.bar_tick(bar))
+        note_velocity = min(126, played_velocity(velocity(78, energy, index), song, bar, beat, 3))
+        track.notes.append(MidiNote(start, duration, note, note_velocity, DRUM_CHANNEL))
 
 
 def _heartland_drum_start(song: SongState, bar: int, beat: float, part: str) -> int:

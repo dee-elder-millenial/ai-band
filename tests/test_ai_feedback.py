@@ -35,7 +35,10 @@ class AiFeedbackTests(unittest.TestCase):
         cue = LiveCue("live-cue", "keys and lead need to leave space", "bandleader", 0.8, 20, "")
         model_payload = {
             "bass_simplify": False,
+            "bass_run": False,
             "drums_bigger": False,
+            "drum_fill": False,
+            "drum_solo": False,
             "keys_leave_space": True,
             "lead_sparse": True,
             "target_member": "bandleader",
@@ -87,7 +90,10 @@ class AiFeedbackTests(unittest.TestCase):
                             "text": json.dumps(
                                 {
                                     "bass_simplify": True,
+                                    "bass_run": False,
                                     "drums_bigger": False,
+                                    "drum_fill": False,
+                                    "drum_solo": False,
                                     "keys_leave_space": False,
                                     "lead_sparse": False,
                                     "target_member": "bass",
@@ -126,7 +132,17 @@ class AiFeedbackTests(unittest.TestCase):
     def test_control_schema_requires_all_model_fields(self) -> None:
         self.assertEqual(
             set(CONTROL_SCHEMA["required"]),
-            {"bass_simplify", "drums_bigger", "keys_leave_space", "lead_sparse", "target_member", "rationale"},
+            {
+                "bass_simplify",
+                "bass_run",
+                "drums_bigger",
+                "drum_fill",
+                "drum_solo",
+                "keys_leave_space",
+                "lead_sparse",
+                "target_member",
+                "rationale",
+            },
         )
 
     def test_openai_request_uses_small_nonstored_structured_response(self) -> None:
@@ -146,7 +162,10 @@ class AiFeedbackTests(unittest.TestCase):
                         "output_text": json.dumps(
                             {
                                 "bass_simplify": False,
+                                "bass_run": False,
                                 "drums_bigger": False,
+                                "drum_fill": False,
+                                "drum_solo": False,
                                 "keys_leave_space": False,
                                 "lead_sparse": True,
                                 "target_member": "lead",

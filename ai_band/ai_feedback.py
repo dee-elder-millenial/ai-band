@@ -20,13 +20,26 @@ CONTROL_SCHEMA = {
     "additionalProperties": False,
     "properties": {
         "bass_simplify": {"type": "boolean"},
+        "bass_run": {"type": "boolean"},
         "drums_bigger": {"type": "boolean"},
+        "drum_fill": {"type": "boolean"},
+        "drum_solo": {"type": "boolean"},
         "keys_leave_space": {"type": "boolean"},
         "lead_sparse": {"type": "boolean"},
         "target_member": {"type": "string"},
         "rationale": {"type": "string"},
     },
-    "required": ["bass_simplify", "drums_bigger", "keys_leave_space", "lead_sparse", "target_member", "rationale"],
+    "required": [
+        "bass_simplify",
+        "bass_run",
+        "drums_bigger",
+        "drum_fill",
+        "drum_solo",
+        "keys_leave_space",
+        "lead_sparse",
+        "target_member",
+        "rationale",
+    ],
 }
 
 
@@ -136,7 +149,10 @@ def _cue_context(cue: LiveCue) -> dict[str, object]:
         },
         "available_controls": {
             "bass_simplify": "Make bass part sparser and less busy.",
+            "bass_run": "Add audible bass walk-ups/runs in chorus or transition spots.",
             "drums_bigger": "Increase drum confidence/intensity in choruses.",
+            "drum_fill": "Add audible drum fills at phrase or section boundaries.",
+            "drum_solo": "Add a short drum solo-style feature in a bridge/solo area.",
             "keys_leave_space": "Thin keyboard support so vocals/guitar have room.",
             "lead_sparse": "Make lead guitar answer phrases instead of playing too much.",
         },
@@ -157,7 +173,10 @@ def _extract_response_text(response_body: dict[str, Any]) -> str:
 def _controls_from_model_payload(cue: LiveCue, payload: dict[str, Any]) -> GenerationControls:
     return GenerationControls(
         bass_simplify=bool(payload.get("bass_simplify", False)),
+        bass_run=bool(payload.get("bass_run", False)),
         drums_bigger=bool(payload.get("drums_bigger", False)),
+        drum_fill=bool(payload.get("drum_fill", False)),
+        drum_solo=bool(payload.get("drum_solo", False)),
         keys_leave_space=bool(payload.get("keys_leave_space", False)),
         lead_sparse=bool(payload.get("lead_sparse", False)),
         cue_summary=f"AI {cue.target}: {cue.instruction} (intensity={cue.intensity:.2f})",

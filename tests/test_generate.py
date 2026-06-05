@@ -307,6 +307,44 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertLess(len(cued_bass.notes), len(normal_bass.notes))
         self.assertTrue(any("Live cue applied" in meta.text for meta in bandleader.metas))
 
+    def test_bass_run_cue_adds_audible_chorus_runs(self) -> None:
+        cue = LiveCue("live-cue", "bass run in chorus", "bass player", 0.9, 13.8, "")
+        controls = controls_from_cue(cue)
+        _ticks, _tempo, normal_tracks = build_tracks(preset="texas-alt-country", key="G", scale="major", tempo_bpm=76)
+        _ticks, _tempo, cued_tracks = build_tracks(
+            preset="texas-alt-country",
+            key="G",
+            scale="major",
+            tempo_bpm=76,
+            controls=controls,
+        )
+
+        normal_bass = next(track for track in normal_tracks if track.name == "AI Bass Player")
+        cued_bass = next(track for track in cued_tracks if track.name == "AI Bass Player")
+        run_notes = [note for note in cued_bass.notes if note.start % (480 * 4) >= int(3.0 * 480)]
+
+        self.assertTrue(controls.bass_run)
+        self.assertGreater(len(cued_bass.notes), len(normal_bass.notes))
+        self.assertGreaterEqual(len(run_notes), 16)
+
+    def test_drum_fill_cue_adds_extra_fills(self) -> None:
+        cue = LiveCue("live-cue", "drum fill at next transition", "drummer", 0.8, 0, "")
+        controls = controls_from_cue(cue)
+        _ticks, _tempo, normal_tracks = build_tracks(preset="texas-alt-country", key="G", scale="major", tempo_bpm=76)
+        _ticks, _tempo, cued_tracks = build_tracks(
+            preset="texas-alt-country",
+            key="G",
+            scale="major",
+            tempo_bpm=76,
+            controls=controls,
+        )
+
+        normal_drums = next(track for track in normal_tracks if track.name == "AI Drummer")
+        cued_drums = next(track for track in cued_tracks if track.name == "AI Drummer")
+
+        self.assertTrue(controls.drum_fill)
+        self.assertGreater(len(cued_drums.notes), len(normal_drums.notes))
+
     def test_cue_interpreter_maps_common_commands(self) -> None:
         controls = controls_from_cue(LiveCue("live-cue", "drums bigger in chorus", "bandleader", 0.8, 0, ""))
         self.assertTrue(controls.drums_bigger)
@@ -322,6 +360,12 @@ class GenerateMidiTests(unittest.TestCase):
         )
         self.assertTrue(controls.keys_leave_space)
         self.assertTrue(controls.lead_sparse)
+
+        controls = controls_from_cue(LiveCue("live-cue", "bass run in chorus", "bass player", 0.9, 0, ""))
+        self.assertTrue(controls.bass_run)
+
+        controls = controls_from_cue(LiveCue("live-cue", "give me a drum solo", "drummer", 1.0, 0, ""))
+        self.assertTrue(controls.drum_solo)
 
     def test_bluesy_alt_country_generates_backing_tracks(self) -> None:
         _ticks, _tempo, tracks = build_tracks(

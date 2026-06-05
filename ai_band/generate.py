@@ -137,8 +137,8 @@ def compose_tracks(
         tracks.append(sound_track)
     tracks.extend(
         [
-            drummer.generate(song, bigger=controls.drums_bigger),
-            bassist.generate(song, simplify=controls.bass_simplify),
+            drummer.generate(song, bigger=controls.drums_bigger, fill_request=controls.drum_fill, solo_request=controls.drum_solo),
+            bassist.generate(song, simplify=controls.bass_simplify, run_request=controls.bass_run),
         ]
     )
     if include_ai_rhythm_guitar:

@@ -8,7 +8,10 @@ from ai_band.live_cue import LiveCue
 @dataclass(frozen=True)
 class GenerationControls:
     bass_simplify: bool = False
+    bass_run: bool = False
     drums_bigger: bool = False
+    drum_fill: bool = False
+    drum_solo: bool = False
     keys_leave_space: bool = False
     lead_sparse: bool = False
     cue_summary: str | None = None
@@ -23,6 +26,10 @@ def controls_from_cue(cue: LiveCue | None) -> GenerationControls:
     bass_simplify = _mentions_any(instruction, ("simplify bass", "bass simpler", "less bass", "bass lighter")) or (
         target in {"bass", "bassist", "ai bass player"} and _mentions_any(instruction, ("simplify", "less", "lighter", "space"))
     )
+    bass_run = _mentions_any(instruction, ("bass run", "bass walk", "walking bass", "bass fill", "bass pickup")) or (
+        target in {"bass", "bassist", "bass player", "ai bass player"}
+        and _mentions_any(instruction, ("run", "walk", "fill", "pickup"))
+    )
     space_request = _mentions_any(instruction, ("leave more room", "more room", "leave space", "stepping on", "too crowded", "crowding"))
     keys_leave_space = _mentions_any(instruction, ("keys leave", "less keys", "keys space", "keys quieter", "keys sparse")) or (
         target in {"keys", "keyboard", "keyboardist", "ai keyboard player"} and _mentions_any(instruction, ("space", "less", "sparse", "quiet"))
@@ -36,10 +43,19 @@ def controls_from_cue(cue: LiveCue | None) -> GenerationControls:
     drums_bigger = _mentions_any(instruction, ("drums bigger", "bigger drums", "more drums", "drums louder")) or (
         target in {"drums", "drummer", "ai drummer"} and _mentions_any(instruction, ("bigger", "more", "louder", "harder"))
     )
+    drum_fill = _mentions_any(instruction, ("drum fill", "drummer fill", "fill at", "fill into", "drum pickup")) or (
+        target in {"drums", "drummer", "ai drummer"} and _mentions_any(instruction, ("fill", "pickup"))
+    )
+    drum_solo = _mentions_any(instruction, ("drum solo", "drummer solo", "solo drums")) or (
+        target in {"drums", "drummer", "ai drummer"} and "solo" in instruction
+    )
 
     return GenerationControls(
         bass_simplify=bass_simplify,
+        bass_run=bass_run,
         drums_bigger=drums_bigger,
+        drum_fill=drum_fill,
+        drum_solo=drum_solo,
         keys_leave_space=keys_leave_space,
         lead_sparse=lead_sparse,
         cue_summary=f"{cue.target}: {cue.instruction} (intensity={cue.intensity:.2f})",

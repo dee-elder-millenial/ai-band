@@ -8,7 +8,7 @@ from ai_band.song_state import SongState
 BASS_CHANNEL = 0
 
 
-def generate(song: SongState, simplify: bool = False) -> MidiTrack:
+def generate(song: SongState, simplify: bool = False, run_request: bool = False) -> MidiTrack:
     track = MidiTrack("AI Bass Player", channel=BASS_CHANNEL, program=33)
     short = note_duration(song, 0.45)
     long = note_duration(song, 0.9)
@@ -144,8 +144,44 @@ def generate(song: SongState, simplify: bool = False) -> MidiTrack:
                 duration = played_duration(song, note_duration(song, 0.18), bar, 3.75, 0.50, note_duration(song, 0.10))
                 note_velocity = played_velocity(velocity(48, section.energy, 2 + bar_lift), song, bar, 3.75, 2)
                 track.notes.append(MidiNote(start, duration, approach, note_velocity, BASS_CHANNEL))
+            if run_request and next_chord is not None and _should_add_requested_run(section.name, local_bar, section.bars):
+                _add_requested_run(track, song, bar, root, 36 + next_chord.root, section.energy, bar_lift)
 
     return track
+
+
+def _should_add_requested_run(section_name: str, local_bar: int, section_bars: int) -> bool:
+    in_chorus = section_name.startswith("Chorus") or section_name == "Final Chorus"
+    return in_chorus and local_bar % 4 == 3 and local_bar < section_bars - 1
+
+
+def _add_requested_run(
+    track: MidiTrack,
+    song: SongState,
+    bar: int,
+    current_root: int,
+    next_root: int,
+    energy: float,
+    bar_lift: int,
+) -> None:
+    direction = 1 if next_root >= current_root else -1
+    start_note = current_root
+    run = (
+        start_note,
+        start_note + direction * 2,
+        start_note + direction * 4,
+        _approach_note(current_root, next_root),
+    )
+    duration = note_duration(song, 0.18)
+    for index, note in enumerate(run):
+        while note < 35:
+            note += 12
+        while note > 54:
+            note -= 12
+        beat = 3.0 + index * 0.25
+        start = played_start(song, bar, beat, 0.55)
+        note_velocity = min(92, played_velocity(velocity(58, energy, index + bar_lift), song, bar, beat, 2))
+        track.notes.append(MidiNote(start, duration, note, note_velocity, BASS_CHANNEL))
 
 
 def _heartland_duration_shift(song: SongState, bar: int, beat: float) -> int:
