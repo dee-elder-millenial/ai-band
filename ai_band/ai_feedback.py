@@ -27,6 +27,10 @@ CONTROL_SCHEMA = {
         "keys_leave_space": {"type": "boolean"},
         "lead_sparse": {"type": "boolean"},
         "target_member": {"type": "string"},
+        "musician_reply": {"type": "string"},
+        "musical_plan": {"type": "string"},
+        "section_scope": {"type": "string"},
+        "confidence": {"type": "number"},
         "rationale": {"type": "string"},
     },
     "required": [
@@ -38,6 +42,10 @@ CONTROL_SCHEMA = {
         "keys_leave_space",
         "lead_sparse",
         "target_member",
+        "musician_reply",
+        "musical_plan",
+        "section_scope",
+        "confidence",
         "rationale",
     ],
 }
@@ -49,6 +57,11 @@ class AiFeedbackResult:
     source: str
     model: str | None = None
     rationale: str = ""
+    target_member: str = ""
+    musician_reply: str = ""
+    musical_plan: str = ""
+    section_scope: str = ""
+    confidence: float = 0.0
     error: str | None = None
     budget_message: str | None = None
 
@@ -91,6 +104,11 @@ def controls_from_cue_with_ai(
             source="openai",
             model=selected_model,
             rationale=str(payload.get("rationale", "")),
+            target_member=str(payload.get("target_member", "")),
+            musician_reply=str(payload.get("musician_reply", "")),
+            musical_plan=str(payload.get("musical_plan", "")),
+            section_scope=str(payload.get("section_scope", "")),
+            confidence=float(payload.get("confidence", 0.0)),
             budget_message=format_budget_status(updated_budget),
         )
     except (OSError, RuntimeError, ValueError, KeyError, urllib.error.URLError) as exc:
@@ -105,9 +123,12 @@ def _call_openai(cue: LiveCue, model: str, api_key: str, timeout_seconds: float)
         "store": False,
         "max_output_tokens": 300,
         "instructions": (
-            "You are the bandleader for AI Band, a REAPER MIDI backing-band generator. "
-            "Interpret the musician's cue into conservative generation controls. "
-            "Use booleans for the four controls. Keep rationale under 140 characters."
+            "You are AI Band's bandleader and translator between a human musician and the AI band members. "
+            "The user should be able to talk naturally to the bassist, drummer, keys, lead, or whole band. "
+            "Respond like a competent bandmate/producer: infer the musical intent, choose conservative controls the current engine can render, "
+            "and explain the plan in musician language. Do not require command phrases. "
+            "If the requested idea is not directly supported, choose the closest safe musical move and say that in the plan. "
+            "Keep musician_reply and rationale under 160 characters each."
         ),
         "input": json.dumps(_cue_context(cue), indent=2),
         "text": {
@@ -156,6 +177,14 @@ def _cue_context(cue: LiveCue) -> dict[str, object]:
             "keys_leave_space": "Thin keyboard support so vocals/guitar have room.",
             "lead_sparse": "Make lead guitar answer phrases instead of playing too much.",
         },
+        "natural_language_examples": {
+            "bass player, walk me up into the chorus": {"bass_run": True},
+            "bass, lay back under my vocal": {"bass_simplify": True},
+            "drummer, set me up before the chorus": {"drum_fill": True},
+            "give the drummer four bars": {"drum_solo": True},
+            "keys are stepping on the vocal": {"keys_leave_space": True},
+            "lead, answer me instead of talking over me": {"lead_sparse": True},
+        },
     }
 
 
@@ -179,7 +208,10 @@ def _controls_from_model_payload(cue: LiveCue, payload: dict[str, Any]) -> Gener
         drum_solo=bool(payload.get("drum_solo", False)),
         keys_leave_space=bool(payload.get("keys_leave_space", False)),
         lead_sparse=bool(payload.get("lead_sparse", False)),
-        cue_summary=f"AI {cue.target}: {cue.instruction} (intensity={cue.intensity:.2f})",
+        cue_summary=(
+            str(payload.get("musician_reply", "")).strip()
+            or f"AI {cue.target}: {cue.instruction} (intensity={cue.intensity:.2f})"
+        ),
     )
 
 
@@ -188,6 +220,11 @@ def result_to_dict(result: AiFeedbackResult) -> dict[str, object]:
         "source": result.source,
         "model": result.model,
         "rationale": result.rationale,
+        "target_member": result.target_member,
+        "musician_reply": result.musician_reply,
+        "musical_plan": result.musical_plan,
+        "section_scope": result.section_scope,
+        "confidence": result.confidence,
         "error": result.error,
         "budget": result.budget_message,
         "controls": asdict(result.controls),

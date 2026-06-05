@@ -33,17 +33,15 @@ class AiFeedbackTests(unittest.TestCase):
 
     def test_model_payload_maps_to_generation_controls(self) -> None:
         cue = LiveCue("live-cue", "keys and lead need to leave space", "bandleader", 0.8, 20, "")
-        model_payload = {
-            "bass_simplify": False,
-            "bass_run": False,
-            "drums_bigger": False,
-            "drum_fill": False,
-            "drum_solo": False,
-            "keys_leave_space": True,
-            "lead_sparse": True,
-            "target_member": "bandleader",
-            "rationale": "Open space for the vocal.",
-        }
+        model_payload = _model_payload(
+            keys_leave_space=True,
+            lead_sparse=True,
+            target_member="bandleader",
+            musician_reply="We'll open a pocket around the vocal.",
+            musical_plan="Thin keys and make lead answer phrases only.",
+            section_scope="whole song",
+            rationale="Open space for the vocal.",
+        )
 
         with tempfile.TemporaryDirectory() as tmp:
             usage_path = str(Path(tmp) / "usage.json")
@@ -58,8 +56,37 @@ class AiFeedbackTests(unittest.TestCase):
         self.assertEqual(result.model, "gpt-5.4-mini")
         self.assertTrue(result.controls.keys_leave_space)
         self.assertTrue(result.controls.lead_sparse)
-        self.assertIn("AI bandleader", result.controls.cue_summary or "")
+        self.assertIn("open a pocket", result.controls.cue_summary or "")
+        self.assertEqual(result.musician_reply, "We'll open a pocket around the vocal.")
+        self.assertEqual(result.musical_plan, "Thin keys and make lead answer phrases only.")
         self.assertIn("$", result.budget_message or "")
+
+    def test_model_payload_maps_natural_bass_player_language_to_run(self) -> None:
+        cue = LiveCue("live-cue", "walk me up into that chorus, but keep it classy", "bass player", 0.9, 13.8, "")
+        model_payload = _model_payload(
+            bass_run=True,
+            target_member="bass",
+            musician_reply="Got it. I'll walk up into the chorus and stay out of your way.",
+            musical_plan="Add chorus walk-ups at phrase turns; keep verse bass simple.",
+            section_scope="chorus transitions",
+            rationale="Natural bassist cue maps to tasteful walk-ups.",
+            confidence=0.91,
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            usage_path = str(Path(tmp) / "usage.json")
+            with patch("ai_band.ai_feedback._call_openai", return_value=OpenAiCallResult(model_payload, _sample_usage())), patch.dict(
+                os.environ,
+                {"OPENAI_API_KEY": "test-key", "AI_BAND_API_USAGE_PATH": usage_path},
+                clear=True,
+            ):
+                result = controls_from_cue_with_ai(cue, model="gpt-5.4-mini")
+
+        self.assertEqual(result.source, "openai")
+        self.assertTrue(result.controls.bass_run)
+        self.assertEqual(result.target_member, "bass")
+        self.assertIn("walk up", result.musician_reply)
+        self.assertEqual(result.section_scope, "chorus transitions")
 
     def test_api_failure_falls_back_unless_forced(self) -> None:
         cue = LiveCue("live-cue", "drums louder", "drums", 0.8, 0, "")
@@ -89,15 +116,14 @@ class AiFeedbackTests(unittest.TestCase):
                             "type": "output_text",
                             "text": json.dumps(
                                 {
-                                    "bass_simplify": True,
-                                    "bass_run": False,
-                                    "drums_bigger": False,
-                                    "drum_fill": False,
-                                    "drum_solo": False,
-                                    "keys_leave_space": False,
-                                    "lead_sparse": False,
-                                    "target_member": "bass",
-                                    "rationale": "Make room.",
+                                    **_model_payload(
+                                        bass_simplify=True,
+                                        target_member="bass",
+                                        musician_reply="I'll lay back.",
+                                        musical_plan="Simplify the bass line.",
+                                        section_scope="whole song",
+                                        rationale="Make room.",
+                                    ),
                                 }
                             ),
                         }
@@ -141,6 +167,10 @@ class AiFeedbackTests(unittest.TestCase):
                 "keys_leave_space",
                 "lead_sparse",
                 "target_member",
+                "musician_reply",
+                "musical_plan",
+                "section_scope",
+                "confidence",
                 "rationale",
             },
         )
@@ -161,15 +191,14 @@ class AiFeedbackTests(unittest.TestCase):
                     {
                         "output_text": json.dumps(
                             {
-                                "bass_simplify": False,
-                                "bass_run": False,
-                                "drums_bigger": False,
-                                "drum_fill": False,
-                                "drum_solo": False,
-                                "keys_leave_space": False,
-                                "lead_sparse": True,
-                                "target_member": "lead",
-                                "rationale": "Lead should answer only.",
+                                **_model_payload(
+                                    lead_sparse=True,
+                                    target_member="lead",
+                                    musician_reply="I'll answer you, not cover you.",
+                                    musical_plan="Sparse lead answers after vocal lines.",
+                                    section_scope="vocal phrases",
+                                    rationale="Lead should answer only.",
+                                ),
                             }
                         )
                     }
@@ -224,6 +253,26 @@ def _sample_usage() -> dict[str, object]:
         "total_tokens": 1100,
         "input_tokens_details": {"cached_tokens": 100},
     }
+
+
+def _model_payload(**overrides: object) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "bass_simplify": False,
+        "bass_run": False,
+        "drums_bigger": False,
+        "drum_fill": False,
+        "drum_solo": False,
+        "keys_leave_space": False,
+        "lead_sparse": False,
+        "target_member": "bandleader",
+        "musician_reply": "I hear it.",
+        "musical_plan": "Make the closest conservative arrangement change.",
+        "section_scope": "whole song",
+        "confidence": 0.8,
+        "rationale": "Conservative cue mapping.",
+    }
+    payload.update(overrides)
+    return payload
 
 
 if __name__ == "__main__":

@@ -11,26 +11,28 @@ Instruction-following is the near-term target. Real-time audio listening is poss
 
 ## Feasible Near-Term Version
 
-The first usable version should be command/cue driven:
+The first usable version should be natural-instruction driven:
 
 - Deanna records or imports a human rhythm guitar/vocal guide.
-- REAPER has a script/action for writing band instructions.
-- Instructions are stored as a small JSON cue file.
+- REAPER has a script/action for talking to a band member or the whole band.
+- The spoken or typed instruction is stored as a small JSON cue file.
 - The Python generator reads the cue file.
-- The bandleader updates arrangement choices.
-- The generator rewrites selected MIDI parts.
+- The AI bandleader interprets musician-style language into current arrangement controls.
+- The generator rewrites selected MIDI parts from those controls.
 - REAPER imports or refreshes those parts.
 
 Example instructions:
 
 ```text
-make bass simpler
-drums bigger in chorus
-keys leave more space
-lead only answers vocal phrases
-mute percussion in verse
-make the bridge half-time
+bass player, lay back under my vocal
+walk me up into the chorus, nothing flashy
+drummer, set me up before the chorus
+give the drummer four bars
+keys, you're crowding the vocal
+lead guitar, answer me instead of talking over me
 ```
+
+The goal is not to make Deanna memorize control phrases. The goal is for the AI to hear a musical request, respond like a bandmate, and choose the closest playable move the current engine supports.
 
 ## Real-Time Listening Version
 
@@ -96,7 +98,7 @@ python -m ai_band.generate --mode ehaye --no-ai-rhythm-guitar --cue state/live_c
 
 ## Real AI Feedback Loop
 
-The first real AI integration is an optional bandleader interpreter. It reads the REAPER cue, asks an OpenAI model to map the instruction into generation controls, and falls back to the deterministic interpreter when no API key is available.
+The first real AI integration is an optional bandleader interpreter. It reads the REAPER cue, asks an OpenAI model to translate musician-style direction into generation controls, and falls back to the deterministic interpreter when no API key is available.
 
 Set the API key in the same PowerShell window where you will run AI Band:
 
@@ -124,7 +126,7 @@ python -m ai_band.respond --cue state/live_cue.json --force-ai --output examples
 
 This writes:
 
-- `state/last_ai_feedback.json`: the AI decision, selected controls, rationale, and budget estimate.
+- `state/last_ai_feedback.json`: the AI decision, selected controls, musician reply, musical plan, rationale, and budget estimate.
 - `examples/ai-feedback-response.mid`: the MIDI response to import into REAPER.
 
 Check AI Band's local estimated API spend:
@@ -147,7 +149,7 @@ The default model is `gpt-5.4-mini`, chosen as a lower-cost interpreter. Overrid
 $env:AI_BAND_OPENAI_MODEL = "gpt-5.5"
 ```
 
-Initial cue behavior:
+Current renderable response moves:
 
 - `simplify bass` makes the bass part sparser.
 - `bass run in chorus` adds audible bass walk-up/run notes in chorus transition spots.
@@ -157,12 +159,16 @@ Initial cue behavior:
 - `drum solo` adds a short solo-style drum feature in bridge/solo sections.
 - `lead answer the vocal` makes lead phrases sparser.
 
-When `--ai-feedback` is enabled, these same controls can be triggered by more natural instructions such as:
+When `--ai-feedback` is enabled, these same renderable moves can be triggered by natural instructions such as:
 
 - `the keys and lead are stepping on my vocal`
 - `make the drummer push the chorus harder`
 - `bass is too busy under the verse`
 - `lead guitar should answer me, not talk over me`
+- `walk me up into the chorus, bass player`
+- `drummer, set me up before the next section`
+
+After the run, open `state/last_ai_feedback.json` and check `musician_reply` plus `musical_plan`. Those fields are the bandmate-style explanation of what the AI heard and what it tried to make playable.
 
 ## Current Test Procedure
 

@@ -48,6 +48,17 @@ Interpret a REAPER live cue with real AI when `OPENAI_API_KEY` is set:
 python -m ai_band.ai_feedback --cue state/live_cue.json --force-ai
 ```
 
+With real AI enabled, the cue text can be musician language instead of computer commands:
+
+```text
+bass player, walk me up into the chorus
+drummer, set me up before the next section
+keys, you're stepping on my vocal
+lead guitar, answer me instead of talking over me
+```
+
+The interpreter writes a bandmate-style reply and plan to `state/last_ai_feedback.json`, then maps that intent onto the renderable controls the current MIDI engine can play.
+
 Generate from a REAPER live cue using the AI feedback interpreter:
 
 ```powershell
