@@ -33,6 +33,15 @@ class BuildPackageTests(unittest.TestCase):
         self.assertIn("ReaLimit", script)
         self.assertIn('SetMediaTrackInfo_Value(master, "D_VOL", 0.82)', script)
 
+    def test_live_cue_script_stamps_cues_to_timeline_track(self) -> None:
+        script = (build.REPO_ROOT / "Scripts" / "ai_band_write_live_cue.lua").read_text(encoding="utf-8")
+
+        self.assertIn("AI Live Cues", script)
+        self.assertIn("AddMediaItemToTrack", script)
+        self.assertIn("AddProjectMarker2", script)
+        self.assertIn("is_playing", script)
+        self.assertIn("cue_id", script)
+
     def test_status_and_handoff_docs_exist(self) -> None:
         for relative_path in ("docs/PROJECT_DASHBOARD.md", "docs/HANDOFF.md"):
             with self.subTest(path=relative_path):

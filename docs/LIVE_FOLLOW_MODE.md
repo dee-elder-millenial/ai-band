@@ -75,6 +75,8 @@ The cue file should include:
 - target member
 - intensity
 - project path when available
+- playback position and whether REAPER was playing
+- a cue id that can be matched to a visible timeline cue
 
 This is not full real-time listening yet, but it gives us the control surface for an AI band that follows direction while the project is open.
 
@@ -162,6 +164,9 @@ When `--ai-feedback` is enabled, these same controls can be triggered by more na
 ## Current Test Procedure
 
 1. In REAPER, run `ai_band_write_live_cue.lua` and enter a cue.
+   - The script writes `state/live_cue.json`.
+   - It also stamps the cue onto an `AI Live Cues` track at the current play position and adds a project marker.
+   - This can be done while playback is running; the cue position is captured when the prompt is submitted.
 2. In the PowerShell tab where `OPENAI_API_KEY` is set, run:
 
 ```powershell
