@@ -86,6 +86,26 @@ class GenerateMidiTests(unittest.TestCase):
             ],
         )
 
+    def test_funk_reggae_jam_preset_uses_upbeat_full_song_form(self) -> None:
+        song = create_default_song(key="A", scale="major", preset="funk-reggae-jam", tempo_bpm=104)
+
+        self.assertEqual(song.total_bars, 52)
+        self.assertEqual(song.preset, "funk-reggae-jam")
+        self.assertEqual(
+            [section.name for section in song.sections],
+            [
+                "Intro Groove",
+                "Verse Jam 1",
+                "Chorus Lift 1",
+                "Verse Jam 2",
+                "Breakdown",
+                "Guitar Skank Solo",
+                "Final Chorus",
+                "Outro Vamp",
+            ],
+        )
+        self.assertIn("G", [chord.symbol for chord in song.sections[1].chords])
+
     def test_tracks_include_phase1_band_members(self) -> None:
         _ticks_per_beat, _tempo_bpm, tracks = build_tracks()
 
@@ -667,6 +687,40 @@ class GenerateMidiTests(unittest.TestCase):
         self.assertTrue(any(start % 480 not in {0, 240, 360} for start in chord_blocks))
         self.assertLessEqual(max(chord_blocks.values()), 2)
         self.assertGreaterEqual(sum(1 for count in chord_blocks.values() if count == 1), 900)
+
+    def test_funk_reggae_jam_generates_syncopated_groove(self) -> None:
+        _ticks, _tempo, tracks = build_tracks(
+            preset="funk-reggae-jam",
+            key="A",
+            scale="major",
+            tempo_bpm=104,
+            rhythm_guitar_profile="internal-strum",
+        )
+        bandleader = next(track for track in tracks if track.name == "AI Bandleader")
+        drums = next(track for track in tracks if track.name == "AI Drummer")
+        bass = next(track for track in tracks if track.name == "AI Bass Player")
+        guitar = next(track for track in tracks if track.name == "AI Guitar Player")
+        keyboard = next(track for track in tracks if track.name == "AI Keyboard Player")
+        lead = next(track for track in tracks if track.name == "AI Lead Player")
+        percussion = next(track for track in tracks if track.name == "AI Percussion Extras")
+        bar_ticks = 480 * 4
+        offbeat_guitar = [note for note in guitar.notes if note.start % 480 in range(220, 265)]
+        syncopated_bass = [note for note in bass.notes if note.start % 480 not in {0, 240}]
+        one_drop_snares = [note for note in drums.notes if note.note == 38 and note.start % bar_ticks >= int(2.9 * 480)]
+        shaker_notes = [note for note in percussion.notes if note.note == 82]
+
+        self.assertTrue(any("Funk-reggae jam preset" in meta.text for meta in bandleader.metas))
+        self.assertGreaterEqual(len(drums.notes), 650)
+        self.assertGreaterEqual(len(bass.notes), 300)
+        self.assertGreaterEqual(len(syncopated_bass), 140)
+        self.assertGreaterEqual(len(guitar.notes), 600)
+        self.assertGreaterEqual(len(offbeat_guitar), 120)
+        self.assertEqual(keyboard.program, 17)
+        self.assertGreaterEqual(len(keyboard.notes), 250)
+        self.assertGreaterEqual(len(lead.notes), 60)
+        self.assertLessEqual(len(lead.notes), 120)
+        self.assertGreaterEqual(len(shaker_notes), 250)
+        self.assertGreaterEqual(len(one_drop_snares), 80)
 
 
 if __name__ == "__main__":

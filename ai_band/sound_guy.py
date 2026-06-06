@@ -38,6 +38,16 @@ def advise_sound_guy(
         settings = _set_mixer(settings, "AI Lead Player", volume=66, reverb_send=32, delay_send=16)
         mix_profile = "vocal-space"
         notes.append("Texas alt-country profile: slow pocket, vocal space, bass and drums as the floor.")
+    elif preset == "funk-reggae-jam":
+        settings = _with_feel(settings, groove=0.24, swing=0.12, velocity=0.32)
+        settings = _set_mixer(settings, "AI Drummer", volume=100, reverb_send=16)
+        settings = _set_mixer(settings, "AI Bass Player", volume=94, reverb_send=4)
+        settings = _set_mixer(settings, "AI Guitar Player", volume=80, reverb_send=24, delay_send=10)
+        settings = _set_mixer(settings, "AI Keyboard Player", volume=70, reverb_send=20, delay_send=8)
+        settings = _set_mixer(settings, "AI Lead Player", volume=72, reverb_send=26, delay_send=18)
+        settings = _set_mixer(settings, "AI Percussion Extras", volume=82, reverb_send=18)
+        mix_profile = "groove-forward"
+        notes.append("Funk-reggae jam profile: bass and drums forward, guitar chops bright, lead tucked into delay.")
 
     if _mentions_any(text, ("bass is killing it", "bass killing it", "love the bass", "bass is working")):
         settings = _set_mixer(settings, "AI Bass Player", volume=91, reverb_send=6)

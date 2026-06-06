@@ -80,6 +80,28 @@ def generate(song: SongState, simplify: bool = False, run_request: bool = False)
                 (0, root, held),
                 (2.5, fifth, short),
             )
+        elif song.preset == "funk-reggae-jam" and section.energy >= 0.85:
+            octave = root + 12
+            pattern = (
+                (0.00, root, short),
+                (0.75, root, short),
+                (1.25, flat_seventh, short),
+                (1.75, fifth, short),
+                (2.25, octave, short),
+                (2.75, fifth, short),
+                (3.25, flat_seventh, short),
+                (3.75, root, short),
+            )
+        elif song.preset == "funk-reggae-jam":
+            octave = root + 12
+            pattern = (
+                (0.00, root, long),
+                (0.75, root, short),
+                (1.50, flat_seventh, short),
+                (2.25, fifth, short),
+                (3.00, octave, short),
+                (3.50, fifth, short),
+            )
         elif section.energy >= 0.75:
             pattern = (
                 (0, root, long),
@@ -100,7 +122,17 @@ def generate(song: SongState, simplify: bool = False, run_request: bool = False)
         for beat, note, duration in pattern:
             if song.preset != "heartland-rock" and beat not in {0, 2.0} and support_rest(song, "bass", section.energy, local_bar, section.bars, beat):
                 continue
-            base_velocity = 59 if song.preset == "heartland-rock" else 54 if song.preset == "southern-blues" else 56 if song.preset == "texas-alt-country" else 60
+            base_velocity = (
+                59
+                if song.preset == "heartland-rock"
+                else 54
+                if song.preset == "southern-blues"
+                else 56
+                if song.preset == "texas-alt-country"
+                else 64
+                if song.preset == "funk-reggae-jam"
+                else 60
+            )
             accent = 6 if song.preset == "heartland-rock" and beat in {0, 2.0} else 4 if song.preset == "southern-blues" and beat == 0 else 0
             start = song.beat_tick(bar, beat)
             note_duration_ticks = duration
@@ -116,6 +148,10 @@ def generate(song: SongState, simplify: bool = False, run_request: bool = False)
                 note_velocity = min(clamp_midi(note_velocity + velocity_shift(bar, beat, 5) + bar_lift + _heartland_articulation_velocity(local_bar, beat)), 91)
                 if _should_add_dead_note(section.energy, local_bar, beat):
                     _add_dead_note(track, song, start, note, section.energy, bar, beat)
+            elif song.preset == "funk-reggae-jam":
+                start = max(pocket_start(song, bar, beat, 0.80) + groove_offset, song.bar_tick(bar))
+                note_duration_ticks = played_duration(song, duration, bar, beat, 0.35, note_duration(song, 0.12))
+                note_velocity = min(clamp_midi(note_velocity + velocity_shift(bar, beat, 6) + bar_lift), 96)
             else:
                 start = played_start(song, bar, beat, 0.55)
                 note_duration_ticks = played_duration(song, duration, bar, beat, 0.45, note_duration(song, 0.20))

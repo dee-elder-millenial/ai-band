@@ -67,12 +67,21 @@ Keep future memory/training work lightweight:
 
 ```text
 examples\ai-feedback-response.mid
+examples\sunshine-pocket-jam.mid
 examples\llano-county-rain.mid
 examples\factory-flag-thunder.mid
 examples\main-street-thunder.mid
 ```
 
 Generated MIDI is ignored by Git but lives in the cloud-mirror checkout for REAPER testing.
+
+Latest new jam:
+
+```powershell
+python -m ai_band.generate --preset funk-reggae-jam --title "Sunshine Pocket Jam" --style "upbeat funk reggae jam with fun guitar" --tempo 104 --key A --scale major --sound-guy --sound-note "real jam, funky lick, fun guitar, upbeat with a little reggae influence" --output examples/sunshine-pocket-jam.mid
+```
+
+`funk-reggae-jam` is an upbeat reusable preset with a syncopated bass hook, offbeat guitar chops, clav/organ-style keys, bright percussion, and short fun lead phrases.
 
 ## REAPER Test Procedure
 

@@ -17,6 +17,8 @@ def generate(song: SongState, sparse: bool = False) -> MidiTrack:
         return _generate_southern_blues(song, sparse=sparse)
     if song.preset in {"bluesy-alt-country", "texas-alt-country"}:
         return _generate_bluesy_alt_country(song, sparse=sparse)
+    if song.preset == "funk-reggae-jam":
+        return _generate_funk_reggae_jam(song, sparse=sparse)
 
     scale = scale_notes(song.key, song.scale, 5)
     hook = (0, 2, 4, 2, 5, 4, 2, 0)
@@ -112,6 +114,50 @@ def _generate_bluesy_alt_country(song: SongState, sparse: bool = False) -> MidiT
             _add_expression(track, start, duration, section.energy, bar, beat)
             if bend:
                 _add_bend(track, start, duration, LEAD_CHANNEL)
+
+    return track
+
+
+def _generate_funk_reggae_jam(song: SongState, sparse: bool = False) -> MidiTrack:
+    track = MidiTrack("AI Lead Player", channel=LEAD_CHANNEL, program=27)
+    scale = scale_notes(song.key, "major", 5)
+    high_scale = scale_notes(song.key, "major", 6)
+    answer_shapes = (
+        ((0.35, 0, 0.20, 54, False), (0.72, 2, 0.18, 49, False), (1.18, 4, 0.26, 58, True), (2.72, 2, 0.22, 50, False)),
+        ((1.05, 4, 0.18, 56, False), (1.48, 5, 0.18, 50, False), (2.15, 4, 0.28, 57, True), (3.05, 2, 0.18, 48, False)),
+        ((0.62, 2, 0.20, 52, False), (1.10, 0, 0.22, 49, False), (2.55, 5, 0.26, 59, True)),
+        ((1.35, 4, 0.18, 53, False), (1.78, 2, 0.18, 48, False), (2.35, 0, 0.30, 56, True), (3.35, 4, 0.16, 50, False)),
+    )
+
+    for section, bar, _chord in iter_section_bars(song):
+        local_bar = bar - section.start_bar
+        is_solo = section.name == "Guitar Skank Solo"
+        is_hook = section.name in {"Intro Groove", "Outro Vamp"} or section.name.startswith("Chorus") or section.name == "Final Chorus"
+        if not is_solo and not is_hook:
+            continue
+        if section.name == "Intro Groove" and local_bar not in {1, 3}:
+            continue
+        if is_hook and section.name not in {"Intro Groove", "Outro Vamp"} and local_bar % 2 == 0:
+            continue
+        if sparse and local_bar % 4 == 2:
+            continue
+
+        note_pool = high_scale if is_solo and local_bar % 3 == 0 else scale
+        lick = answer_shapes[local_bar % len(answer_shapes)]
+        if is_solo and local_bar % 2 == 0:
+            lick = lick + ((3.62, 7, 0.14, 62, False),)
+        bar_lift = section_lift(song, local_bar, section.bars, 3)
+        groove_offset = section_groove_offset(song, local_bar, section.bars, 0.60)
+        for index, (beat, degree, beats, base_velocity, bend) in enumerate(lick):
+            beat = _phrase_beat(beat, local_bar, index)
+            note = note_pool[_phrase_degree(degree, local_bar, index, len(note_pool), bend)]
+            start = max(pocket_start(song, bar, beat, 0.75) + groove_offset, song.bar_tick(bar))
+            duration = played_duration(song, note_duration(song, beats), bar, beat, 0.40, note_duration(song, 0.10))
+            note_velocity = played_velocity(clamp_midi(velocity(base_velocity, section.energy, bar_lift + index)), song, bar, beat, 2)
+            track.notes.append(MidiNote(start, duration, note, note_velocity, LEAD_CHANNEL))
+            _add_expression(track, start, duration, section.energy, bar, beat)
+            if bend:
+                _add_bend(track, start, duration, LEAD_CHANNEL, ((0.18, 180), (0.44, 320), (0.76, 0)))
 
     return track
 

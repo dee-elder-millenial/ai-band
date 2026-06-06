@@ -81,6 +81,31 @@ def generate(song: SongState) -> MidiTrack:
                     )
             continue
 
+        if song.preset == "funk-reggae-jam":
+            for beat in (0.5, 1.0, 1.5, 2.5, 3.0, 3.5):
+                if support_rest(song, "percussion", section.energy, local_bar, section.bars, beat):
+                    continue
+                track.notes.append(
+                    MidiNote(
+                        played_start(song, bar, beat, 0.85),
+                        duration,
+                        SHAKER,
+                        played_velocity(velocity(34, section.energy, bar_lift), song, bar, beat, 2),
+                        PERC_CHANNEL,
+                    )
+                )
+            for beat in (1.5, 3.5) if section.energy >= 0.80 else (3.5,):
+                track.notes.append(
+                    MidiNote(
+                        played_start(song, bar, beat, 0.95),
+                        duration,
+                        TAMBOURINE,
+                        played_velocity(velocity(48, section.energy, bar_lift), song, bar, beat, 2),
+                        PERC_CHANNEL,
+                    )
+                )
+            continue
+
         for sixteenth in range(16):
             beat = sixteenth * 0.25
             if support_rest(song, "percussion", section.energy, local_bar, section.bars, beat):

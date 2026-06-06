@@ -51,11 +51,32 @@ def generate(song: SongState, profile: str = "auto") -> MidiTrack:
             base_velocity = 40
             if section.name.startswith("Verse ") and local_bar % 2 == 1:
                 beats = (0, 2.5)
+        elif song.preset == "funk-reggae-jam":
+            voicing = (tones[1], tones[2], tones[0] + 12)
+            beats = (0.5, 1.5, 2.5, 3.5)
+            duration = note_duration(song, 0.22)
+            base_velocity = 46
 
         for beat in beats:
             if beat not in {0, 2.0} and support_rest(song, "guitar", section.energy, local_bar, section.bars, beat):
                 continue
-            if song.preset in {"heartland-rock", "southern-blues"}:
+            if song.preset == "funk-reggae-jam":
+                direction = "up" if int(beat * 2) % 2 else "down"
+                skank_voicing = _funk_reggae_skank_voicing(voicing, tones, local_bar, beat, section.energy)
+                _add_strum(
+                    track,
+                    song,
+                    bar,
+                    beat,
+                    skank_voicing,
+                    duration,
+                    base_velocity + bar_lift + _funk_reggae_velocity_shift(local_bar, beat),
+                    section.energy,
+                    direction,
+                    max(strum_gap, int(song.ticks_per_beat * 0.010)),
+                    played_start(song, bar, beat, 0.90) - song.beat_tick(bar, beat),
+                )
+            elif song.preset in {"heartland-rock", "southern-blues"}:
                 direction = "down" if beat in {0, 2.0, 2.5} else "up"
                 anchor_offset = (
                     _heartland_anchor_offset(song, bar, beat) + groove_offset
@@ -96,6 +117,8 @@ def generate(song: SongState, profile: str = "auto") -> MidiTrack:
                         )
                     )
 
+        if song.preset == "funk-reggae-jam" and section.energy >= 0.80 and local_bar % 4 in {1, 3}:
+            _add_funk_reggae_chuck(track, song, bar, local_bar, tones, section.energy, bar_lift)
         if song.preset in {"heartland-rock", "southern-blues"} and section.energy >= 0.75 and local_bar % 4 == 3:
             _add_strum(
                 track,
@@ -305,3 +328,49 @@ def _heartland_fill_voicing(tones: tuple[int, int, int], local_bar: int) -> tupl
     if local_bar % 8 in {3, 7}:
         return (root + 2, third, fifth, root + 12)
     return (third, fifth, root + 12)
+
+
+def _funk_reggae_skank_voicing(
+    voicing: tuple[int, ...],
+    tones: tuple[int, int, int],
+    local_bar: int,
+    beat: float,
+    energy: float,
+) -> tuple[int, ...]:
+    root, third, fifth = tones
+    if energy >= 0.88 and local_bar % 4 == 2:
+        return (third, fifth, root + 12, third + 12)
+    if int(beat * 2 + local_bar) % 3 == 0:
+        return (fifth, root + 12, third + 12)
+    return voicing
+
+
+def _funk_reggae_velocity_shift(local_bar: int, beat: float) -> int:
+    shape = (3, -4, 2, -2, 4, -3)
+    return shape[(local_bar + int(beat * 2)) % len(shape)]
+
+
+def _add_funk_reggae_chuck(
+    track: MidiTrack,
+    song: SongState,
+    bar: int,
+    local_bar: int,
+    tones: tuple[int, int, int],
+    energy: float,
+    bar_lift: int,
+) -> None:
+    voicing = (tones[1], tones[2], tones[0] + 12)
+    for index, beat in enumerate((3.68, 3.86)):
+        _add_strum(
+            track,
+            song,
+            bar,
+            beat,
+            voicing if index == 0 else tuple(reversed(voicing)),
+            note_duration(song, 0.10),
+            38 + bar_lift + index * 4,
+            energy,
+            "up",
+            max(1, int(song.ticks_per_beat * 0.008)),
+            played_start(song, bar, beat, 0.95) - song.beat_tick(bar, beat),
+        )

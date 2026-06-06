@@ -130,7 +130,7 @@ def _render_track(
     output = MidiTrack(
         name=track.name,
         channel=track.channel,
-        program=preset.program if preset.program is not None else track.program,
+        program=track.program if track.program is not None else preset.program,
         metas=list(track.metas or ()),
         events=list(track.events or ()),
     )

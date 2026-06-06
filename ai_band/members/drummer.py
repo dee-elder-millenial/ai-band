@@ -49,18 +49,25 @@ def generate(song: SongState, bigger: bool = False, fill_request: bool = False, 
             kick_base = 88
             snare_base = 86
             hat_base = 58
+        elif song.preset == "funk-reggae-jam":
+            kick_beats = (0, 2.5, 3.5) if not energetic else (0, 1.75, 2.5, 3.25, 3.75)
+            kick_base = 94
+            snare_base = 92
+            hat_base = 62
         else:
             kick_beats = (0, 2.5) if not energetic else (0, 1.5, 2.5, 3.5)
             kick_base = 88
             snare_base = 86
             hat_base = 58
-        snare_beats = (1, 3)
+        snare_beats = (3,) if song.preset == "funk-reggae-jam" and not energetic else (1, 3)
 
         for eighth in range(8):
             beat = eighth * 0.5
             if song.preset in {"bluesy-alt-country", "southern-blues"} and eighth in {1, 5} and section.energy < 0.75:
                 continue
             if song.preset == "texas-alt-country" and eighth in {1, 3, 5, 7} and section.energy < 0.70:
+                continue
+            if song.preset == "funk-reggae-jam" and not energetic and eighth in {0, 4}:
                 continue
             if eighth not in {0, 2, 4, 6} and support_rest(song, "hat", section.energy, local_bar, section.bars, beat):
                 continue
@@ -89,6 +96,17 @@ def generate(song: SongState, bigger: bool = False, fill_request: bool = False, 
                     note_velocity = min(122, played_velocity(note_velocity + bar_lift, song, bar, beat, 1))
                 track.notes.append(
                     MidiNote(start, hat_duration, RIDE, note_velocity, DRUM_CHANNEL)
+                )
+        if song.preset == "funk-reggae-jam" and energetic:
+            for beat in (1.0, 2.0, 3.0):
+                track.notes.append(
+                    MidiNote(
+                        played_start(song, bar, beat, 0.80),
+                        note_duration(song, 0.12),
+                        OPEN_HAT,
+                        min(118, played_velocity(velocity(66, section.energy, bar_lift), song, bar, beat, 2)),
+                        DRUM_CHANNEL,
+                    )
                 )
 
         for beat in kick_beats:
@@ -121,6 +139,8 @@ def generate(song: SongState, bigger: bool = False, fill_request: bool = False, 
 
         if song.preset == "heartland-rock":
             _add_heartland_ghosts(track, song, bar, local_bar, section.energy, bar_lift)
+        elif song.preset == "funk-reggae-jam":
+            _add_funk_reggae_ghosts(track, song, bar, local_bar, section.energy, bar_lift)
         elif transition_pickup(section.energy, local_bar, section.bars):
             _add_transition_pickup(track, song, bar, local_bar, section.energy)
 
@@ -272,3 +292,18 @@ def _add_heartland_ghosts(
 def _heartland_ghost_duration(song: SongState, local_bar: int, beat: float) -> int:
     shape = (0.085, 0.100, 0.115, 0.095)
     return note_duration(song, shape[(local_bar + int(beat * 4)) % len(shape)])
+
+
+def _add_funk_reggae_ghosts(track: MidiTrack, song: SongState, bar: int, local_bar: int, energy: float, bar_lift: int) -> None:
+    if energy < 0.60:
+        return
+    shapes = (
+        ((0.75, -8), (2.25, -6), (2.75, -5)),
+        ((1.50, -9), (2.75, -4), (3.50, -7)),
+        ((0.75, -7), (1.75, -8), (2.75, -4)),
+        ((1.25, -9), (2.25, -6), (3.25, -5)),
+    )
+    for beat, accent in shapes[local_bar % len(shapes)]:
+        start = played_start(song, bar, beat, 0.90)
+        note_velocity = min(64, played_velocity(velocity(36, energy, accent + bar_lift), song, bar, beat, 2))
+        track.notes.append(MidiNote(start, note_duration(song, 0.10), SNARE, note_velocity, DRUM_CHANNEL))

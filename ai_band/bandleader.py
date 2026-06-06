@@ -202,6 +202,43 @@ def create_default_song(
             Section("Final Chorus", 52, 12, 0.78, chorus),
             Section("Outro", 64, 4, 0.42, verse[:4]),
         )
+    elif preset == "funk-reggae-jam":
+        verse = (
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 10, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 9, "minor"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 7, "major"),
+            _chord_from_degree(key, 0, "major"),
+        )
+        chorus = (
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 7, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 0, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 9, "minor"),
+            _chord_from_degree(key, 10, "major"),
+            _chord_from_degree(key, 7, "major"),
+        )
+        breakdown = (
+            _chord_from_degree(key, 9, "minor"),
+            _chord_from_degree(key, 7, "major"),
+            _chord_from_degree(key, 5, "major"),
+            _chord_from_degree(key, 0, "major"),
+        )
+        sections = (
+            Section("Intro Groove", 0, 4, 0.66, verse[:4]),
+            Section("Verse Jam 1", 4, 8, 0.72, verse),
+            Section("Chorus Lift 1", 12, 8, 0.88, chorus),
+            Section("Verse Jam 2", 20, 8, 0.76, verse),
+            Section("Breakdown", 28, 4, 0.58, breakdown),
+            Section("Guitar Skank Solo", 32, 8, 0.92, chorus),
+            Section("Final Chorus", 40, 8, 0.94, chorus),
+            Section("Outro Vamp", 48, 4, 0.70, verse[:4]),
+        )
     else:
         progression = default_progression(key, scale)
         sections = (

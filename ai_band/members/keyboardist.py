@@ -10,7 +10,7 @@ KEYS_CHANNEL = 2
 
 
 def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
-    track = MidiTrack("AI Keyboard Player", channel=KEYS_CHANNEL, program=66 if song.preset == "heartland-rock" else 4)
+    track = MidiTrack("AI Keyboard Player", channel=KEYS_CHANNEL, program=66 if song.preset == "heartland-rock" else 17 if song.preset == "funk-reggae-jam" else 4)
 
     for section, bar, chord in iter_section_bars(song):
         local_bar = bar - section.start_bar
@@ -50,6 +50,10 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
             voicing = (tones[0], tones[1])
             beats = (2.5,)
             duration = note_duration(song, 1.0)
+        elif song.preset == "funk-reggae-jam":
+            voicing = (tones[1], tones[2], tones[0] + 12)
+            beats = (1.0, 2.0, 3.0)
+            duration = note_duration(song, 0.20)
 
         if section.energy >= 0.75:
             voicing = (tones[1], tones[2] + 12)
@@ -76,6 +80,10 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
                 voicing = (tones[0], tones[2])
                 beats = (1.0, 3.0)
                 duration = note_duration(song, 0.55)
+            elif song.preset == "funk-reggae-jam":
+                voicing = (tones[0], tones[1], tones[2])
+                beats = (0.75, 1.5, 2.25, 3.0)
+                duration = note_duration(song, 0.18)
         if leave_space:
             beats = (beats[0],)
             duration = min(duration, note_duration(song, 0.8))
@@ -83,7 +91,13 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
         for beat in beats:
             if support_rest(song, "keys", section.energy, local_bar, section.bars, beat):
                 continue
-            note_voicing = _heartland_color_voicing(voicing, tones, local_bar, beat) if song.preset == "heartland-rock" else voicing
+            note_voicing = (
+                _heartland_color_voicing(voicing, tones, local_bar, beat)
+                if song.preset == "heartland-rock"
+                else _funk_reggae_color_voicing(voicing, tones, local_bar, beat)
+                if song.preset == "funk-reggae-jam"
+                else voicing
+            )
             for note in note_voicing:
                 start = song.beat_tick(bar, beat)
                 note_duration_ticks = duration
@@ -101,6 +115,8 @@ def generate(song: SongState, leave_space: bool = False) -> MidiTrack:
                 )
                 if song.preset == "heartland-rock":
                     _add_heartland_sax_expression(track, start, note_duration_ticks, bar, beat)
+                elif song.preset == "funk-reggae-jam":
+                    _add_expression(track, start, note_duration_ticks, min(1.0, section.energy + 0.08), bar, beat)
                 else:
                     _add_expression(track, start, note_duration_ticks, section.energy, bar, beat)
 
@@ -124,6 +140,20 @@ def _heartland_color_voicing(
         return (root + 12, root + 14)
     if len(voicing) > 1 and (local_bar + int(beat * 2)) % 6 == 3:
         return (third + 12, root + 17)
+    return voicing
+
+
+def _funk_reggae_color_voicing(
+    voicing: tuple[int, ...],
+    tones: tuple[int, int, int],
+    local_bar: int,
+    beat: float,
+) -> tuple[int, ...]:
+    root, third, fifth = tones
+    if (local_bar + int(beat * 4)) % 4 == 1:
+        return (third, fifth)
+    if (local_bar + int(beat * 4)) % 5 == 3:
+        return (fifth, root + 12, third + 12)
     return voicing
 
 

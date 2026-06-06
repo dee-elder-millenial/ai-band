@@ -122,6 +122,8 @@ def compose_tracks(
                 "REAPER audition hint: run ai_band_apply_audition_mix.lua; try lead-back if lead crowds, warmer-room if dry, drums-forward if groove disappears.",
             )
         )
+    if preset == "funk-reggae-jam":
+        markers.metas.append(MidiMeta(0, "text", "Funk-reggae jam preset: syncopated bass lick, offbeat guitar chops, clav/organ stabs, bright percussion, upbeat pocket."))
     if sound_guy is not None:
         markers.metas.append(MidiMeta(0, "text", f"AI Sound Guy: mix={sound_guy.mix_profile}, rhythm_guitar={sound_guy.rhythm_guitar_profile}"))
 
@@ -179,7 +181,11 @@ def main() -> None:
     parser.add_argument("--tempo", type=int, default=108, help="Tempo in beats per minute")
     parser.add_argument("--key", default="A", choices=("C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"))
     parser.add_argument("--scale", default="minor", choices=("major", "minor"))
-    parser.add_argument("--preset", default="default", choices=("default", "bluesy-alt-country", "texas-alt-country", "southern-blues", "heartland-rock"))
+    parser.add_argument(
+        "--preset",
+        default="default",
+        choices=("default", "bluesy-alt-country", "texas-alt-country", "southern-blues", "heartland-rock", "funk-reggae-jam"),
+    )
     parser.add_argument(
         "--mode",
         default="full-band",

@@ -109,6 +109,12 @@ Generate a harder-rocking heartland-rock audition song:
 python -m ai_band.generate --preset heartland-rock --title "Main Street Thunder" --style "heartland hard rock" --tempo 118 --key E --scale major --output examples/main-street-thunder.mid
 ```
 
+Generate an upbeat funk-reggae jam with a syncopated bass lick and offbeat guitar chops:
+
+```powershell
+python -m ai_band.generate --preset funk-reggae-jam --title "Sunshine Pocket Jam" --style "upbeat funk reggae jam with fun guitar" --tempo 104 --key A --scale major --sound-guy --sound-note "real jam, funky lick, fun guitar, upbeat with a little reggae influence" --output examples/sunshine-pocket-jam.mid
+```
+
 Generate a copy with stronger performance rendering feel:
 
 ```powershell
